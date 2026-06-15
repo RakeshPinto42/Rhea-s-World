@@ -14,9 +14,9 @@
   // ===== CONFIG =====
   const WORKER_URL = ""; // e.g. "https://rhea-interview-proxy.xxx.workers.dev" — empty = local mode
   window.RHEA_WORKER_URL = WORKER_URL; // shared with interview.html for secure chat
-  const ACCOUNTS = {     // used only in local mode
-    "rhea":  { pass: "admin@123",   role: "admin" },
-    "guest": { pass: "powerbi2026", role: "user"  }
+  const ACCOUNTS = {     // used only in local mode (ignored once WORKER_URL is set)
+    "rhea":  { pass: "kK8wigglqp0H", role: "admin" },
+    "guest": { pass: "reZaT1rkWGWz", role: "user"  }
   };
   const SKEY = "rhea_site_session";
 
