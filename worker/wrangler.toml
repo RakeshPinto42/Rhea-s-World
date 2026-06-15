@@ -1,0 +1,16 @@
+name = "rhea-interview-proxy"
+main = "src/worker.js"
+compatibility_date = "2024-11-01"
+
+# Non-secret config (safe to commit). Secrets are set separately — see README.
+[vars]
+ALLOWED_ORIGIN   = "*"                         # set to your site origin in prod, e.g. https://rhea.pages.dev
+DEFAULT_PROVIDER = "openrouter"                # openrouter | gemini | groq
+OPENROUTER_MODEL = "openai/gpt-oss-20b:free"
+GEMINI_MODEL     = "gemini-2.0-flash"
+GROQ_MODEL       = "llama-3.3-70b-versatile"
+
+# Secrets (DO NOT put here — set with `wrangler secret put`):
+#   AUTH_SECRET      random signing key
+#   USERS_JSON       {"rhea":{"hash":"<sha256>","role":"admin"},"guest":{"hash":"<sha256>","role":"user"}}
+#   OPENROUTER_KEY   (and/or GEMINI_KEY / GROQ_KEY)

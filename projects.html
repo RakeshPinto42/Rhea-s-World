@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; Project Lab (Kaggle builds)</title>
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f4f5f7;--panel:#fff;--ink:#1b2230;--muted:#5d6677;--faint:#8a93a3;
+    --line:#e3e7ee;--accent:#c8a200;--accent-2:#0a6c74;--green:#157347;--red:#b42318;--amber:#9a6b00;--violet:#6d4bd8;
+    --code-bg:#1c2230;--code-ink:#e8edf5;--shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px -8px rgba(20,30,50,.18);
+  }
+  [data-theme="dark"]{
+    --bg:#0f1218;--panel:#161b24;--ink:#e8edf5;--muted:#9aa4b4;--faint:#6b7484;
+    --line:#252c38;--accent:#e3bf3a;--accent-2:#3fb6bf;--violet:#9a7cff;--code-bg:#0b0e14;--code-ink:#e8edf5;--shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -10px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
+
+  header{position:sticky;top:0;z-index:30;background:var(--panel);border-bottom:1px solid var(--line)}
+  .bar{max-width:1240px;margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:14px}
+  .logo{font-weight:700;font-size:1rem;display:flex;align-items:center;gap:10px}
+  .logo .mark{width:26px;height:26px;border-radius:7px;background:var(--accent);display:grid;place-items:center;color:#1b1500;font-weight:700;font-size:.85rem}
+  .logo small{display:block;font-weight:400;font-size:.7rem;color:var(--muted)}
+  .bar .spacer{flex:1}
+  .ghost-link{color:var(--muted);text-decoration:none;font-size:.84rem;font-weight:500}
+  .ghost-link:hover{color:var(--ink)}
+  .toggle{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.8rem;font-weight:500}
+
+  .layout{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:256px 1fr}
+  @media(max-width:900px){.layout{grid-template-columns:1fr}.toc{display:none!important}}
+  .toc{position:sticky;top:57px;align-self:start;height:calc(100vh - 57px);overflow-y:auto;padding:22px 14px 60px;border-right:1px solid var(--line)}
+  .toc .grp{font-size:.68rem;text-transform:uppercase;letter-spacing:.09em;color:var(--faint);font-weight:700;margin:16px 10px 6px}
+  .toc a{display:block;padding:7px 10px;border-radius:8px;color:var(--muted);text-decoration:none;font-size:.84rem;border-left:2px solid transparent}
+  .toc a:hover{color:var(--ink);background:var(--bg)}
+  .toc a.active{color:var(--accent-2);border-left-color:var(--accent);background:var(--bg);font-weight:600}
+  [data-theme="dark"] .toc a.active{color:var(--accent)}
+
+  .content{padding:34px 40px 120px;min-width:0}
+  @media(max-width:900px){.content{padding:24px 20px 80px}}
+  .content h1{font-size:1.95rem;margin-bottom:6px}
+  .lead{color:var(--muted);font-size:1.02rem;margin-bottom:26px;max-width:780px}
+
+  .proj{margin-bottom:34px;scroll-margin-top:74px;background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);overflow:hidden}
+  .proj-head{padding:20px 24px;border-bottom:1px solid var(--line);background:linear-gradient(180deg,rgba(200,162,0,.05),transparent)}
+  .proj-head .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .proj-head h2{font-size:1.3rem}
+  .badge{font-family:"IBM Plex Mono";font-size:.66rem;text-transform:uppercase;letter-spacing:.05em;font-weight:600;padding:3px 9px;border-radius:6px}
+  .b-hard{background:rgba(180,35,24,.12);color:var(--red)}
+  .b-exp{background:linear-gradient(135deg,#7c5cff,#b42378);color:#fff}
+  .b-domain{background:rgba(10,108,116,.12);color:var(--accent-2)}
+  [data-theme="dark"] .b-domain{background:rgba(63,182,191,.16);color:var(--accent-2)}
+  .proj-head .ds{font-family:"IBM Plex Mono";font-size:.82rem;color:var(--muted)}
+  .proj-head .ds b{color:var(--ink)}
+  .proj-head .ds code{background:rgba(0,0,0,.06);padding:2px 7px;border-radius:5px;font-size:.92em}
+  [data-theme="dark"] .proj-head .ds code{background:rgba(255,255,255,.08)}
+
+  .proj-body{padding:8px 24px 22px}
+  .proj-body h3{font-size:.95rem;margin:18px 0 7px;color:var(--accent-2);display:flex;align-items:center;gap:8px}
+  [data-theme="dark"] .proj-body h3{color:var(--accent)}
+  .proj-body h3 .e{font-size:1.05rem}
+  .proj-body p{margin-bottom:10px;max-width:840px}
+  .proj-body ul{margin:0 0 12px 20px;max-width:840px}.proj-body li{margin-bottom:5px}
+  code.inl{background:rgba(0,0,0,.06);padding:2px 6px;border-radius:5px;font-family:"IBM Plex Mono";font-size:.85em}
+  [data-theme="dark"] code.inl{background:rgba(255,255,255,.08)}
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:13px 15px;overflow-x:auto;font-family:"IBM Plex Mono";font-size:.8rem;line-height:1.6;margin:0 0 12px;max-width:840px}
+  pre .k{color:#e3bf3a}pre .f{color:#7fd3df}pre .c{color:#6b7484}pre .s{color:#9cd67f}
+  .pillrow{display:flex;flex-wrap:wrap;gap:7px;margin:4px 0 6px}
+  .pill{font-size:.74rem;padding:4px 11px;border-radius:99px;background:var(--bg);border:1px solid var(--line);color:var(--muted)}
+  .stretch{border-left:3px solid var(--violet);background:var(--bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:6px 0 4px;font-size:.92rem}
+  .pitch{border-left:3px solid var(--green);background:var(--bg);border-radius:0 8px 8px 0;padding:10px 14px;margin:6px 0 4px;font-size:.92rem}
+  .pitch b,.stretch b{display:block;margin-bottom:2px}
+
+  .callout{border-left:3px solid var(--accent);background:var(--panel);border-radius:0 10px 10px 0;padding:13px 16px;margin:0 0 22px;max-width:840px;box-shadow:var(--shadow);font-size:.93rem}
+  .callout b{display:block;margin-bottom:3px}
+  a.anchor{color:var(--accent-2);text-decoration:none;font-weight:600}
+
+  /* ===== 100-project catalog ===== */
+  .cat-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:6px 0 14px;position:sticky;top:57px;background:var(--bg);padding:10px 0;z-index:10}
+  .cat-search{flex:1;min-width:200px;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 12px}
+  .cat-search input{border:none;background:none;outline:none;color:var(--ink);font-family:inherit;font-size:.9rem;padding:11px 0;width:100%}
+  .cat-controls select{font-family:inherit;font-size:.84rem;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:10px 12px;cursor:pointer}
+  .cat-count{font-family:"IBM Plex Mono";font-size:.78rem;color:var(--faint)}
+  .cat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}
+  @media(max-width:760px){.cat-grid{grid-template-columns:1fr}}
+  .pc{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:15px 16px;box-shadow:var(--shadow);transition:border-color .2s}
+  .pc:hover{border-color:var(--accent)}
+  .pc .top{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+  .pc .no{font-family:"IBM Plex Mono";font-size:.74rem;color:var(--faint)}
+  .pc h4{font-size:.98rem;font-weight:600;flex:1;min-width:60%}
+  .pc .tags{display:flex;gap:6px;flex-wrap:wrap;margin:4px 0 8px}
+  .pc .t{font-family:"IBM Plex Mono";font-size:.64rem;text-transform:uppercase;letter-spacing:.04em;padding:2px 8px;border-radius:6px;font-weight:600}
+  .pc .t.dom{background:rgba(10,108,116,.12);color:var(--accent-2)}
+  [data-theme="dark"] .pc .t.dom{background:rgba(63,182,191,.16)}
+  .pc .t.lv-Intermediate{background:rgba(154,107,0,.14);color:var(--amber)}
+  .pc .t.lv-Advanced{background:rgba(180,35,24,.12);color:var(--red)}
+  .pc .t.lv-Expert{background:linear-gradient(135deg,#7c5cff,#b42378);color:#fff}
+  .pc .ds{font-family:"IBM Plex Mono";font-size:.74rem;color:var(--muted);margin-bottom:8px}
+  .pc .ds code{background:rgba(0,0,0,.06);padding:1px 6px;border-radius:4px}
+  [data-theme="dark"] .pc .ds code{background:rgba(255,255,255,.08)}
+  .pc .ap{font-size:.86rem;color:var(--ink);display:none;border-top:1px dashed var(--line);padding-top:9px;margin-top:4px}
+  .pc.open .ap{display:block}
+  .pc .more{font-size:.78rem;color:var(--accent-2);cursor:pointer;font-weight:600;user-select:none}
+  .pc .more:hover{text-decoration:underline}
+  .progress{position:fixed;top:0;left:0;height:3px;background:var(--accent);z-index:40;width:0}
+  ::selection{background:var(--accent);color:#1b1500}
+</style>
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<header>
+  <div class="bar">
+    <div class="logo"><span class="mark">R</span><div>Project Lab<small>Replicate real Kaggle builds &middot; senior level</small></div></div>
+    <span class="spacer"></span>
+    <a class="ghost-link" href="learn.html">Handbook</a>
+    <a class="ghost-link" href="study.html">Question bank</a>
+    <a class="ghost-link" href="interview.html">AI tutor</a>
+    <a class="ghost-link" href="index.html">Rhea&rsquo;s World</a>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <div class="grp">Start here</div>
+    <a href="#how">How to use this</a>
+    <div class="grp">Portfolio projects</div>
+    <a href="#olist">1 &middot; E-commerce (Olist)</a>
+    <a href="#rfm">2 &middot; RFM &amp; cohorts</a>
+    <a href="#churn">3 &middot; Telco churn</a>
+    <a href="#hr">4 &middot; HR attrition</a>
+    <a href="#forecast">5 &middot; Retail forecasting</a>
+    <a href="#supply">6 &middot; Supply chain SLA</a>
+    <a href="#f1">7 &middot; Formula 1 analytics</a>
+    <a href="#bigdata">8 &middot; Big-data perf lab</a>
+    <div class="grp">Browse 100</div>
+    <a href="#catalog">100-project catalog</a>
+    <div class="grp">Finish</div>
+    <a href="#checklist">Delivery checklist</a>
+  </nav>
+
+  <main class="content">
+    <h1>The Project Lab</h1>
+    <p class="lead">Eight end-to-end Power BI builds on real <b>Kaggle</b> datasets, each scoped for an 8-year senior &mdash; multi-fact models, advanced DAX, performance, RLS, forecasting. Replicate them, then put the best 3 on your resume &amp; portfolio.</p>
+
+    <section id="how">
+      <div class="callout"><b>How to run each project</b>
+        1) Download the dataset from Kaggle (search the name shown). 2) Shape in Power Query, build a <b>star schema</b>. 3) Write the listed DAX. 4) Design the report. 5) Do the <b>senior twist</b> &amp; a <b>stretch goal</b>. 6) Validate vs source, then write a 3-line README: problem &rarr; what you built &rarr; impact. Practice the <span style="color:var(--green)">interview pitch</span> out loud with the <a class="anchor" href="interview.html">AI tutor</a>.
+      </div>
+    </section>
+
+    <!-- 1 OLIST -->
+    <section class="proj" id="olist">
+      <div class="proj-head">
+        <div class="row"><span class="badge b-exp">Expert</span><span class="badge b-domain">E-commerce</span><h2>1 &middot; Brazilian E-Commerce analytics</h2></div>
+        <div class="ds">Dataset: <b>Olist Brazilian E-Commerce</b> &mdash; Kaggle <code>olistbr/brazilian-ecommerce</code> (~100k orders, 9 related tables)</div>
+      </div>
+      <div class="proj-body">
+        <h3><span class="e">&#127919;</span> Business problem</h3>
+        <p>A marketplace wants one view of order economics: revenue, delivery performance, seller quality, and customer satisfaction &mdash; across products, sellers, and Brazilian regions.</p>
+        <h3><span class="e">&#129518;</span> Why it&rsquo;s senior</h3>
+        <p>9 normalized tables force real modeling: orders, order_items, products, sellers, customers, payments, reviews, geolocation, category translation. You must collapse to a clean star, handle a fact at <b>order-item grain</b>, and a separate payments fact &mdash; a genuine multi-fact model.</p>
+        <h3><span class="e">&#129521;</span> Model</h3>
+        <ul>
+          <li><b>Facts:</b> <code class="inl">FactOrderItems</code> (item grain: price, freight), <code class="inl">FactPayments</code> (payment grain).</li>
+          <li><b>Dims:</b> Date, Customer (+ geolocation), Seller (+ geolocation), Product (+ English category via translation table).</li>
+          <li>Two facts share Date &amp; Order dimensions &mdash; never relate fact-to-fact.</li>
+        </ul>
+        <h3><span class="e">&#9889;</span> Key DAX</h3>
+        <pre><span class="f">On-Time Delivery %</span> =
+<span class="k">VAR</span> Delivered = <span class="k">CALCULATE</span>(<span class="f">COUNTROWS</span>(Orders),
+   <span class="k">NOT</span> <span class="f">ISBLANK</span>(Orders[delivered_date]))
+<span class="k">RETURN</span> <span class="k">DIVIDE</span>(
+   <span class="k">CALCULATE</span>(<span class="f">COUNTROWS</span>(Orders),
+     Orders[delivered_date] &lt;= Orders[estimated_date]), Delivered)
+
+<span class="f">Avg Delivery Days</span> =
+<span class="k">AVERAGEX</span>(Orders,
+   <span class="f">DATEDIFF</span>(Orders[purchase_date], Orders[delivered_date], DAY))</pre>
+        <div class="pillrow"><span class="pill">multi-fact star</span><span class="pill">order-item grain</span><span class="pill">geo maps</span><span class="pill">delivery SLA</span><span class="pill">review scores</span></div>
+        <div class="stretch"><b>&#128640; Senior twist</b>Add <b>RLS by seller</b> (a seller sees only their orders) via a dynamic role + <code class="inl">USERPRINCIPALNAME()</code> mapping. Add a <b>p95 delivery time</b> measure with <code class="inl">PERCENTILEX.INC</code> &mdash; averages hide the late tail.</div>
+        <div class="pitch"><b>&#128172; Interview pitch</b>"I modeled 9 Olist tables into a two-fact star (order-items + payments) sharing conformed dimensions, built delivery-SLA and review measures, and secured it with per-seller RLS. The map + p95 lead time exposed which states drove late deliveries."</div>
+      </div>
+    </section>
+
+    <!-- 2 RFM -->
+    <section class="proj" id="rfm">
+      <div class="proj-head">
+        <div class="row"><span class="badge b-exp">Expert</span><span class="badge b-domain">Retail / CRM</span><h2>2 &middot; RFM segmentation &amp; cohort retention</h2></div>
+        <div class="ds">Dataset: <b>Online Retail II (UCI)</b> &mdash; Kaggle <code>mashlyn/online-retail-ii-uci</code> (~1M invoice lines, 2009&ndash;2011)</div>
+      </div>
+      <div class="proj-body">
+        <h3><span class="e">&#127919;</span> Business problem</h3>
+        <p>Segment customers by value and behavior (RFM), measure retention by acquisition cohort, and estimate customer lifetime value to target marketing.</p>
+        <h3><span class="e">&#129518;</span> Why it&rsquo;s senior</h3>
+        <p>RFM and cohort retention are pure <b>advanced DAX</b> &mdash; virtual tables, dynamic segmentation, and a cohort matrix built without a physical cohort column. This is where mid-level developers stall.</p>
+        <h3><span class="e">&#9889;</span> Key DAX</h3>
+        <pre><span class="c">-- Recency / Frequency / Monetary per customer</span>
+<span class="f">Recency Days</span> =
+<span class="k">VAR</span> Last = <span class="k">CALCULATE</span>(<span class="f">MAX</span>(Sales[InvoiceDate]))
+<span class="k">RETURN</span> <span class="f">DATEDIFF</span>(Last, <span class="f">MAX</span>('Date'[Date]), DAY)
+
+<span class="c">-- dynamic segment using a disconnected band table + TREATAS</span>
+<span class="f">Segment Sales</span> =
+<span class="k">CALCULATE</span>([Total Sales],
+  <span class="f">TREATAS</span>(<span class="f">VALUES</span>(Bands[Segment]), Customer[Segment]))</pre>
+        <p>Build the cohort matrix: rows = acquisition month, columns = months-since-first-purchase, values = retained customers / cohort size.</p>
+        <div class="pillrow"><span class="pill">RFM</span><span class="pill">cohort matrix</span><span class="pill">CLV</span><span class="pill">virtual tables</span><span class="pill">dynamic segmentation</span></div>
+        <div class="stretch"><b>&#128640; Senior twist</b>Build a <b>what-if parameter</b> for "discount %" and model its effect on projected CLV. Add a <b>field parameter</b> so users swap R, F, or M on the axis.</div>
+        <div class="pitch"><b>&#128172; Interview pitch</b>"I computed RFM scores in DAX, segmented customers via a disconnected band table with TREATAS, and built a cohort-retention matrix entirely in measures &mdash; no physical cohort column. CLV + a what-if discount slider made it actionable for marketing."</div>
+      </div>
+    </section>
+
+    <!-- 3 CHURN -->
+    <section class="proj" id="churn">
+      <div class="proj-head">
+        <div class="row"><span class="badge b-hard">Hard</span><span class="badge b-domain">Telecom</span><h2>3 &middot; Telco customer churn</h2></div>
+        <div class="ds">Dataset: <b>Telco Customer Churn</b> &mdash; Kaggle <code>blastchar/telco-customer-churn</code> (~7k customers, 21 fields)</div>
+      </div>
+      <div class="proj-body">
+        <h3><span class="e">&#127919;</span> Business problem</h3>
+        <p>Find who churns and why. Quantify churn rate, revenue at risk, and the drivers (contract type, tenure, services) so retention can act.</p>
+        <h3><span class="e">&#9889;</span> Key DAX</h3>
+        <pre><span class="f">Churn Rate</span> =
+<span class="k">DIVIDE</span>(<span class="k">CALCULATE</span>(<span class="f">COUNTROWS</span>(Customers), Customers[Churn]="Yes"),
+        <span class="f">COUNTROWS</span>(Customers))
+
+<span class="f">Revenue at Risk</span> =
+<span class="k">CALCULATE</span>(<span class="f">SUM</span>(Customers[MonthlyCharges]), Customers[Churn]="Yes")</pre>
+        <h3><span class="e">&#128202;</span> Report</h3>
+        <p>Use the <b>Key Influencers</b> and <b>Decomposition Tree</b> AI visuals to surface drivers, tenure cohorts, and a churn-by-contract matrix.</p>
+        <div class="pillrow"><span class="pill">churn KPIs</span><span class="pill">Key Influencers</span><span class="pill">decomposition tree</span><span class="pill">what-if</span></div>
+        <div class="stretch"><b>&#128640; Senior twist</b>Score churn <b>probability upstream</b> (Python/sklearn or Fabric notebook), load it as a column, and band customers into risk tiers in DAX &mdash; show the BI layer consuming an ML output.</div>
+        <div class="pitch"><b>&#128172; Interview pitch</b>"I built churn-rate and revenue-at-risk measures, used Key Influencers to rank drivers (month-to-month contracts dominated), and fed a model-scored churn probability into risk tiers &mdash; turning a dashboard into a targeting tool."</div>
+      </div>
+    </section>
+
+    <!-- 4 HR -->
+    <section class="proj" id="hr">
+      <div class="proj-head">
+        <div class="row"><span class="badge b-hard">Hard</span><span class="badge b-domain">HR</span><h2>4 &middot; HR attrition &amp; hierarchy RLS</h2></div>
+        <div class="ds">Dataset: <b>IBM HR Analytics Employee Attrition</b> &mdash; Kaggle <code>pavansubhasht/ibm-hr-analytics-attrition-dataset</code> (~1.5k employees)</div>
+      </div>
+      <div class="proj-body">
+        <h3><span class="e">&#127919;</span> Business problem</h3>
+        <p>HR wants attrition rate by department, role, and satisfaction &mdash; and each manager should see only their org.</p>
+        <h3><span class="e">&#129518;</span> Why it&rsquo;s senior</h3>
+        <p>The standout skill here is <b>organizational-hierarchy RLS</b> with <code class="inl">PATH</code> / <code class="inl">PATHCONTAINS</code>, plus field parameters for flexible analysis.</p>
+        <h3><span class="e">&#9889;</span> Key DAX</h3>
+        <pre><span class="f">HierPath</span> = <span class="f">PATH</span>(Employee[EmpID], Employee[ManagerID])
+
+<span class="c">-- RLS role filter: manager sees their whole subtree</span>
+<span class="f">PATHCONTAINS</span>(Employee[HierPath],
+  <span class="f">LOOKUPVALUE</span>(Employee[EmpID], Employee[Email], <span class="f">USERPRINCIPALNAME</span>()))
+
+<span class="f">Attrition %</span> =
+<span class="k">DIVIDE</span>(<span class="k">CALCULATE</span>(<span class="f">COUNTROWS</span>(Employee), Employee[Attrition]="Yes"),
+        <span class="f">COUNTROWS</span>(Employee))</pre>
+        <div class="pillrow"><span class="pill">hierarchy RLS</span><span class="pill">PATH/PATHCONTAINS</span><span class="pill">field parameters</span><span class="pill">attrition KPIs</span></div>
+        <div class="stretch"><b>&#128640; Senior twist</b>Add a <b>field parameter</b> letting HR swap the breakdown dimension (Department / JobRole / Education) on one chart, and a <b>tornado</b> view of attrition drivers.</div>
+        <div class="pitch"><b>&#128172; Interview pitch</b>"I flattened the org with PATH and built dynamic hierarchy RLS so a manager sees their entire reporting tree from one role. Field parameters let HR re-slice attrition without me building ten charts."</div>
+      </div>
+    </section>
+
+    <!-- 5 FORECAST -->
+    <section class="proj" id="forecast">
+      <div class="proj-head">
+        <div class="row"><span class="badge b-exp">Expert</span><span class="badge b-domain">Retail / Finance</span><h2>5 &middot; Retail sales forecasting &amp; time intelligence</h2></div>
+        <div class="ds">Dataset: <b>Rossmann Store Sales</b> &mdash; Kaggle <code>rossmann-store-sales</code> (~1M rows, 1,115 stores) &middot; or <b>Walmart M5</b></div>
+      </div>
+      <div class="proj-body">
+        <h3><span class="e">&#127919;</span> Business problem</h3>
+        <p>Forecast store sales, compare actual vs prior year &amp; vs forecast, and analyze the impact of promotions, holidays, and store type.</p>
+        <h3><span class="e">&#129518;</span> Why it&rsquo;s senior</h3>
+        <p>Deep <b>time intelligence</b>, a store hierarchy, and the architecture decisions: <b>incremental refresh</b> design on ~1M rows and <b>calculation groups</b> so you don&rsquo;t write YTD/PY/YoY for every measure.</p>
+        <h3><span class="e">&#9889;</span> Key DAX</h3>
+        <pre><span class="f">Sales PY</span> = <span class="k">CALCULATE</span>([Sales], <span class="f">SAMEPERIODLASTYEAR</span>('Date'[Date]))
+<span class="f">Sales YTD</span> = <span class="k">TOTALYTD</span>([Sales], 'Date'[Date])
+<span class="f">Sales 4W MA</span> =
+<span class="k">VAR</span> W = <span class="f">DATESINPERIOD</span>('Date'[Date], <span class="f">MAX</span>('Date'[Date]), -28, DAY)
+<span class="k">RETURN</span> <span class="k">CALCULATE</span>(<span class="f">AVERAGEX</span>(<span class="f">VALUES</span>('Date'[Date]), [Sales]), W)</pre>
+        <p>Use the line chart&rsquo;s built-in <b>Analytics &rarr; Forecast</b> with confidence bands; compare to actuals.</p>
+        <div class="pillrow"><span class="pill">time intelligence</span><span class="pill">calculation groups</span><span class="pill">incremental refresh</span><span class="pill">forecast visual</span><span class="pill">promo analysis</span></div>
+        <div class="stretch"><b>&#128640; Senior twist</b>Build <b>calculation groups</b> in Tabular Editor (Current / PY / YoY% / YTD) applied to any measure via one slicer. Document the <b>incremental refresh</b> policy (RangeStart/RangeEnd, last 12 months hot).</div>
+        <div class="pitch"><b>&#128172; Interview pitch</b>"I built a full time-intelligence model with calculation groups &mdash; one slicer switches Current/PY/YoY across every measure &mdash; and designed incremental refresh so only recent partitions reload. Forecast bands + promo flags explained the spikes."</div>
+      </div>
+    </section>
+
+    <!-- 6 SUPPLY -->
+    <section class="proj" id="supply">
+      <div class="proj-head">
+        <div class="row"><span class="badge b-hard">Hard</span><span class="badge b-domain">Supply chain</span><h2>6 &middot; Supply chain &amp; logistics SLA</h2></div>
+        <div class="ds">Dataset: <b>DataCo Smart Supply Chain</b> &mdash; Kaggle <code>shashwatwork/dataco-smart-supply-chain-for-big-data-analysis</code> (~180k orders)</div>
+      </div>
+      <div class="proj-body">
+        <h3><span class="e">&#127919;</span> Business problem</h3>
+        <p>Track delivery performance, late-shipment risk, profit per order, and where the supply chain leaks margin or time.</p>
+        <h3><span class="e">&#9889;</span> Key DAX</h3>
+        <pre><span class="f">Late Delivery %</span> =
+<span class="k">DIVIDE</span>(<span class="k">CALCULATE</span>(<span class="f">COUNTROWS</span>(Orders), Orders[LateRisk]=1),
+        <span class="f">COUNTROWS</span>(Orders))
+
+<span class="f">P95 Shipping Days</span> =
+<span class="f">PERCENTILEX.INC</span>(Orders,
+   <span class="f">DATEDIFF</span>(Orders[OrderDate], Orders[ShipDate], DAY), 0.95)</pre>
+        <h3><span class="e">&#128202;</span> Report</h3>
+        <p>Geo map of late-shipment hotspots, profit waterfall by category, and an SLA scorecard. Mention you&rsquo;d use <b>p95/p99</b>, not averages, for SLAs.</p>
+        <div class="pillrow"><span class="pill">SLA scorecard</span><span class="pill">percentile DAX</span><span class="pill">profit waterfall</span><span class="pill">geo hotspots</span></div>
+        <div class="stretch"><b>&#128640; Senior twist</b>Add a <b>bridge table</b> for the many-to-many between orders and shipping carriers/routes, and a drill-through page to a single order&rsquo;s timeline.</div>
+        <div class="pitch"><b>&#128172; Interview pitch</b>"I built an SLA scorecard on p95 shipping time rather than averages, mapped late-delivery hotspots, and used a profit waterfall to show where margin leaked &mdash; the kind of view a logistics lead acts on weekly."</div>
+      </div>
+    </section>
+
+    <!-- 7 F1 -->
+    <section class="proj" id="f1">
+      <div class="proj-head">
+        <div class="row"><span class="badge b-exp">Expert</span><span class="badge b-domain">Sports</span><h2>7 &middot; Formula 1 analytics (relational depth)</h2></div>
+        <div class="ds">Dataset: <b>F1 World Championship 1950&ndash;2020</b> &mdash; Kaggle <code>rohanrao/formula-1-world-championship-1950-2020</code> (13 related tables)</div>
+      </div>
+      <div class="proj-body">
+        <h3><span class="e">&#127919;</span> Business problem</h3>
+        <p>Driver &amp; constructor standings over time, head-to-head comparisons, circuit performance, and pit-stop efficiency.</p>
+        <h3><span class="e">&#129518;</span> Why it&rsquo;s senior</h3>
+        <p>13 interrelated tables (races, results, drivers, constructors, circuits, lap_times, pit_stops, qualifying) &mdash; great for showing <b>relationship design</b>, <b>role-playing</b> handling, and ranking DAX over a big relational set.</p>
+        <h3><span class="e">&#9889;</span> Key DAX</h3>
+        <pre><span class="f">Driver Points</span> = <span class="f">SUM</span>(Results[points])
+<span class="f">Driver Rank</span> =
+<span class="k">RANKX</span>(<span class="f">ALL</span>(Drivers[name]), [Driver Points], , <span class="k">DESC</span>, Dense)
+<span class="f">Avg Pit Stop (s)</span> =
+<span class="k">AVERAGEX</span>(PitStops, PitStops[milliseconds]) / 1000</pre>
+        <div class="pillrow"><span class="pill">13-table model</span><span class="pill">RANKX</span><span class="pill">season trends</span><span class="pill">head-to-head</span><span class="pill">drill-through</span></div>
+        <div class="stretch"><b>&#128640; Senior twist</b>Build a <b>dynamic head-to-head</b> page using two disconnected driver slicers + measures with <code class="inl">SELECTEDVALUE</code> + <code class="inl">TREATAS</code> to compare any two drivers across seasons.</div>
+        <div class="pitch"><b>&#128172; Interview pitch</b>"I modeled 13 F1 tables, built ranking measures with RANKX, and a dynamic head-to-head comparison using disconnected slicers and TREATAS &mdash; it showed I can tame a complex relational model and still keep DAX clean."</div>
+      </div>
+    </section>
+
+    <!-- 8 BIG DATA -->
+    <section class="proj" id="bigdata">
+      <div class="proj-head">
+        <div class="row"><span class="badge b-exp">Expert</span><span class="badge b-domain">Performance</span><h2>8 &middot; Big-data performance lab</h2></div>
+        <div class="ds">Dataset: <b>NYC Yellow Taxi</b> (tens of millions of rows) or <b>US Accidents</b> &mdash; Kaggle <code>sobhanmoosavi/us-accidents</code> (~7.7M rows)</div>
+      </div>
+      <div class="proj-body">
+        <h3><span class="e">&#127919;</span> Goal</h3>
+        <p>Not a pretty report &mdash; a <b>performance engineering</b> project. Take millions of rows and make a model that&rsquo;s small, fast, and refreshable.</p>
+        <h3><span class="e">&#129518;</span> What you practice</h3>
+        <ul>
+          <li><b>Cardinality reduction</b>: split DateTime into Date + Time, drop precise lat/long precision, remove unused columns &mdash; measure size in <b>VertiPaq Analyzer</b>.</li>
+          <li><b>Aggregation tables</b>: pre-summarize by date+zone; verify the engine hits the agg.</li>
+          <li><b>Incremental refresh</b>: partition by date so only recent data reloads.</li>
+          <li><b>DAX tuning</b>: read <b>Server Timings</b> in DAX Studio; kill CallbackDataID; SE vs FE.</li>
+          <li><b>Composite model</b>: import dims + DirectQuery/agg the giant fact.</li>
+        </ul>
+        <div class="pillrow"><span class="pill">VertiPaq Analyzer</span><span class="pill">aggregations</span><span class="pill">incremental refresh</span><span class="pill">DAX Studio</span><span class="pill">composite model</span></div>
+        <div class="stretch"><b>&#128640; Senior twist</b>Document a <b>before/after</b>: model size (e.g. 3.1 GB &rarr; 780 MB) and a slow visual&rsquo;s DAX time (e.g. 4.2s &rarr; 0.4s). That single slide wins senior interviews.</div>
+        <div class="pitch"><b>&#128172; Interview pitch</b>"I took a 7.7M-row dataset, cut the model ~75% through cardinality work and encoding, added aggregation tables and incremental refresh, and used DAX Studio server timings to drop a key visual from 4s to under half a second."</div>
+      </div>
+    </section>
+
+    <!-- ===== 100 CATALOG ===== -->
+    <section id="catalog" style="scroll-margin-top:74px">
+      <h1 style="margin-top:10px">100+ curated projects</h1>
+      <p class="lead">A browsable bank of 100 Power BI / data projects across every domain &mdash; each with a real Kaggle dataset and a one-look <b>approach (the answer)</b>. Filter by domain or level, search a skill, click <b>approach</b> to reveal how to build it.</p>
+      <div class="cat-controls">
+        <label class="cat-search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+          <input id="cSearch" placeholder="Search: churn, RFM, forecast, RLS, fraud, cohort, geospatial..." />
+        </label>
+        <select id="cDom"><option value="">All domains</option></select>
+        <select id="cLvl"><option value="">All levels</option><option>Intermediate</option><option>Advanced</option><option>Expert</option></select>
+        <span class="cat-count" id="cCount"></span>
+      </div>
+      <div class="cat-grid" id="cGrid"></div>
+    </section>
+
+    <!-- CHECKLIST -->
+    <section class="proj" id="checklist">
+      <div class="proj-head"><div class="row"><span class="badge b-domain">Finish</span><h2>Delivery checklist (every project)</h2></div></div>
+      <div class="proj-body">
+        <ul>
+          <li>&#9744; Clean <b>star schema</b>, dedicated <b>Date</b> table marked as date table.</li>
+          <li>&#9744; Measures named &amp; organized in display folders; no stray calculated columns.</li>
+          <li>&#9744; Numbers <b>validated</b> against a source SQL/COUNT.</li>
+          <li>&#9744; At least one <b>senior twist</b> (RLS / calc groups / aggregations / what-if).</li>
+          <li>&#9744; Report is focused: clear titles, consistent color, mobile layout.</li>
+          <li>&#9744; <b>README</b>: problem &rarr; data &rarr; what you built &rarr; impact (with numbers).</li>
+          <li>&#9744; Published to a workspace; refresh works; <b>.pbip</b> committed to GitHub.</li>
+          <li>&#9744; You can <b>explain every layer</b> and pitch it in 30 seconds.</li>
+        </ul>
+        <div class="callout"><b>Portfolio tip</b>Pick your <b>3 strongest</b> (e.g. Olist multi-fact, RFM/cohort, big-data perf lab) for the resume &mdash; they show modeling, advanced DAX, and performance, which is exactly the senior trifecta interviewers probe.</div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  const tBtn=document.getElementById('themeBtn');
+  function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('rhea_theme',t);tBtn.innerHTML=t==='dark'?'&#9728; Light':'&#9789; Dark';}
+  tBtn.onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+  setTheme(localStorage.getItem('rhea_theme')||'light');
+
+  const prog=document.getElementById('prog');
+  addEventListener('scroll',()=>{const h=document.documentElement;prog.style.width=(h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';});
+
+  const links=[...document.querySelectorAll('.toc a')], map={};
+  links.forEach(a=>map[a.getAttribute('href').slice(1)]=a);
+  const spy=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){links.forEach(l=>l.classList.remove('active'));map[e.target.id]?.classList.add('active');}});},{rootMargin:'-15% 0px -75% 0px'});
+  document.querySelectorAll('section[id]').forEach(s=>spy.observe(s));
+
+  /* ===================== 100 PROJECT CATALOG ===================== */
+  // t=title d=domain l=level ds=dataset(kaggle) s=skills a=approach/answer
+  const CAT=[
+  {t:"Superstore sales overview",d:"Retail",l:"Intermediate",ds:"vivek468/superstore-dataset-final",s:"star schema, KPIs, time intel",a:"Build a Date dim + star schema; measures for Sales, Profit, YoY with SAMEPERIODLASTYEAR; profit-ratio by category and a regional map."},
+  {t:"E-commerce funnel & conversion",d:"E-commerce",l:"Advanced",ds:"olistbr/brazilian-ecommerce",s:"funnel, multi-fact, conversion",a:"Stage events (visit→cart→order→paid) as a funnel; conversion = DIVIDE(stage, prior stage); cohort by first order month."},
+  {t:"RFM customer segmentation",d:"Retail",l:"Expert",ds:"mashlyn/online-retail-ii-uci",s:"RFM, TREATAS, segmentation",a:"Compute Recency/Frequency/Monetary per customer in DAX; score 1-5 each; segment via a disconnected band table + TREATAS; CLV projection."},
+  {t:"Cohort retention matrix",d:"Retail",l:"Expert",ds:"mashlyn/online-retail-ii-uci",s:"cohort, virtual tables",a:"Rows=acquisition month, cols=months-since-first; retained = DISTINCTCOUNT customers active in offset month / cohort size, all in measures."},
+  {t:"Market basket analysis",d:"Retail",l:"Advanced",ds:"acostasg/instacart",s:"association, basket, support/lift",a:"Pre-compute item-pair support/confidence/lift upstream (Python apriori); load as a fact; visualize top associations in a matrix."},
+  {t:"Inventory & stock-out tracker",d:"Retail",l:"Advanced",ds:"felixzhao/productdemandforecasting",s:"semi-additive, closing stock",a:"Closing stock = CALCULATE(SUM(Qty), LASTNONBLANK(Date)); flag stock-outs; reorder-point KPI; days-of-cover."},
+  {t:"Sales target vs actual",d:"Retail",l:"Intermediate",ds:"vivek468/superstore-dataset-final",s:"what-if, gauge, variance",a:"Disconnected target table at month grain; Variance% = DIVIDE(Actual-Target,Target); KPI cards + gauge; conditional formatting."},
+  {t:"Returns & refund analysis",d:"Retail",l:"Intermediate",ds:"vivek468/superstore-dataset-final",s:"ratio measures, drill",a:"Return rate = returned orders / total; analyze by category/region/reason; drill-through to a product detail page."},
+
+  {t:"Telco customer churn",d:"Telecom",l:"Advanced",ds:"blastchar/telco-customer-churn",s:"churn KPIs, Key Influencers",a:"Churn rate + revenue-at-risk measures; Key Influencers + Decomposition Tree visuals; tenure cohorts; contract-type matrix."},
+  {t:"Network performance & outages",d:"Telecom",l:"Advanced",ds:"(search) telecom network kpi",s:"SLA, percentile, time",a:"Uptime %, p95 latency with PERCENTILEX.INC, outage MTTR; geo map of tower health; alert thresholds."},
+  {t:"ARPU & plan migration",d:"Telecom",l:"Intermediate",ds:"blastchar/telco-customer-churn",s:"ARPU, segmentation",a:"ARPU = revenue / active subs; analyze upgrade/downgrade flows; revenue by plan and contract."},
+
+  {t:"Credit card fraud detection BI",d:"Banking",l:"Expert",ds:"mlg-ulb/creditcardfraud",s:"imbalanced, anomaly, ML output",a:"Score fraud probability upstream; BI shows flagged-txn rate, precision/recall tradeoff, fraud-amount trend, false-positive cost."},
+  {t:"Loan default risk dashboard",d:"Banking",l:"Advanced",ds:"wordsforthewise/lending-club",s:"risk bands, cohort",a:"Default rate by grade/term/purpose; vintage curves; exposure-at-risk; RLS by branch."},
+  {t:"Bank marketing campaign",d:"Banking",l:"Intermediate",ds:"janiobachmann/bank-marketing-dataset",s:"conversion, drivers",a:"Subscription rate by contact, month, job; Key Influencers for who converts; call-duration buckets."},
+  {t:"Retail banking transactions 360",d:"Banking",l:"Advanced",ds:"(search) bank transactions dataset",s:"customer 360, spend",a:"Spend categories, balance trends, channel mix; customer-360 drill-through; anomaly flags on large txns."},
+  {t:"Insurance claims analytics",d:"Insurance",l:"Advanced",ds:"(search) insurance claims dataset",s:"loss ratio, fraud flag",a:"Loss ratio = claims/premium; claim frequency & severity; fraud-suspicion flags; geographic risk heatmap."},
+  {t:"Health insurance cost drivers",d:"Insurance",l:"Intermediate",ds:"mirichoi0218/insurance",s:"drivers, what-if",a:"Charges by age/BMI/smoker/region; Key Influencers; what-if for smoker-quit savings; correlation scatter."},
+
+  {t:"HR attrition & hierarchy RLS",d:"HR",l:"Expert",ds:"pavansubhasht/ibm-hr-analytics-attrition-dataset",s:"PATH RLS, field params",a:"Attrition% measures; PATH/PATHCONTAINS dynamic RLS so a manager sees their subtree; field parameters to swap breakdown dim."},
+  {t:"Recruitment funnel & time-to-hire",d:"HR",l:"Intermediate",ds:"(search) recruitment dataset",s:"funnel, SLA",a:"Stages applied→screen→interview→offer→hire; conversion per stage; avg time-to-hire with DATEDIFF; source effectiveness."},
+  {t:"Employee performance & comp",d:"HR",l:"Intermediate",ds:"rhuebner/human-resources-data-set",s:"distribution, pay equity",a:"Performance distribution; pay-equity by gender/dept (median, not mean); tenure vs rating scatter."},
+  {t:"Workforce diversity dashboard",d:"HR",l:"Intermediate",ds:"rhuebner/human-resources-data-set",s:"composition, trend",a:"Headcount composition by gender/ethnicity/level over time; representation gaps; hiring vs attrition by group."},
+
+  {t:"Hospital readmission analysis",d:"Healthcare",l:"Advanced",ds:"brandao/diabetes",s:"readmission rate, cohort",a:"30-day readmission rate by diagnosis/age; cohort by admission type; comorbidity drivers; RLS by facility."},
+  {t:"Patient flow & bed occupancy",d:"Healthcare",l:"Advanced",ds:"(search) hospital admissions dataset",s:"occupancy, time series",a:"Occupancy % = occupied/total beds (semi-additive snapshot); ALOS = avg length of stay; peak-load by hour/day."},
+  {t:"COVID-19 tracker",d:"Healthcare",l:"Intermediate",ds:"imdevskp/corona-virus-report",s:"time series, geo, rolling",a:"Cases/deaths trends, 7-day rolling avg with DATESINPERIOD, choropleth map, per-capita normalization."},
+  {t:"Heart disease risk explorer",d:"Healthcare",l:"Intermediate",ds:"johnsmith88/heart-disease-dataset",s:"risk factors, correlation",a:"Prevalence by age/sex/cholesterol; Key Influencers; risk-factor scatter; what-if on modifiable factors."},
+  {t:"Pharma sales & rep performance",d:"Healthcare",l:"Advanced",ds:"(search) pharma sales dataset",s:"territory, target",a:"Sales by territory/product; rep vs target; market-share by region; RLS by rep."},
+
+  {t:"Supply chain SLA scorecard",d:"Supply Chain",l:"Advanced",ds:"shashwatwork/dataco-smart-supply-chain-for-big-data-analysis",s:"percentile SLA, profit",a:"Late-delivery % and p95 shipping days (PERCENTILEX.INC); profit waterfall; late-hotspot map; carrier bridge table."},
+  {t:"Procurement & spend analysis",d:"Supply Chain",l:"Intermediate",ds:"(search) procurement spend dataset",s:"spend cube, savings",a:"Spend by category/supplier; maverick-spend %; savings vs contract price; supplier concentration risk."},
+  {t:"Demand forecasting",d:"Supply Chain",l:"Expert",ds:"felixzhao/productdemandforecasting",s:"forecast, calc groups",a:"Time-intel with calculation groups (Current/PY/YoY); forecast visual with bands; backtest MAPE; incremental refresh design."},
+  {t:"Logistics route efficiency",d:"Supply Chain",l:"Advanced",ds:"(search) logistics delivery dataset",s:"geo, cost-per-mile",a:"Cost-per-mile, on-time %, idle time; route map; bottleneck analysis; drill to single-shipment timeline."},
+  {t:"Warehouse picking productivity",d:"Supply Chain",l:"Intermediate",ds:"(search) warehouse operations dataset",s:"throughput, utilization",a:"Picks/hour, order-cycle time, utilization; shift comparison; backlog trend."},
+
+  {t:"Marketing campaign ROI",d:"Marketing",l:"Advanced",ds:"(search) marketing campaign dataset",s:"ROAS, attribution",a:"ROAS = revenue/spend by channel/campaign; CAC, CPL; multi-touch attribution loaded as fact; what-if budget reallocation."},
+  {t:"Web analytics (GA-style)",d:"Marketing",l:"Advanced",ds:"(search) google analytics sample",s:"sessions, funnel, bounce",a:"Sessions, bounce rate, conversion funnel; channel acquisition; new vs returning; landing-page performance."},
+  {t:"Email campaign performance",d:"Marketing",l:"Intermediate",ds:"(search) email marketing dataset",s:"open/CTR, A/B",a:"Open/click rates, A/B lift, unsubscribe trend; best send-time heatmap; segment performance."},
+  {t:"Social media engagement",d:"Social Media",l:"Intermediate",ds:"(search) social media engagement",s:"engagement rate, trend",a:"Engagement rate = interactions/reach; post-type performance; best-time heatmap; follower growth."},
+  {t:"Sentiment analysis dashboard",d:"Social Media",l:"Advanced",ds:"kazanova/sentiment140",s:"NLP output, trend",a:"Score sentiment upstream (Python); BI shows sentiment trend, topic breakdown, positive/negative drivers, brand mentions."},
+  {t:"Influencer/YouTube analytics",d:"Media",l:"Intermediate",ds:"(search) youtube trending dataset",s:"trend, engagement",a:"Views/likes/comments ratios; trending category mix; publish-time analysis; channel comparison."},
+
+  {t:"Netflix content analysis",d:"Media",l:"Intermediate",ds:"shivamb/netflix-shows",s:"catalog, unpivot, text",a:"Titles by type/genre/country/year; growth over time; rating mix; split multi-genre via Power Query."},
+  {t:"Movie box office & ratings",d:"Media",l:"Intermediate",ds:"rounakbanik/the-movies-dataset",s:"relational, ROI",a:"Revenue vs budget ROI; genre performance; rating vs revenue scatter; franchise rollups."},
+  {t:"Spotify music trends",d:"Media",l:"Intermediate",ds:"(search) spotify dataset",s:"audio features, clustering",a:"Popularity vs audio features (danceability, energy); genre profiles; decade trends; what-if on feature filters."},
+  {t:"Gaming/Steam analytics",d:"Media",l:"Advanced",ds:"(search) steam games dataset",s:"engagement, price",a:"Playtime distribution, price vs ownership, genre revenue, review-score drivers."},
+
+  {t:"Stock market dashboard",d:"Markets",l:"Advanced",ds:"(search) stock market dataset",s:"time series, moving avg",a:"Candlestick-style trend, 20/50-day MA via DATESINPERIOD, volatility, sector heatmap, portfolio P&L."},
+  {t:"Crypto market tracker",d:"Markets",l:"Advanced",ds:"(search) cryptocurrency historical",s:"volatility, correlation",a:"Price trends, rolling volatility, correlation matrix across coins, market-cap dominance, drawdown."},
+  {t:"Portfolio performance",d:"Markets",l:"Advanced",ds:"(search) portfolio returns dataset",s:"returns, risk",a:"Cumulative return (running total), Sharpe-style risk/return, allocation drift, benchmark vs portfolio."},
+  {t:"Forex rates analysis",d:"Markets",l:"Intermediate",ds:"(search) forex dataset",s:"time series, pct change",a:"Rate trends, daily % change with LAG-equivalent (previous date), currency-pair comparison, volatility bands."},
+
+  {t:"Airbnb listings explorer",d:"Travel",l:"Advanced",ds:"(search) inside airbnb / nyc-airbnb",s:"geo, pricing, occupancy",a:"Price by neighborhood/room-type; occupancy proxy; geospatial map; price-driver Key Influencers; host concentration."},
+  {t:"Flight delay analysis",d:"Travel",l:"Advanced",ds:"usdot/flight-delays",s:"large data, perf, delay",a:"On-time %, avg delay by carrier/airport/route; cause breakdown; big-data perf (cardinality + aggregations)."},
+  {t:"Hotel booking & cancellations",d:"Travel",l:"Advanced",ds:"jessemostipak/hotel-booking-demand",s:"cancellation, ADR",a:"Cancellation rate drivers; ADR (avg daily rate), RevPAR; lead-time analysis; seasonality."},
+  {t:"Tourism & visitor trends",d:"Travel",l:"Intermediate",ds:"(search) tourism statistics dataset",s:"trend, geo",a:"Arrivals by origin/season; YoY growth; spend-per-visitor; choropleth map."},
+
+  {t:"Uber/taxi demand (NYC)",d:"Transport",l:"Expert",ds:"(search) nyc taxi trip data",s:"big data, geo, time",a:"Trips by hour/zone; demand heatmap; surge windows; performance lab (split datetime, aggregations, incremental refresh)."},
+  {t:"Public transit ridership",d:"Transport",l:"Intermediate",ds:"(search) transit ridership dataset",s:"time series, peak",a:"Ridership by line/hour/day; peak-load; on-time performance; YoY recovery."},
+  {t:"EV charging usage",d:"Transport",l:"Intermediate",ds:"(search) ev charging dataset",s:"utilization, time",a:"Session count, energy delivered, station utilization %, peak-time heatmap, dwell time."},
+  {t:"Road accident hotspots",d:"Transport",l:"Expert",ds:"sobhanmoosavi/us-accidents",s:"7.7M rows, geo, perf",a:"Accident density map, severity by weather/time, big-data tuning (VertiPaq Analyzer, agg tables, DAX Studio)."},
+
+  {t:"Energy consumption analytics",d:"Energy",l:"Advanced",ds:"(search) household power consumption",s:"time series, load",a:"Load curves by hour/season, peak demand, anomaly detection on usage spikes, cost modeling with what-if tariff."},
+  {t:"Renewable generation dashboard",d:"Energy",l:"Advanced",ds:"(search) solar wind generation dataset",s:"forecast, mix",a:"Generation mix, capacity factor, forecast vs actual with bands, weather correlation."},
+  {t:"Smart meter analytics",d:"Energy",l:"Expert",ds:"(search) smart meter dataset",s:"big data, profiling",a:"Per-meter load profiles, cardinality reduction, aggregation tables, anomaly/theft flags."},
+  {t:"Carbon emissions tracker",d:"Environment",l:"Intermediate",ds:"(search) co2 emissions dataset",s:"trend, per-capita",a:"Emissions by country/sector, per-capita normalization, YoY change, target-gap vs Paris pledges."},
+  {t:"Air quality monitoring",d:"Environment",l:"Intermediate",ds:"(search) air quality dataset",s:"time series, AQI",a:"AQI trends by city, pollutant breakdown, seasonal patterns, threshold-exceedance days."},
+  {t:"Weather impact on sales",d:"Environment",l:"Advanced",ds:"(search) weather + sales",s:"merge, correlation",a:"Merge weather to sales in Power Query; correlate temp/precip with category sales; what-if scenario planning."},
+
+  {t:"Real estate price analysis",d:"Real Estate",l:"Advanced",ds:"(search) house prices dataset",s:"pricing drivers, geo",a:"Price per sqft by area, price-driver Key Influencers, geospatial map, time-on-market, what-if renovation ROI."},
+  {t:"Rental yield dashboard",d:"Real Estate",l:"Intermediate",ds:"(search) rental listings dataset",s:"yield, comparison",a:"Gross/net yield by area, rent vs price, vacancy proxy, neighborhood comparison."},
+  {t:"Mortgage portfolio",d:"Real Estate",l:"Advanced",ds:"(search) mortgage dataset",s:"risk, amortization",a:"LTV bands, delinquency rate, interest income, prepayment trend, RLS by region."},
+
+  {t:"Student performance analytics",d:"Education",l:"Intermediate",ds:"spscientist/students-performance-in-exams",s:"distribution, drivers",a:"Score distribution by gender/prep/parental-ed; Key Influencers; pass-rate; subject correlation."},
+  {t:"E-learning engagement",d:"Education",l:"Advanced",ds:"(search) online course / MOOC dataset",s:"funnel, completion",a:"Enrollment→active→completion funnel; completion drivers; drop-off lesson; cohort retention."},
+  {t:"University admissions",d:"Education",l:"Intermediate",ds:"mohansacharya/graduate-admissions",s:"prediction, correlation",a:"Admit probability vs GRE/GPA/research; correlation; what-if score sliders; score-band admit rates."},
+  {t:"School district performance",d:"Education",l:"Intermediate",ds:"(search) school performance dataset",s:"benchmarking, geo",a:"Test scores vs funding, district map, equity gaps, YoY improvement ranking."},
+
+  {t:"Manufacturing OEE",d:"Manufacturing",l:"Advanced",ds:"(search) manufacturing oee dataset",s:"OEE, downtime",a:"OEE = Availability×Performance×Quality; downtime Pareto; defect rate; line comparison; shift analysis."},
+  {t:"Predictive maintenance BI",d:"Manufacturing",l:"Expert",ds:"(search) predictive maintenance dataset",s:"ML output, failure",a:"Surface model failure-probability; remaining-useful-life bands; sensor-trend tooltips; alert thresholds."},
+  {t:"Quality control / defects",d:"Manufacturing",l:"Intermediate",ds:"(search) defect dataset",s:"Pareto, SPC",a:"Defect Pareto, defect rate by line/shift, control-limit flags, root-cause matrix."},
+  {t:"Production planning",d:"Manufacturing",l:"Advanced",ds:"(search) production planning dataset",s:"capacity, what-if",a:"Capacity utilization, plan vs actual, bottleneck station, what-if demand scenarios."},
+
+  {t:"Agriculture yield analysis",d:"Agriculture",l:"Intermediate",ds:"(search) crop yield dataset",s:"yield, weather merge",a:"Yield by crop/region, weather-merge correlation, YoY, irrigation impact what-if."},
+  {t:"Food delivery operations",d:"Food",l:"Advanced",ds:"(search) food delivery dataset",s:"SLA, geo",a:"Delivery-time p95, late %, rider utilization, demand heatmap, restaurant performance."},
+  {t:"Restaurant sales & menu",d:"Food",l:"Intermediate",ds:"(search) restaurant sales dataset",s:"menu engineering, time",a:"Sales by item/daypart, menu-engineering matrix (popularity×margin), peak-hour staffing."},
+  {t:"Zomato/Yelp ratings",d:"Food",l:"Intermediate",ds:"(search) zomato dataset",s:"geo, rating drivers",a:"Rating vs cost/cuisine/location; city comparison; price-band analysis; map."},
+
+  {t:"SaaS product analytics",d:"SaaS",l:"Advanced",ds:"(search) saas usage dataset",s:"DAU/MAU, retention",a:"DAU/MAU stickiness, feature adoption, retention cohorts, churn, expansion revenue."},
+  {t:"Subscription MRR/ARR",d:"SaaS",l:"Expert",ds:"(search) subscription dataset",s:"MRR bridge, churn",a:"MRR movement bridge (new/expansion/contraction/churn), net revenue retention, LTV/CAC, cohort LTV."},
+  {t:"Support ticket analytics",d:"SaaS",l:"Intermediate",ds:"(search) customer support tickets",s:"SLA, backlog",a:"First-response & resolution time vs SLA, backlog trend, CSAT, category drivers, agent load."},
+  {t:"App store / reviews analytics",d:"SaaS",l:"Intermediate",ds:"lava18/google-play-store-apps",s:"ratings, category",a:"Rating distribution, installs vs price, category performance, review-sentiment trend."},
+  {t:"A/B test results dashboard",d:"SaaS",l:"Advanced",ds:"(search) ab test dataset",s:"experiment, significance",a:"Conversion by variant, lift, confidence interval (computed upstream), guardrail metrics, segment breakdown."},
+
+  {t:"Government budget & spend",d:"Government",l:"Intermediate",ds:"(search) government budget dataset",s:"allocation, trend",a:"Budget vs actual by department, YoY, per-capita spend, allocation treemap."},
+  {t:"Crime statistics dashboard",d:"Government",l:"Advanced",ds:"(search) crime dataset",s:"geo, time, type",a:"Crime density map, type breakdown, time-of-day heatmap, YoY trend, hotspot ranking."},
+  {t:"Census / demographics",d:"Government",l:"Intermediate",ds:"(search) census dataset",s:"demographics, geo",a:"Population pyramids, density map, income/education distribution, region comparison."},
+  {t:"Public health surveillance",d:"Government",l:"Advanced",ds:"(search) public health dataset",s:"incidence, geo",a:"Incidence rate per 100k, outbreak trend, geographic spread, age-group breakdown."},
+  {t:"Election results analysis",d:"Government",l:"Intermediate",ds:"(search) election results dataset",s:"geo, swing",a:"Vote share by region, swing vs prior, turnout, choropleth, margin analysis."},
+
+  {t:"Olympics medal analytics",d:"Sports",l:"Intermediate",ds:"heesoo37/120-years-of-olympic-history-athletes-and-results",s:"relational, trend",a:"Medals by country/sport/year, athlete demographics, host-nation effect, gender participation trend."},
+  {t:"Formula 1 analytics",d:"Sports",l:"Expert",ds:"rohanrao/formula-1-world-championship-1950-2020",s:"13 tables, RANKX",a:"Driver/constructor standings, RANKX rankings, dynamic head-to-head with disconnected slicers + TREATAS, pit-stop efficiency."},
+  {t:"Football/soccer stats",d:"Sports",l:"Advanced",ds:"(search) football dataset",s:"relational, xG",a:"League tables, xG vs goals, player comparison, form trend, head-to-head."},
+  {t:"Cricket (IPL) analytics",d:"Sports",l:"Advanced",ds:"(search) ipl dataset",s:"ball-by-ball, strike rate",a:"Strike rate/economy, player vs player, win-prob by phase, venue effect, team form."},
+  {t:"NBA player performance",d:"Sports",l:"Advanced",ds:"(search) nba stats dataset",s:"per-game, efficiency",a:"PER-style efficiency, shooting splits, player comparison, season trends, team rollups."},
+
+  {t:"Customer 360 / CDP",d:"Retail",l:"Expert",ds:"olistbr/brazilian-ecommerce",s:"single view, RLS",a:"Unify orders/payments/reviews/support into one customer view; lifetime value; next-best-action; per-segment RLS."},
+  {t:"Profitability waterfall",d:"Finance",l:"Advanced",ds:"vivek468/superstore-dataset-final",s:"waterfall, bridge",a:"Revenue→COGS→opex→profit waterfall; variance bridge vs prior; margin by dimension; what-if cost levers."},
+  {t:"Financial statements (P&L)",d:"Finance",l:"Expert",ds:"(search) financial statements dataset",s:"calc groups, ragged hierarchy",a:"P&L with a chart-of-accounts ragged hierarchy; calc groups for Actual/Budget/Var; sign handling; subtotal logic."},
+  {t:"Accounts receivable aging",d:"Finance",l:"Advanced",ds:"(search) accounts receivable dataset",s:"aging buckets, DSO",a:"Aging buckets via SWITCH(TRUE()); DSO; overdue %; collection effectiveness; customer risk."},
+  {t:"Budget vs actual (multi-grain)",d:"Finance",l:"Expert",ds:"(search) budget actuals dataset",s:"conformed dims, grain",a:"Budget monthly/region vs actuals daily/store; relate via conformed dims; TREATAS to bridge grains; variance."},
+  {t:"Expense management",d:"Finance",l:"Intermediate",ds:"(search) expense dataset",s:"category, policy",a:"Spend by category/employee, policy-violation flags, trend, top spenders, approval lead time."},
+  {t:"Cash flow forecast",d:"Finance",l:"Advanced",ds:"(search) cash flow dataset",s:"running total, forecast",a:"Running cash balance (cumulative), inflow/outflow, 13-week forecast, scenario what-if."},
+
+  {t:"Churn prevention (subscription)",d:"SaaS",l:"Advanced",ds:"blastchar/telco-customer-churn",s:"risk tiers, ML",a:"Load model churn-probability; risk tiers; revenue-at-risk; save-offer simulator with what-if."},
+  {t:"Lead scoring dashboard",d:"Marketing",l:"Advanced",ds:"(search) lead scoring dataset",s:"scoring, funnel",a:"Score leads (upstream); conversion by score band; SLA on follow-up; source ROI; pipeline value."},
+  {t:"Pricing & discount analysis",d:"Retail",l:"Advanced",ds:"vivek468/superstore-dataset-final",s:"elasticity, what-if",a:"Discount vs margin trade-off; price elasticity proxy; what-if discount slider on projected profit; KEEPFILTERS."},
+  {t:"Geospatial sales territory",d:"Retail",l:"Advanced",ds:"(search) sales territory dataset",s:"maps, RLS",a:"Territory maps (shape/Azure maps), rep coverage, white-space opportunity, RLS by territory."},
+  {t:"Anomaly detection monitor",d:"Cross-domain",l:"Expert",ds:"(search) time series anomaly",s:"z-score, alerts",a:"Rolling-median deviation / z-score in DAX; flag anomalies; built-in anomaly visual; alert thresholds; root-cause drill."},
+  {t:"Executive KPI scorecard",d:"Cross-domain",l:"Intermediate",ds:"vivek468/superstore-dataset-final",s:"KPI cards, bookmarks",a:"One-page exec scorecard: KPI cards with sparklines, conditional formatting, bookmark toggles, mobile layout."},
+  {t:"Self-service report template",d:"Cross-domain",l:"Advanced",ds:"any",s:"field params, slicers",a:"Reusable template: field parameters to swap measure & dimension, sync slicers, info buttons, theme JSON."},
+  {t:"Data quality monitoring",d:"Cross-domain",l:"Advanced",ds:"any",s:"profiling, nulls",a:"Row counts, null %, duplicate %, referential breaks, schema-drift flags; refresh-health page."},
+  {t:"Time-intelligence showcase",d:"Cross-domain",l:"Expert",ds:"vivek468/superstore-dataset-final",s:"calc groups",a:"One calc group (Current/MTD/QTD/YTD/PY/YoY) applied to every measure via a slicer; the senior time-intel pattern."},
+  {t:"Big-data performance lab",d:"Cross-domain",l:"Expert",ds:"sobhanmoosavi/us-accidents",s:"VertiPaq, aggregations",a:"Cut model size ~75% (cardinality+encoding); aggregation tables; incremental refresh; DAX Studio server-timings before/after."},
+  ];
+
+  // ---- render catalog ----
+  const cGrid=document.getElementById('cGrid'), cSearch=document.getElementById('cSearch'),
+        cDom=document.getElementById('cDom'), cLvl=document.getElementById('cLvl'), cCount=document.getElementById('cCount');
+  [...new Set(CAT.map(p=>p.d))].sort().forEach(d=>{const o=document.createElement('option');o.value=d;o.textContent=d;cDom.appendChild(o);});
+  function renderCat(){
+    const q=cSearch.value.toLowerCase().trim(), dom=cDom.value, lvl=cLvl.value;
+    const rows=CAT.map((p,i)=>({...p,n:i+1})).filter(p=>{
+      if(dom&&p.d!==dom)return false; if(lvl&&p.l!==lvl)return false;
+      if(q){const hay=(p.t+' '+p.d+' '+p.s+' '+p.a+' '+p.ds).toLowerCase(); if(!hay.includes(q))return false;}
+      return true;
+    });
+    cCount.textContent=rows.length+' / '+CAT.length+' projects';
+    cGrid.innerHTML=rows.map(p=>`<div class="pc" data-n="${p.n}">
+      <div class="top"><span class="no">#${String(p.n).padStart(3,'0')}</span><h4>${p.t}</h4></div>
+      <div class="tags"><span class="t dom">${p.d}</span><span class="t lv-${p.l}">${p.l}</span></div>
+      <div class="ds">&#128202; <b>${p.ds}</b></div>
+      <div class="tags">${p.s.split(', ').map(s=>`<span class="t" style="background:var(--bg);color:var(--muted)">${s}</span>`).join('')}</div>
+      <span class="more">&#9656; Approach (answer)</span>
+      <div class="ap">${p.a}</div>
+    </div>`).join('') || '<p style="color:var(--faint);padding:20px">No projects match.</p>';
+  }
+  cGrid.addEventListener('click',e=>{const m=e.target.closest('.more');if(m){m.closest('.pc').classList.toggle('open');}});
+  cSearch.addEventListener('input',renderCat); cDom.onchange=renderCat; cLvl.onchange=renderCat;
+  renderCat();
+</script>
+</body>
+</html>

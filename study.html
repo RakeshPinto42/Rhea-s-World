@@ -1,0 +1,1212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; Power BI Interview Trainer</title>
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --bg:#f4f5f7;
+    --panel:#ffffff;
+    --ink:#1b2230;
+    --muted:#5d6677;
+    --faint:#8a93a3;
+    --line:#e3e7ee;
+    --accent:#c8a200;       /* power bi gold, serious tone */
+    --accent-2:#0a6c74;
+    --green:#157347;
+    --red:#b42318;
+    --amber:#9a6b00;
+    --code-bg:#1c2230;
+    --code-ink:#e8edf5;
+    --shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px -8px rgba(20,30,50,.18);
+  }
+  [data-theme="dark"]{
+    --bg:#0f1218;--panel:#161b24;--ink:#e8edf5;--muted:#9aa4b4;--faint:#6b7484;
+    --line:#252c38;--accent:#e3bf3a;--accent-2:#3fb6bf;--code-bg:#0b0e14;--code-ink:#e8edf5;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -10px rgba(0,0,0,.6);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",sans-serif;line-height:1.55;-webkit-font-smoothing:antialiased}
+  .mono{font-family:"IBM Plex Mono",monospace}
+
+  /* topbar */
+  header{
+    position:sticky;top:0;z-index:20;background:var(--panel);border-bottom:1px solid var(--line);
+  }
+  .bar{max-width:1080px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;gap:18px}
+  .logo{font-weight:700;font-size:1.05rem;display:flex;align-items:center;gap:10px}
+  .logo .mark{width:26px;height:26px;border-radius:7px;background:var(--accent);display:grid;place-items:center;color:#1b1500;font-weight:700;font-size:.85rem}
+  .logo small{display:block;font-weight:400;font-size:.72rem;color:var(--muted)}
+  .bar .spacer{flex:1}
+  .ghost-link{color:var(--muted);text-decoration:none;font-size:.85rem;font-weight:500}
+  .ghost-link:hover{color:var(--ink)}
+  .toggle{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.8rem;font-weight:500}
+
+  .wrap{max-width:1080px;margin:0 auto;padding:28px 24px 80px}
+
+  /* stat strip */
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:26px}
+  @media(max-width:680px){.stats{grid-template-columns:repeat(2,1fr)}}
+  .stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;box-shadow:var(--shadow)}
+  .stat .lbl{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);font-weight:600}
+  .stat .v{font-size:1.7rem;font-weight:700;margin-top:4px}
+  .stat .v small{font-size:.85rem;color:var(--muted);font-weight:500}
+
+  /* controls */
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px}
+  .search{flex:1;min-width:200px;display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:0 12px}
+  .search input{border:none;background:none;outline:none;color:var(--ink);font-family:inherit;font-size:.92rem;padding:11px 0;width:100%}
+  .search svg{flex-shrink:0;opacity:.5}
+  select,.btn{font-family:inherit;font-size:.85rem;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--ink);padding:11px 14px;cursor:pointer}
+  .btn-primary{background:var(--accent);border-color:var(--accent);color:#1b1500;font-weight:600}
+  .btn-primary:hover{filter:brightness(1.05)}
+
+  /* category chips */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:22px}
+  .chip{font-size:.8rem;padding:7px 13px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;font-weight:500;transition:.15s}
+  .chip:hover{border-color:var(--accent)}
+  .chip.active{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+  [data-theme="dark"] .chip.active{background:var(--accent);color:#1b1500;border-color:var(--accent)}
+
+  /* question card */
+  .q{background:var(--panel);border:1px solid var(--line);border-radius:14px;margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden}
+  .q-head{padding:18px 22px;display:flex;gap:14px;align-items:flex-start;cursor:pointer}
+  .q-head:hover{background:rgba(0,0,0,.012)}
+  [data-theme="dark"] .q-head:hover{background:rgba(255,255,255,.02)}
+  .q-meta{display:flex;flex-direction:column;gap:6px;flex-shrink:0;width:108px}
+  .tag{font-size:.66rem;text-transform:uppercase;letter-spacing:.06em;font-weight:600;padding:3px 8px;border-radius:6px;text-align:center}
+  .tag.cat{background:rgba(200,162,0,.14);color:var(--amber)}
+  [data-theme="dark"] .tag.cat{background:rgba(227,191,58,.16);color:var(--accent)}
+  .tag.easy{background:rgba(21,115,71,.13);color:var(--green)}
+  .tag.med{background:rgba(154,107,0,.14);color:var(--amber)}
+  .tag.hard{background:rgba(180,35,24,.12);color:var(--red)}
+  .tag.expert{background:linear-gradient(135deg,#7c5cff,#b42378);color:#fff}
+  .q-body{flex:1}
+  .q-text{font-weight:600;font-size:1.02rem}
+  .q-hint{font-size:.82rem;color:var(--faint);margin-top:4px}
+  .chev{flex-shrink:0;color:var(--faint);transition:transform .2s;margin-top:3px}
+  .q.open .chev{transform:rotate(180deg)}
+
+  .answer{display:none;border-top:1px solid var(--line);padding:20px 22px;background:rgba(0,0,0,.015)}
+  [data-theme="dark"] .answer{background:rgba(255,255,255,.015)}
+  .q.open .answer{display:block}
+  .answer h5{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);font-weight:600;margin-bottom:8px}
+  .answer p{margin-bottom:12px}
+  .answer ul{margin:0 0 12px 20px}
+  .answer li{margin-bottom:6px}
+  pre{background:var(--code-bg);color:var(--code-ink);border-radius:10px;padding:14px 16px;overflow-x:auto;font-family:"IBM Plex Mono",monospace;font-size:.82rem;line-height:1.6;margin:0 0 12px}
+  pre .k{color:#e3bf3a}pre .f{color:#7fd3df}pre .c{color:#6b7484}pre .s{color:#9cd67f}
+  code.inl{background:rgba(0,0,0,.06);padding:2px 6px;border-radius:5px;font-family:"IBM Plex Mono";font-size:.84em}
+  [data-theme="dark"] code.inl{background:rgba(255,255,255,.08)}
+
+  .self{display:flex;gap:10px;margin-top:6px;padding-top:14px;border-top:1px dashed var(--line)}
+  .self span{font-size:.8rem;color:var(--muted);align-self:center;margin-right:4px}
+  .grade{font-size:.8rem;padding:7px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);cursor:pointer;font-weight:500}
+  .grade.got{border-color:var(--green);color:var(--green)}.grade.got:hover{background:rgba(21,115,71,.08)}
+  .grade.miss{border-color:var(--red);color:var(--red)}.grade.miss:hover{background:rgba(180,35,24,.08)}
+  .graded-got{outline:2px solid var(--green);outline-offset:-2px}
+  .graded-miss{outline:2px solid var(--red);outline-offset:-2px}
+
+  .empty{text-align:center;padding:60px 20px;color:var(--faint)}
+
+  /* ===== mock overlay ===== */
+  .overlay{position:fixed;inset:0;z-index:100;background:rgba(10,14,20,.6);backdrop-filter:blur(6px);display:none;align-items:flex-start;justify-content:center;overflow-y:auto;padding:30px 16px}
+  .overlay.show{display:flex}
+  .mockbox{background:var(--panel);border:1px solid var(--line);border-radius:18px;width:100%;max-width:860px;box-shadow:0 30px 80px -20px rgba(0,0,0,.5);overflow:hidden}
+  .mock-top{display:flex;align-items:center;gap:16px;padding:16px 22px;border-bottom:1px solid var(--line);background:var(--bg)}
+  .mock-top .ttl{font-weight:700}
+  .mock-top .spacer{flex:1}
+  .timer{font-family:"IBM Plex Mono";font-weight:600;font-size:1.15rem;padding:6px 14px;border-radius:9px;background:var(--panel);border:1px solid var(--line)}
+  .timer.warn{color:var(--amber);border-color:var(--amber)}
+  .timer.danger{color:var(--red);border-color:var(--red);animation:blink 1s steps(2) infinite}
+  @keyframes blink{50%{opacity:.45}}
+  .x{background:none;border:none;color:var(--muted);font-size:1.4rem;cursor:pointer;line-height:1}
+  .progressbar{height:4px;background:var(--line)}
+  .progressbar i{display:block;height:100%;background:var(--accent);transition:width .3s}
+
+  .mock-body{padding:26px 26px 8px;min-height:240px}
+  .mock-qnum{font-family:"IBM Plex Mono";font-size:.78rem;color:var(--faint);letter-spacing:.06em;margin-bottom:10px;display:flex;gap:10px;align-items:center}
+  .mock-q{font-size:1.25rem;font-weight:700;line-height:1.4;margin-bottom:6px}
+  .mock-hint{font-size:.85rem;color:var(--faint);margin-bottom:18px}
+  .mock-ans{display:none;border-top:1px solid var(--line);padding-top:18px;margin-top:6px}
+  .mock-ans.show{display:block}
+  .mock-ans h5{font-size:.72rem;text-transform:uppercase;letter-spacing:.08em;color:var(--faint);font-weight:600;margin-bottom:8px}
+
+  .mock-foot{display:flex;gap:10px;align-items:center;padding:16px 26px 24px;border-top:1px solid var(--line);flex-wrap:wrap}
+  .mock-foot .spacer{flex:1}
+  .dotrow{display:flex;gap:6px}
+  .dotrow b{width:9px;height:9px;border-radius:50%;background:var(--line);cursor:pointer}
+  .dotrow b.cur{transform:scale(1.4);background:var(--accent)}
+  .dotrow b.got{background:var(--green)}
+  .dotrow b.miss{background:var(--red)}
+
+  /* score screen */
+  .score{padding:40px 30px;text-align:center}
+  .score .ring{width:150px;height:150px;border-radius:50%;margin:0 auto 22px;display:grid;place-items:center;position:relative}
+  .score .ring span{font-size:2.6rem;font-weight:700;font-family:"IBM Plex Mono"}
+  .score h2{font-size:1.5rem;margin-bottom:6px}
+  .score p{color:var(--muted);margin-bottom:24px}
+  .breakdown{text-align:left;max-width:560px;margin:0 auto 24px}
+  .brow{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--line);font-size:.9rem;align-items:center}
+  .brow .res{margin-left:auto;font-weight:600;font-family:"IBM Plex Mono";font-size:.8rem}
+  .brow .res.got{color:var(--green)}.brow .res.miss{color:var(--red)}
+  .brow .qq{color:var(--muted)}
+
+  footer{max-width:1080px;margin:0 auto;padding:30px 24px;color:var(--faint);font-size:.8rem;border-top:1px solid var(--line)}
+  ::selection{background:var(--accent);color:#1b1500}
+</style>
+</head>
+<body>
+<header>
+  <div class="bar">
+    <div class="logo">
+      <span class="mark">R</span>
+      <div>Rhea &middot; Interview Trainer<small>Power BI &middot; DAX &middot; Data crunching</small></div>
+    </div>
+    <span class="spacer"></span>
+    <a class="ghost-link" href="learn.html">&#128218; Handbook</a>
+    <a class="ghost-link" href="projects.html">&#129514; Projects</a>
+    <a class="ghost-link" href="interview.html">&#129302; AI Interviewer</a>
+    <a class="ghost-link" href="index.html">&larr; Rhea&rsquo;s World</a>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div class="stats">
+    <div class="stat"><div class="lbl">Questions</div><div class="v" id="sTotal">0</div></div>
+    <div class="stat"><div class="lbl">Reviewed</div><div class="v"><span id="sSeen">0</span><small id="sSeenPct"></small></div></div>
+    <div class="stat"><div class="lbl">Got right</div><div class="v" style="color:var(--green)" id="sGot">0</div></div>
+    <div class="stat"><div class="lbl">To revisit</div><div class="v" style="color:var(--red)" id="sMiss">0</div></div>
+  </div>
+
+  <div class="controls">
+    <label class="search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input id="search" placeholder="Search questions, e.g. CALCULATE, star schema, RLS, percentile..." />
+    </label>
+    <select id="diff">
+      <option value="">All levels</option>
+      <option value="easy">Easy</option>
+      <option value="med">Medium</option>
+      <option value="hard">Hard</option>
+      <option value="expert">Expert (8 yr)</option>
+    </select>
+    <button class="btn" id="random">&#127922; Random</button>
+    <button class="btn btn-primary" id="mock">&#9201; Timed mock (10 expert)</button>
+    <button class="btn" id="reset">Reset progress</button>
+  </div>
+
+  <div class="chips" id="chips"></div>
+  <div id="list"></div>
+  <div class="empty" id="empty" style="display:none">No questions match. Clear the filters.</div>
+</div>
+
+<!-- ===== MOCK OVERLAY ===== -->
+<div class="overlay" id="overlay">
+  <div class="mockbox">
+    <div class="mock-top">
+      <span class="ttl">&#9201; Mock Interview &mdash; Expert</span>
+      <span class="spacer"></span>
+      <span class="timer" id="timer">30:00</span>
+      <button class="x" id="mockClose" title="End mock">&times;</button>
+    </div>
+    <div class="progressbar"><i id="pbar" style="width:0%"></i></div>
+    <div id="mockContent"></div>
+  </div>
+</div>
+
+<footer>
+  Rhea&rsquo;s Power BI Interview Trainer &middot; progress saved in your browser only &middot; <span id="qCount">100+</span> questions mapped to real <b>India</b> interview rounds &mdash; technical (DAX, modeling, Power Query, performance, RLS, SQL), <b>Expert (8-yr)</b> engine internals &amp; architecture, <b>HR/behavioral</b> (CTC, notice period, STAR), <b>scenario</b> &amp; <b>Excel/basics</b>, each with how a candidate should actually answer.
+</footer>
+
+<script>
+/* ---------- QUESTION BANK ---------- */
+const Q = [
+ // ---- DAX ----
+ {cat:"DAX",diff:"easy",q:"What is the difference between a calculated column and a measure?",hint:"row context vs filter context, storage vs compute",
+  a:`<p><b>Calculated column</b> is computed row-by-row during data refresh and physically stored in the model &mdash; it consumes memory and works in <i>row context</i>. <b>Measure</b> is computed at query time based on the current <i>filter context</i> (slicers, rows, columns) and stores nothing.</p>
+     <ul><li>Use a <b>column</b> when you need a per-row value to slice/filter by (e.g. a category bucket).</li>
+     <li>Use a <b>measure</b> for aggregations that respond to user selection (e.g. Total Sales, % of total).</li></ul>
+     <p>Rule of thumb: if it aggregates, make it a measure.</p>`},
+
+ {cat:"DAX",diff:"med",q:"Explain CALCULATE and why it is the most important DAX function.",hint:"modifies filter context",
+  a:`<p><code class="inl">CALCULATE</code> evaluates an expression in a <b>modified filter context</b>. It is the only function that can directly change filter context, which is why almost every non-trivial measure uses it.</p>
+     <pre><span class="f">Sales LY</span> =
+<span class="k">CALCULATE</span>(
+    [Total Sales],
+    <span class="f">SAMEPERIODLASTYEAR</span>( 'Date'[Date] )
+)</pre>
+     <p>Filter arguments either <b>add</b>, <b>replace</b>, or <b>remove</b> filters. <code class="inl">CALCULATE</code> also performs <b>context transition</b>: it turns the current row context into an equivalent filter context (key when using it inside an iterator like SUMX).</p>`},
+
+ {cat:"DAX",diff:"hard",q:"What is context transition and when does it bite you?",hint:"row context -> filter context inside CALCULATE",
+  a:`<p>When <code class="inl">CALCULATE</code> (or a measure, which has an implicit CALCULATE) runs inside a <b>row context</b>, it converts that row context into a filter context on every column of the table. That is context transition.</p>
+     <ul><li>It lets a measure referenced inside <code class="inl">SUMX</code> evaluate per-row correctly.</li>
+     <li>It bites with performance when iterating millions of rows &mdash; each row triggers a context transition.</li>
+     <li>It also bites when a table lacks a unique key: the transition filters by all columns and may return more rows than expected.</li></ul>`},
+
+ {cat:"DAX",diff:"med",q:"How do you compute % of total that respects slicers but ignores the row breakdown?",hint:"ALLSELECTED vs ALL",
+  a:`<pre><span class="f">% of Total</span> =
+<span class="k">DIVIDE</span>(
+    [Total Sales],
+    <span class="k">CALCULATE</span>( [Total Sales], <span class="f">ALLSELECTED</span>( Product[Category] ) )
+)</pre>
+     <p><code class="inl">ALLSELECTED</code> removes the row/visual filter on Category but keeps outside slicer selections, so the denominator is the visible total. Use <code class="inl">ALL</code> instead if you want the grand total ignoring slicers too. Always wrap in <code class="inl">DIVIDE</code> to avoid divide-by-zero.</p>`},
+
+ {cat:"DAX",diff:"easy",q:"Why prefer DIVIDE() over the / operator?",hint:"divide by zero",
+  a:`<p><code class="inl">DIVIDE(num, den, alt)</code> safely handles division by zero / blank, returning the optional <i>alternate</i> (default BLANK) instead of an error or Infinity. It is also engine-optimized. Plain <code class="inl">/</code> throws or yields Infinity on zero denominators.</p>`},
+
+ {cat:"DAX",diff:"hard",q:"What is the difference between SUM and SUMX?",hint:"aggregator vs iterator, row context",
+  a:`<p><code class="inl">SUM(col)</code> is a simple aggregator over one column. <code class="inl">SUMX(table, expr)</code> is an <b>iterator</b>: it walks each row of the table (creating row context), evaluates the expression, then sums the results.</p>
+     <pre><span class="c">-- needs row-level multiplication, so SUMX</span>
+<span class="f">Revenue</span> = <span class="k">SUMX</span>( Sales, Sales[Qty] * Sales[Price] )</pre>
+     <p>Use SUMX when the per-row expression can't be precomputed as a column, or when you don't want to store an extra column.</p>`},
+
+ {cat:"DAX",diff:"med",q:"What does VAR give you and why use it?",hint:"readability, performance, evaluation timing",
+  a:`<p><code class="inl">VAR</code> stores an intermediate result evaluated <b>once</b>, in the filter context where it is declared. Benefits: readability, avoids recomputing the same sub-expression, and avoids subtle context bugs because the variable is fixed at declaration.</p>
+     <pre><span class="f">YoY %</span> =
+<span class="k">VAR</span> Cur = [Total Sales]
+<span class="k">VAR</span> Prev = <span class="k">CALCULATE</span>([Total Sales], <span class="f">DATEADD</span>('Date'[Date],-1,YEAR))
+<span class="k">RETURN</span> <span class="k">DIVIDE</span>(Cur - Prev, Prev)</pre>`},
+
+ // ---- Power Query / M ----
+ {cat:"Power Query",diff:"easy",q:"Difference between Power Query and DAX. Where does data shaping belong?",hint:"ETL vs analytics, M vs DAX",
+  a:`<p><b>Power Query (M)</b> is the ETL layer &mdash; connect, clean, reshape, merge, type, and load data before it enters the model. <b>DAX</b> is the analytics layer &mdash; calculations over the loaded model at query time.</p>
+     <p>Rule: do row-level cleanup, column splits, unpivots, and joins in <b>Power Query</b>; do dynamic aggregations and business logic in <b>DAX</b>. Pushing transforms upstream (query folding / source) is best of all.</p>`},
+
+ {cat:"Power Query",diff:"hard",q:"What is query folding and why does it matter?",hint:"push transforms to source as SQL",
+  a:`<p>Query folding is Power Query translating your transform steps back into a single native query (e.g. SQL) that runs on the <b>source</b>. The DB does the work; only the result returns.</p>
+     <ul><li>Massively faster refresh and less memory.</li>
+     <li>Some steps break folding (e.g. adding an index, certain custom M, Table.Buffer). After a folding-breaking step, everything downstream runs locally.</li>
+     <li>Check via right-click step &rarr; <i>View Native Query</i>. Keep folding steps first, non-folding steps last.</li></ul>`},
+
+ {cat:"Power Query",diff:"med",q:"Merge vs Append in Power Query?",hint:"join columns vs stack rows",
+  a:`<p><b>Merge</b> = join two queries side-by-side on matching key columns (like SQL JOIN) &mdash; adds columns. <b>Append</b> = stack rows of queries with the same structure on top of each other (like UNION) &mdash; adds rows. Use Append to combine 12 monthly files; use Merge to bring a category name from a lookup table.</p>`},
+
+ {cat:"Power Query",diff:"med",q:"How do you load 50 monthly Excel files from a folder that all share the same layout?",hint:"From Folder + sample transform",
+  a:`<p>Use <b>Get Data &rarr; From Folder</b>. Power Query lists every file; click <b>Combine &amp; Transform</b>. PQ builds a <i>sample-file</i> function from one file and applies it to all, then appends the results. Add the <code class="inl">Source.Name</code> column if you need the file/month. New files dropped in the folder are picked up on next refresh &mdash; no rework.</p>`},
+
+ // ---- Data modeling ----
+ {cat:"Modeling",diff:"med",q:"What is a star schema and why is it preferred in Power BI?",hint:"fact + dimensions, vertipaq",
+  a:`<p>A <b>star schema</b> has one central <b>fact</b> table (events/transactions, numeric measures, foreign keys) surrounded by <b>dimension</b> tables (descriptive attributes &mdash; Date, Product, Customer).</p>
+     <ul><li>The VertiPaq engine is optimized for it: simple 1-to-many relationships, fast filter propagation.</li>
+     <li>Simpler DAX, smaller model (low-cardinality dimensions compress well).</li>
+     <li>Avoid snowflaking and wide flat tables; collapse where possible.</li></ul>`},
+
+ {cat:"Modeling",diff:"easy",q:"Why do you almost always need a dedicated Date dimension?",hint:"time intelligence, mark as date table",
+  a:`<p>DAX time-intelligence functions (<code class="inl">TOTALYTD</code>, <code class="inl">SAMEPERIODLASTYEAR</code>, <code class="inl">DATEADD</code>) require a continuous, contiguous date table with one row per day. Build one (DAX <code class="inl">CALENDAR</code> or Power Query), relate it to your fact's date, and <b>Mark as Date Table</b>. Add Year/Month/Quarter/Fiscal columns for clean slicing.</p>`},
+
+ {cat:"Modeling",diff:"hard",q:"Single vs bidirectional cross-filter direction. When is bidirectional dangerous?",hint:"ambiguity, performance, many-to-many",
+  a:`<p>Default relationships filter <b>single</b> direction (dimension &rarr; fact). <b>Bidirectional</b> lets filters flow both ways.</p>
+     <ul><li>Needed for some many-to-many or for filtering a dimension by what exists in the fact.</li>
+     <li>Risks: <b>ambiguous filter paths</b> in models with multiple relationships, slower queries, and unexpected RLS leaks.</li>
+     <li>Prefer single direction; solve many-to-many with a bridge table and <code class="inl">CROSSFILTER</code> inside a specific measure instead of global bidirectional.</li></ul>`},
+
+ {cat:"Modeling",diff:"med",q:"How do you handle a role-playing dimension (e.g. Order Date and Ship Date)?",hint:"inactive relationships + USERELATIONSHIP",
+  a:`<p>Two options: (1) Create <b>two relationships</b> from the Date table to the fact (OrderDate active, ShipDate inactive) and activate the inactive one per measure with <code class="inl">USERELATIONSHIP</code>:</p>
+     <pre><span class="f">Sales by Ship Date</span> =
+<span class="k">CALCULATE</span>( [Total Sales],
+    <span class="f">USERELATIONSHIP</span>('Date'[Date], Sales[ShipDate]) )</pre>
+     <p>(2) Or duplicate the Date dimension (Ship Date table) for a clean active relationship. Option 1 keeps the model lean.</p>`},
+
+ // ---- Performance ----
+ {cat:"Performance",diff:"hard",q:"A report is slow. Walk through how you diagnose and fix it.",hint:"Performance Analyzer, cardinality, measures, model size",
+  a:`<ul><li><b>Performance Analyzer</b> (in Desktop): record, see DAX query vs visual render time per visual.</li>
+     <li>Copy slow DAX into <b>DAX Studio</b>; check Storage Engine vs Formula Engine time and server timings.</li>
+     <li>Reduce <b>cardinality</b>: remove high-uniqueness columns (GUIDs, timestamps split into date+time), trim unused columns.</li>
+     <li>Prefer a clean <b>star schema</b>, single-direction filters, fewer visuals per page.</li>
+     <li>Replace heavy calculated columns with measures or Power Query steps; avoid bidirectional and complex iterators over big facts.</li>
+     <li>Use aggregations / Import over DirectQuery where possible.</li></ul>`},
+
+ {cat:"Performance",diff:"med",q:"What is VertiPaq and why does column cardinality matter so much?",hint:"columnar compression",
+  a:`<p>VertiPaq is Power BI's in-memory <b>columnar</b> engine. It compresses each column independently; compression is best when a column has <b>few distinct values</b> (low cardinality). High-cardinality columns (unique IDs, precise datetimes) compress poorly and bloat the model and slow queries. Split datetime into date + time, drop surrogate keys you don't filter on, round decimals.</p>`},
+
+ {cat:"Performance",diff:"easy",q:"Import vs DirectQuery vs Composite. Trade-offs?",hint:"speed vs freshness vs size",
+  a:`<ul><li><b>Import</b>: data loaded into VertiPaq &mdash; fastest queries, full DAX, but data is as fresh as last refresh and limited by memory.</li>
+     <li><b>DirectQuery</b>: queries hit the source live &mdash; real-time, no size cap, but slower and DAX/feature limits.</li>
+     <li><b>Composite</b>: mix &mdash; import dimensions, DirectQuery huge facts, add aggregations for speed.</li></ul>
+     <p>Default to Import unless freshness or data volume forces otherwise.</p>`},
+
+ // ---- Security / RLS ----
+ {cat:"RLS",diff:"med",q:"How does Row-Level Security work in Power BI?",hint:"roles, DAX filter, USERPRINCIPALNAME",
+  a:`<p>Define <b>roles</b> in Desktop with a DAX <b>table filter</b> that restricts rows, then assign users/groups to roles in the Service.</p>
+     <pre><span class="c">-- Role: Regional Manager</span>
+[Region] = <span class="f">LOOKUPVALUE</span>(
+   UserMap[Region], UserMap[Email], <span class="f">USERPRINCIPALNAME</span>() )</pre>
+     <p>Filter propagates through relationships to the fact. <b>Dynamic RLS</b> uses <code class="inl">USERPRINCIPALNAME()</code> + a mapping table so one role serves everyone. Test with <i>View as Role</i>. Watch bidirectional relationships &mdash; they can leak.</p>`},
+
+ {cat:"RLS",diff:"hard",q:"Static vs dynamic RLS, and how do you secure object/column level too?",hint:"OLS, mapping table",
+  a:`<p><b>Static RLS</b>: a role per segment with hardcoded filters (Role_North filters Region="North"). <b>Dynamic RLS</b>: one role, filter driven by <code class="inl">USERPRINCIPALNAME()</code> joined to a user-permission table &mdash; scales without adding roles.</p>
+     <p><b>Object-Level Security (OLS)</b> hides entire tables/columns from a role (set via Tabular Editor) &mdash; the column vanishes from the field list and any visual using it breaks gracefully for that user. RLS filters rows; OLS hides structure.</p>`},
+
+ // ---- Visualization ----
+ {cat:"Viz",diff:"easy",q:"How do you choose the right visual for a question?",hint:"comparison/trend/composition/relationship",
+  a:`<ul><li><b>Trend over time</b> &rarr; line / area chart.</li>
+     <li><b>Comparison across categories</b> &rarr; bar/column (bar for many/long labels).</li>
+     <li><b>Composition / part-to-whole</b> &rarr; stacked bar or treemap (avoid pie beyond ~4 slices).</li>
+     <li><b>Relationship</b> &rarr; scatter.</li>
+     <li><b>Single KPI</b> &rarr; card / KPI visual.</li></ul>
+     <p>Match the visual to the <b>question</b>, not to decoration. Fewer visuals, clear titles, consistent color.</p>`},
+
+ {cat:"Viz",diff:"med",q:"What are bookmarks and how do you use them in a report?",hint:"saved state, navigation, show/hide",
+  a:`<p>A <b>bookmark</b> captures the current state of a page &mdash; filters, slicers, sort, and visual visibility. Uses: build toggle buttons (chart &harr; table), guided storytelling, reset-filters button, or pop-out filter panels using the Selection pane to show/hide. Group bookmarks and wire them to buttons/images via <i>Action &rarr; Bookmark</i>.</p>`},
+
+ {cat:"Viz",diff:"med",q:"What are field parameters and why are they useful?",hint:"let users swap measures/dimensions",
+  a:`<p><b>Field parameters</b> let end-users dynamically swap which measure or dimension a visual displays via a slicer &mdash; without bookmarks. Create one from <i>Modeling &rarr; New parameter &rarr; Fields</i>, list the measures/columns, drop the parameter on the axis or values, and add a slicer. One chart now serves many questions.</p>`},
+
+ // ---- SQL / data crunching ----
+ {cat:"SQL & Data",diff:"easy",q:"Difference between WHERE and HAVING in SQL?",hint:"before vs after aggregation",
+  a:`<p><b>WHERE</b> filters individual rows <i>before</i> grouping/aggregation. <b>HAVING</b> filters groups <i>after</i> <code class="inl">GROUP BY</code> aggregation.</p>
+     <pre><span class="k">SELECT</span> region, <span class="f">SUM</span>(sales) AS total
+<span class="k">FROM</span> orders
+<span class="k">WHERE</span> order_date &gt;= '2026-01-01'   <span class="c">-- row filter</span>
+<span class="k">GROUP BY</span> region
+<span class="k">HAVING</span> <span class="f">SUM</span>(sales) &gt; 100000;     <span class="c">-- group filter</span></pre>`},
+
+ {cat:"SQL & Data",diff:"med",q:"Explain the main SQL JOIN types.",hint:"inner/left/right/full/cross",
+  a:`<ul><li><b>INNER</b> &mdash; only matching rows in both tables.</li>
+     <li><b>LEFT</b> &mdash; all left rows + matches (NULLs where no match). Most common for keeping a complete fact set.</li>
+     <li><b>RIGHT</b> &mdash; mirror of LEFT.</li>
+     <li><b>FULL OUTER</b> &mdash; all rows from both, matched where possible.</li>
+     <li><b>CROSS</b> &mdash; Cartesian product (every combination).</li></ul>
+     <p>Interview tip: a LEFT JOIN that then filters the right table in WHERE silently becomes an INNER JOIN &mdash; filter in the ON clause instead.</p>`},
+
+ {cat:"SQL & Data",diff:"hard",q:"What is a window function? Give a ranking and a running-total example.",hint:"OVER, PARTITION BY, no collapse of rows",
+  a:`<p>A window function computes across a set of rows <b>related to the current row</b> without collapsing them (unlike GROUP BY). Defined with <code class="inl">OVER (PARTITION BY ... ORDER BY ...)</code>.</p>
+     <pre><span class="k">SELECT</span> region, month, sales,
+  <span class="f">RANK</span>() <span class="k">OVER</span>(<span class="k">PARTITION BY</span> region <span class="k">ORDER BY</span> sales <span class="k">DESC</span>) AS rnk,
+  <span class="f">SUM</span>(sales) <span class="k">OVER</span>(<span class="k">PARTITION BY</span> region <span class="k">ORDER BY</span> month
+        <span class="k">ROWS UNBOUNDED PRECEDING</span>) AS running_total
+<span class="k">FROM</span> monthly;</pre>`},
+
+ {cat:"SQL & Data",diff:"hard",q:"How do you find duplicate rows and the second-highest value in SQL?",hint:"GROUP BY HAVING, DENSE_RANK",
+  a:`<pre><span class="c">-- duplicates by email</span>
+<span class="k">SELECT</span> email, <span class="f">COUNT</span>(*) c
+<span class="k">FROM</span> users <span class="k">GROUP BY</span> email <span class="k">HAVING</span> <span class="f">COUNT</span>(*) &gt; 1;
+
+<span class="c">-- 2nd highest salary (handles ties)</span>
+<span class="k">SELECT</span> <span class="f">MAX</span>(salary) <span class="k">FROM</span> emp
+<span class="k">WHERE</span> salary &lt; (<span class="k">SELECT</span> <span class="f">MAX</span>(salary) <span class="k">FROM</span> emp);
+<span class="c">-- or generally: DENSE_RANK() OVER(ORDER BY salary DESC) = N</span></pre>`},
+
+ {cat:"SQL & Data",diff:"med",q:"Wide vs long (unpivoted) data &mdash; which does Power BI want and why?",hint:"unpivot, tidy data",
+  a:`<p>Power BI prefers <b>long / tidy</b> format: one column per variable, one row per observation. Wide data (Jan, Feb, Mar&hellip; as separate columns) is hard to aggregate and breaks when a new month appears. <b>Unpivot</b> month columns in Power Query into Attribute (Month) + Value columns &mdash; now one measure sums everything and new months need zero rework.</p>`},
+
+ {cat:"SQL & Data",diff:"med",q:"How do you handle missing/null data before analysis?",hint:"understand why, then impute/flag/drop",
+  a:`<ul><li>First diagnose <b>why</b> it's missing (not-collected vs not-applicable vs error).</li>
+     <li><b>Drop</b> if rare and random; <b>impute</b> (mean/median/mode, or forward-fill for time series) if structural; <b>flag</b> with an indicator column so the model can learn the pattern.</li>
+     <li>In Power Query: <i>Replace Values</i>, <i>Fill Down</i>, or remove rows. Never silently let NULLs distort an AVERAGE &mdash; know whether your aggregation ignores or counts them.</li></ul>`},
+
+ // ---- Statistics / data crunching ----
+ {cat:"Statistics",diff:"easy",q:"When do you use mean vs median?",hint:"skew and outliers",
+  a:`<p>Use the <b>median</b> when the data is skewed or has outliers (income, house prices, response times) &mdash; it's robust. Use the <b>mean</b> for roughly symmetric data and when you need it to feed further math (totals, weighted calcs). A big gap between mean and median is itself a signal of skew.</p>`},
+
+ {cat:"Statistics",diff:"med",q:"What is a percentile and how is it more useful than an average for SLAs?",hint:"p95 latency",
+  a:`<p>The <i>p</i>th percentile is the value below which <i>p</i>% of observations fall. Averages hide tails: a 200ms <b>mean</b> latency can still mean 5% of users wait 3s. SLAs use <b>p95 / p99</b> to bound the worst common experience. In DAX: <code class="inl">PERCENTILE.INC</code> / <code class="inl">PERCENTILEX.INC</code>; in SQL: <code class="inl">PERCENTILE_CONT</code>.</p>`},
+
+ {cat:"Statistics",diff:"hard",q:"Correlation vs causation &mdash; how do you talk about it with stakeholders?",hint:"confounders, dont overclaim",
+  a:`<p>Correlation = two variables move together; causation = one drives the other. A dashboard can only show correlation. Risks: <b>confounding variables</b> (ice-cream sales and drownings both rise with summer heat) and reverse causality. Communicate findings as <i>"associated with"</i>, recommend a controlled <b>A/B test</b> to establish cause, and flag confounders rather than letting a stakeholder act on a spurious chart.</p>`},
+
+ {cat:"Statistics",diff:"med",q:"A KPI jumped 30% week-over-week. How do you investigate before reporting it?",hint:"data quality first, then segment",
+  a:`<ul><li><b>Validate the data first</b>: refresh succeed? source change? duplicate rows? definition change? A spike is often an ETL artifact.</li>
+     <li><b>Decompose</b>: slice by region/product/channel/new-vs-returning to find where the jump lives.</li>
+     <li><b>Check the denominator</b> and the date grain (partial week?).</li>
+     <li>Compare to seasonality / same week last year, not just last week.</li>
+     <li>Only then form a hypothesis and report with context, not a raw number.</li></ul>`},
+
+ // ---- Workflow / scenario ----
+ {cat:"Workflow",diff:"easy",q:"Walk me through your end-to-end process building a report from a request.",hint:"requirements -> connect -> model -> measure -> visualize -> validate -> publish",
+  a:`<ol style="margin-left:20px">
+     <li><b>Clarify requirements</b>: who's the audience, what decision, what KPIs, refresh cadence.</li>
+     <li><b>Connect &amp; profile</b> the sources; assess quality.</li>
+     <li><b>Shape in Power Query</b> (clean, type, merge) keeping query folding.</li>
+     <li><b>Model</b>: star schema, Date table, relationships.</li>
+     <li><b>DAX measures</b> for the KPIs.</li>
+     <li><b>Visualize</b>: layout, the right charts, slicers, tooltips.</li>
+     <li><b>Validate</b> numbers against source / SME.</li>
+     <li><b>Publish</b> to a workspace, set RLS + scheduled refresh, share via app.</li></ol>`},
+
+ {cat:"Workflow",diff:"med",q:"How do you implement incremental refresh and why?",hint:"RangeStart/RangeEnd, only refresh recent partitions",
+  a:`<p>For large fact tables, refreshing everything daily is wasteful. <b>Incremental refresh</b> partitions data by date and only reloads recent partitions. Define <code class="inl">RangeStart</code>/<code class="inl">RangeEnd</code> parameters, filter the query by them (must <b>query fold</b>), then set the incremental policy (e.g. store 5 years, refresh last 10 days). Faster refresh, less load on the source.</p>`},
+
+ {cat:"Workflow",diff:"med",q:"How do you manage version control and deployment across Dev/Test/Prod?",hint:"PBIP, git, deployment pipelines",
+  a:`<p>Save as <b>PBIP</b> (Power BI Project) format so the report/model are text files that work with <b>Git</b> &mdash; real diffs and history. Use <b>Deployment Pipelines</b> in the Service to promote Dev &rarr; Test &rarr; Prod with parameter rules swapping data sources per stage. Tabular Editor + ALM Toolkit for model diffs. Keep measures documented and named consistently.</p>`},
+
+ {cat:"Workflow",diff:"hard",q:"Stakeholder says 'the numbers are wrong.' How do you respond?",hint:"reproduce, trace lineage, definition alignment",
+  a:`<ul><li><b>Stay calm, get specifics</b>: which visual, which filter state, what number did they expect.</li>
+     <li><b>Reproduce</b> their exact filter/slicer state.</li>
+     <li><b>Trace lineage</b>: visual &rarr; measure DAX &rarr; model &rarr; Power Query &rarr; source. Validate against a known-good source query (SQL count/sum).</li>
+     <li><b>Align definitions</b>: often it's not a bug but a different definition of "revenue" or a date grain / timezone / filter mismatch.</li>
+     <li>Fix root cause, then add a validation check and document the definition to prevent repeat.</li></ul>`},
+
+ {cat:"DAX",diff:"med",q:"Write a measure for a 3-month rolling average of sales.",hint:"DATESINPERIOD + AVERAGEX or DIVIDE",
+  a:`<pre><span class="f">Sales 3M Avg</span> =
+<span class="k">VAR</span> Months3 =
+    <span class="f">DATESINPERIOD</span>( 'Date'[Date], <span class="f">MAX</span>('Date'[Date]), -3, MONTH )
+<span class="k">RETURN</span>
+    <span class="k">DIVIDE</span>(
+        <span class="k">CALCULATE</span>( [Total Sales], Months3 ),
+        <span class="k">CALCULATE</span>( <span class="f">DISTINCTCOUNT</span>('Date'[YearMonth]), Months3 )
+    )</pre>
+     <p><code class="inl">DATESINPERIOD</code> builds the trailing 3-month window from the latest visible date; divide by the count of months in the window for the average.</p>`},
+
+ {cat:"Modeling",diff:"med",q:"What is a SCD (slowly changing dimension) and how do you handle Type 2?",hint:"history of attribute changes",
+  a:`<p>A slowly changing dimension tracks attributes that change over time (a customer moves region). <b>Type 1</b> overwrites (no history). <b>Type 2</b> keeps history by adding a new row per change with <code class="inl">ValidFrom</code>/<code class="inl">ValidTo</code> dates and a surrogate key, so a fact links to the version that was current at transaction time. Usually handled upstream in the warehouse; Power BI then joins on the surrogate key.</p>`},
+
+ {cat:"Viz",diff:"hard",q:"What are calculation groups and when do they save you?",hint:"reuse time-intelligence across many measures",
+  a:`<p>Calculation groups (built in Tabular Editor) let you define a calculation <b>once</b> and apply it to <b>any</b> measure &mdash; instead of writing YTD, MTD, YoY, PY for every measure. You create calculation <b>items</b> using <code class="inl">SELECTEDMEASURE()</code>, then a single slicer switches the time-intelligence applied to whatever measure is in the visual. Cuts dozens of measures down to a handful.</p>`},
+
+ {cat:"Statistics",diff:"easy",q:"What's the difference between a count and a distinct count, and a real gotcha?",hint:"DISTINCTCOUNT, blanks",
+  a:`<p><code class="inl">COUNT</code>/<code class="inl">COUNTROWS</code> counts every row; <code class="inl">DISTINCTCOUNT</code> counts unique values. Gotcha: distinct counts <b>don't add up</b> across categories (a customer who bought in two regions is counted once per region but once overall), and <code class="inl">DISTINCTCOUNT</code> ignores BLANK while a column might have nulls you expected to count. Always confirm whether the business wants "transactions" or "unique customers."</p>`},
+
+ /* ===================== EXPERT TIER (8-yr senior) ===================== */
+
+ {cat:"DAX",diff:"expert",q:"Explain the dual-engine architecture: Storage Engine vs Formula Engine, and how you read a server-timings trace.",hint:"VertiPaq SE scan, FE single-threaded, xmSQL, callbacks",
+  a:`<p>Every DAX query splits across two engines:</p>
+     <ul><li><b>Storage Engine (SE)</b> &mdash; VertiPaq, multi-threaded, cache-able. Does fast bulk scans, filters, and simple grouped aggregations, returning compressed datacaches. Communicates in <b>xmSQL</b>.</li>
+     <li><b>Formula Engine (FE)</b> &mdash; single-threaded, no cache. Handles complex logic the SE can't, iterating over datacaches row by row.</li></ul>
+     <p>In <b>DAX Studio &rarr; Server Timings</b>: high <b>SE%</b> with few queries is healthy. Red flags: many SE queries (excessive materialization), or a <b>CallbackDataID</b> &mdash; the SE calling back into the FE per row (e.g. complex expression inside an iterator), which kills SE parallelism and caching. High FE time = logic too complex; push work to SE-friendly patterns.</p>`},
+
+ {cat:"DAX",diff:"expert",q:"Why can the same measure return different results in a total vs a row, and how do you force a correct grand total?",hint:"measure totals re-evaluate in their own filter context, not a sum of rows",
+  a:`<p>A total is <b>not</b> the sum of the visible rows &mdash; the measure re-evaluates in the total's filter context (no row dimension filter). For non-additive measures (ratios, ranks, "count of customers above threshold") this gives a value that won't match summing the rows.</p>
+     <p>Fix by iterating the visible granularity explicitly:</p>
+     <pre><span class="f">Customers Above Target</span> =
+<span class="k">SUMX</span>(
+    <span class="f">VALUES</span>( Customer[CustomerKey] ),
+    <span class="k">IF</span>( [Total Sales] &gt; 10000, 1, 0 )
+)</pre>
+     <p>Or detect total level with <code class="inl">ISINSCOPE</code>/<code class="inl">HASONEVALUE</code> and branch. The principle: control the iteration granularity yourself rather than trusting the implicit total.</p>`},
+
+ {cat:"DAX",diff:"expert",q:"Implement a semi-additive closing-balance measure (e.g. inventory on hand) over a Date dimension.",hint:"LASTNONBLANK / last date with data, not SUM over time",
+  a:`<p>Stock/balance facts are additive across products but <b>not</b> across time &mdash; you want the last known value in the period, not the sum of daily snapshots.</p>
+     <pre><span class="f">Closing Stock</span> =
+<span class="k">CALCULATE</span>(
+    <span class="k">SUM</span>( Inventory[Qty] ),
+    <span class="f">LASTNONBLANK</span>( 'Date'[Date], <span class="k">CALCULATE</span>( <span class="k">SUM</span>(Inventory[Qty]) ) )
+)</pre>
+     <p><code class="inl">LASTNONBLANK</code> finds the last date in context that actually had data (handles weekends/gaps), then sums stock on that date across products. Use <code class="inl">FIRSTNONBLANK</code> for opening balance, or <code class="inl">CLOSINGBALANCEMONTH</code>/<code class="inl">QUARTER</code>/<code class="inl">YEAR</code> for calendar-aligned snapshots.</p>`},
+
+ {cat:"DAX",diff:"expert",q:"You need a virtual relationship between two tables with no physical relationship. How?",hint:"TREATAS vs INTERSECT vs CONTAINS; FILTER+CALCULATE",
+  a:`<p>Use <code class="inl">TREATAS</code> to apply one table's column values as a filter on an unrelated column &mdash; it's the cleanest and engine-optimized:</p>
+     <pre><span class="f">Sales in Budget Segment</span> =
+<span class="k">CALCULATE</span>(
+    [Total Sales],
+    <span class="f">TREATAS</span>( <span class="f">VALUES</span>(Budget[Segment]), Sales[Segment] )
+)</pre>
+     <p>Common uses: dynamic segmentation / banding, what-if parameters, connecting disconnected slicer tables, and budget-vs-actual at mismatched grains. Prefer <code class="inl">TREATAS</code> over <code class="inl">INTERSECT</code> or <code class="inl">FILTER(CONTAINS(...))</code> &mdash; it propagates as a real filter and folds into the SE better.</p>`},
+
+ {cat:"Performance",diff:"expert",q:"A model is 4 GB and refresh is slow. Walk through reducing model size and refresh time at a senior level.",hint:"cardinality, dictionary, encoding, partitions, aggregations, incremental, RLE",
+  a:`<ul><li><b>Find the cost</b>: VertiPaq Analyzer (DAX Studio) shows size per column &mdash; usually a few high-cardinality columns dominate the dictionary.</li>
+     <li><b>Cardinality surgery</b>: split DateTime into Date + Time, drop precision on decimals, remove surrogate keys/GUIDs you never filter on, remove audit columns.</li>
+     <li><b>Encoding</b>: low-cardinality &rarr; value/RLE compression. Sort the source by low-cardinality columns so Run-Length Encoding compresses better.</li>
+     <li><b>Star schema</b>: narrow fact, push descriptive columns to dimensions.</li>
+     <li><b>Incremental refresh</b> with folding RangeStart/RangeEnd so only recent partitions reload.</li>
+     <li><b>Aggregation tables</b> for big DirectQuery facts; user-defined aggs hit the agg first.</li>
+     <li>Disable Auto Date/Time (hidden per-column date tables bloat the model).</li></ul>`},
+
+ {cat:"Performance",diff:"expert",q:"When and how do you deploy aggregation tables, and how does the engine decide to use them?",hint:"agg awareness, precedence, DQ fact + import agg",
+  a:`<p>For a billion-row DirectQuery (or large import) fact, you build a pre-summarized <b>aggregation table</b> at a coarser grain (e.g. by Date+Product+Region) in Import mode. You map it via <b>Manage aggregations</b> (Count/Sum/Min/Max + the detail columns it summarizes).</p>
+     <p>The engine is <b>aggregation-aware</b>: if a query's grain and columns can be satisfied by the agg, it silently hits the small in-memory agg instead of the source &mdash; users never reference it. If the query needs finer grain, it falls through to the base fact. Set precedence when multiple aggs exist. Result: dashboard-speed on detail-scale data.</p>`},
+
+ {cat:"Modeling",diff:"expert",q:"Design a model for budget (monthly, by region) vs actuals (daily, by store). Different grains. How?",hint:"shared conformed dimensions, no fact-to-fact relationship, measures resolve grain",
+  a:`<p>Never relate two fact tables directly. Connect both to <b>conformed dimensions</b> at the <i>highest common grain</i>:</p>
+     <ul><li>Build a <b>Date</b> dim (day) and a Region dim. Relate Actuals (daily/store) to Date and to a Region via Store&rarr;Region.</li>
+     <li>Budget is monthly/region &mdash; relate it to the <b>Month</b> level. Either use a Month dimension, or relate Budget to the first-of-month date and let DAX aggregate.</li>
+     <li>Measures resolve the mismatch: <code class="inl">[Actuals]</code> sums daily; <code class="inl">[Budget]</code> uses <code class="inl">TREATAS</code> / a month key so it spreads or compares correctly. Variance = <code class="inl">DIVIDE([Actuals]-[Budget],[Budget])</code>.</li></ul>
+     <p>Key idea: dimensions are the join fabric; facts only ever meet through shared dimensions.</p>`},
+
+ {cat:"Modeling",diff:"expert",q:"Explain many-to-many: bridge table approach vs the native M2M relationship. Trade-offs?",hint:"bridge + single dir, vs composite-key M2M, ambiguity, RLS",
+  a:`<p><b>Bridge table</b>: a table of distinct key pairs between the two dimensions; relate each dimension 1-to-many into the bridge. Filter flows with single direction + a measure-scoped <code class="inl">CROSSFILTER</code>, or controlled bidirectional. Predictable, RLS-safe, explicit.</p>
+     <p><b>Native M2M relationship</b> (relate two tables on a non-unique column): convenient but creates a weak relationship &mdash; risks filter <b>ambiguity</b>, surprising blank/duplicated totals, and RLS leakage. </p>
+     <p>Senior default: use a <b>bridge</b> with single-direction relationships and turn on cross-filtering only inside the specific measures that need it. Reserve native M2M for simple, isolated cases.</p>`},
+
+ {cat:"RLS",diff:"expert",q:"Design organizational-hierarchy RLS where a manager sees their own data plus everyone below them.",hint:"PATH/PATHCONTAINS on a parent-child hierarchy + USERPRINCIPALNAME",
+  a:`<p>Flatten the parent-child org with <code class="inl">PATH</code> to get each employee's ancestry string, then filter where the current user appears anywhere in a row's path.</p>
+     <pre><span class="c">-- calc column on Employee (or security) table</span>
+<span class="f">HierPath</span> = <span class="f">PATH</span>( Employee[EmpID], Employee[ManagerID] )
+
+<span class="c">-- RLS filter on the role</span>
+<span class="f">PATHCONTAINS</span>(
+    Employee[HierPath],
+    <span class="f">LOOKUPVALUE</span>( Employee[EmpID], Employee[Email], <span class="f">USERPRINCIPALNAME</span>() )
+)</pre>
+     <p>The manager's EmpID is in the path of every subordinate, so they see their whole subtree; an IC sees only themselves. One dynamic role serves the entire org. Validate the filter propagates from the secured dimension to the fact (single direction) and doesn't leak via bidirectional.</p>`},
+
+ {cat:"Power Query",diff:"expert",q:"Query folding broke mid-query and refresh got slow. How do you diagnose and restore folding?",hint:"View Native Query, reorder steps, Table.Buffer, custom SQL, fold-friendly funcs",
+  a:`<ul><li>Right-click each step &rarr; <b>View Native Query</b>. The last step where it's still available is where folding stops.</li>
+     <li>Common fold-breakers: <code class="inl">Table.Buffer</code>, adding an Index, some <code class="inl">Table.AddColumn</code> custom logic, merging folding + non-folding sources, fuzzy merge, certain date/text functions.</li>
+     <li><b>Reorder</b>: do all fold-able filters/selects/joins <i>first</i> (so the source does the heavy lifting), push non-foldable steps to the very end on the already-reduced set.</li>
+     <li>If a transform can't fold, consider doing it in a <b>native SQL view</b> upstream or as the source query.</li>
+     <li>Confirm the source supports folding at all (files/Excel/web don't; SQL/most DBs do).</li></ul>`},
+
+ {cat:"Power Query",diff:"expert",q:"Write a reusable custom M function and explain when you'd parameterize a query.",hint:"(x as type) => ... , invoke per file, environment params",
+  a:`<p>Author a function once, invoke it across rows/files. Example: clean & type a sheet pulled from each file in a folder.</p>
+     <pre><span class="f">fxCleanSheet</span> = (src <span class="k">as</span> table) <span class="k">as</span> table =&gt;
+  <span class="k">let</span>
+    promoted = Table.PromoteHeaders(src),
+    typed    = Table.TransformColumnTypes(promoted,
+                 {{"Date", type date},{"Amount", type number}}),
+    trimmed  = Table.SelectRows(typed, each [Amount] &lt;&gt; null)
+  <span class="k">in</span> trimmed</pre>
+     <p>Parameterize queries (e.g. environment, date window, server name) so the same .pbix promotes across <b>Dev/Test/Prod</b> via Deployment Pipeline rules without editing M &mdash; and so RangeStart/RangeEnd drive incremental refresh.</p>`},
+
+ {cat:"Workflow",diff:"expert",q:"Design a Power BI / Fabric architecture for an enterprise serving 5,000 users across 20 departments.",hint:"workspaces, shared datasets, gold layer, deployment pipelines, capacity, certified",
+  a:`<ul><li><b>Separation of concerns</b>: dedicated dataset (semantic model) workspaces vs report/app workspaces. One <b>certified shared dataset</b> per domain; reports connect live (no duplicated models).</li>
+     <li><b>Medallion upstream</b>: Bronze/Silver/Gold in a Lakehouse/Warehouse (Fabric) or DWH; Power BI reads the <b>Gold</b> layer only.</li>
+     <li><b>Deployment Pipelines</b>: Dev &rarr; Test &rarr; Prod with parameter rules; PBIP + Git for source control.</li>
+     <li><b>Capacity</b>: Premium/Fabric capacity (F-SKU) sized by load; monitor with the Capacity Metrics app; large-model + scale-out for read concurrency.</li>
+     <li><b>Governance</b>: endorsement (certified/promoted), sensitivity labels, RLS/OLS, audit logs, a central COE with naming/standards.</li>
+     <li><b>Distribution</b> via Apps, not raw report sharing; row-level security driven by AAD groups.</li></ul>`},
+
+ {cat:"Workflow",diff:"expert",q:"Compare DirectLake (Fabric) vs Import vs DirectQuery. When does DirectLake win?",hint:"reads parquet/delta directly, no import, no DQ translation, fallback",
+  a:`<p><b>DirectLake</b> (Fabric) reads Delta/Parquet files in OneLake <b>directly</b> into the VertiPaq engine &mdash; near-Import query speed with near-DirectQuery freshness, and <b>no scheduled refresh</b> to load data.</p>
+     <ul><li>vs <b>Import</b>: no refresh/duplication, always current with the lakehouse, but tied to Fabric + the Delta layer.</li>
+     <li>vs <b>DirectQuery</b>: no per-query SQL round-trip/translation penalty; far faster.</li>
+     <li><b>Fallback</b>: if a query exceeds limits (e.g. guardrails, unsupported feature), it transparently falls back to DirectQuery on the SQL endpoint &mdash; slower, so watch for it.</li></ul>
+     <p>Wins when the data already lands in a Fabric Lakehouse/Warehouse as Delta and you want fresh + fast without ETL into the model.</p>`},
+
+ {cat:"Statistics",diff:"expert",q:"Stakeholders want forecasting and anomaly detection in the report. How do you approach it credibly?",hint:"built-in analytics, decomposition, error bands, R/Python, validation",
+  a:`<ul><li><b>Start simple</b>: the line chart's built-in <b>Analytics &rarr; Forecast</b> (exponential smoothing) with confidence bands &mdash; communicate the band, not just the point.</li>
+     <li><b>Decompose</b> first: trend + seasonality + residual; pick a model that matches (ETS/ARIMA for seasonal series). Don't forecast a series driven by known future events without exogenous inputs.</li>
+     <li><b>Anomalies</b>: built-in anomaly detection, or compute z-scores / rolling-median deviation in DAX/upstream; flag, don't auto-explain.</li>
+     <li>For real models, do it <b>upstream</b> (Python/R, Fabric notebooks, AutoML) and surface results as a column &mdash; keep the .pbix a presentation layer.</li>
+     <li><b>Validate</b>: backtest on holdout, report MAPE, and set expectations on uncertainty so no one treats a forecast as a promise.</li></ul>`},
+
+ {cat:"DAX",diff:"expert",q:"What is the difference between KEEPFILTERS and overwriting filters in CALCULATE? Give a concrete case.",hint:"intersect vs replace existing filter on a column",
+  a:`<p>By default a <code class="inl">CALCULATE</code> filter argument <b>replaces</b> any existing filter on that column. <code class="inl">KEEPFILTERS</code> instead <b>intersects</b> with the existing context.</p>
+     <pre><span class="c">-- Visual filtered to Color = Red by a slicer</span>
+<span class="f">Sales Big</span> =
+<span class="k">CALCULATE</span>( [Total Sales],
+    <span class="f">KEEPFILTERS</span>( Sales[Amount] &gt; 1000 ) )</pre>
+     <p>Without <code class="inl">KEEPFILTERS</code>, a filter like <code class="inl">Product[Color]="Blue"</code> would override the slicer's Red selection and show Blue everywhere. With it, you get the intersection (Red <b>and</b> the new condition) &mdash; which is almost always what the business actually means. Essential when adding conditions on a column users also slice.</p>`},
+
+ {cat:"Performance",diff:"expert",q:"Explain how relationship cardinality and a high-cardinality join column hurt query performance.",hint:"large join, materialization, datacache size, expanded table",
+  a:`<p>VertiPaq relationships are resolved as joins between the dimension key and the fact's foreign key. A <b>high-cardinality key</b> (millions of distinct values, e.g. a transaction-level key used as a relationship) forces large <b>datacache materialization</b> &mdash; the SE must produce big intermediate result sets the FE then iterates, and the join can't compress well.</p>
+     <ul><li>Keep relationship columns at the <b>lowest practical cardinality</b> (integer surrogate keys, not strings/GUIDs).</li>
+     <li>Avoid relationships on free-text or composite natural keys &mdash; build a slim integer key.</li>
+     <li>Watch the "expanded table" effect: filtering a huge dimension propagates a large filter to the fact. Reduce dimension size and prefer star over snowflake to shorten propagation paths.</li></ul>`},
+
+ {cat:"SQL & Data",diff:"expert",q:"Design an incremental load / SCD-2 merge in SQL (the upstream a senior BI dev owns).",hint:"MERGE, hash-diff, ValidFrom/ValidTo, watermark",
+  a:`<p>Senior BI owns the warehouse layer feeding Power BI. For a Type-2 dimension load:</p>
+     <ul><li><b>Watermark/incremental</b>: pull only source rows changed since the last load (max updated_at or CDC).</li>
+     <li><b>Hash-diff</b>: compute a hash of tracked attributes; compare to the current version to detect real changes (ignore no-ops).</li>
+     <li><b>MERGE</b>: when matched & hash differs &rarr; expire current row (set <code class="inl">ValidTo</code>, <code class="inl">IsCurrent=0</code>) and insert a new version (<code class="inl">ValidFrom=now</code>, <code class="inl">IsCurrent=1</code>, new surrogate key); when not matched &rarr; insert new.</li></ul>
+     <pre><span class="k">MERGE</span> dim_customer AS t
+<span class="k">USING</span> stg AS s <span class="k">ON</span> t.bk = s.bk <span class="k">AND</span> t.is_current = 1
+<span class="k">WHEN MATCHED AND</span> t.row_hash &lt;&gt; s.row_hash <span class="k">THEN</span>
+  <span class="k">UPDATE SET</span> valid_to = sysdatetime(), is_current = 0;
+<span class="c">-- then INSERT new versions for changed + new keys</span></pre>
+     <p>Power BI joins the fact to the dimension on the <b>surrogate key</b> captured at transaction time, so history is preserved.</p>`},
+
+ /* ===================== HR / BEHAVIORAL (India market) ===================== */
+
+ {cat:"HR / Behavioral",diff:"easy",q:"Tell me about yourself.",hint:"present-past-future, role-relevant, 60-90 sec",
+  a:`<p>Use <b>Present &rarr; Past &rarr; Future</b>, keep it 60&ndash;90 seconds, all role-relevant.</p>
+     <p><i>Sample:</i> "I'm a Power BI developer with 8 years in BI and analytics. Currently at [company] I own end-to-end reporting for the [domain] team &mdash; I build the data model in Power Query, write the DAX, and design dashboards used by ~200 business users daily. Before this I worked at [company] on data warehousing and SQL. Over the years I've gone deep into performance tuning, RLS, and lately Microsoft Fabric. I'm now looking for a role where I can own BI architecture and mentor a team, which is why this position interested me."</p>
+     <p><b>Don't</b> recite your resume line by line or start with personal/family details &mdash; common mistake in India interviews. Lead with value.</p>`},
+
+ {cat:"HR / Behavioral",diff:"easy",q:"Why are you looking for a change / why leaving your current company?",hint:"positive, forward-looking, never bash employer",
+  a:`<p>Stay <b>positive and forward-looking</b>. Never criticize your current manager or company.</p>
+     <p><i>Say:</i> "I've had a great learning run at my current company and I'm grateful for it. I've now hit a point where I want to work on larger-scale BI architecture and newer tech like Fabric, and grow into a lead role. This opportunity aligns much better with where I want to take my career." </p>
+     <p>If asked about salary as the reason, frame it as "growth and scope" first; compensation can be part of it but shouldn't be the headline.</p>`},
+
+ {cat:"HR / Behavioral",diff:"med",q:"What is your current CTC and expected CTC?",hint:"know your number, justify with market + skills, give a range",
+  a:`<p>Be ready &mdash; this is asked early in India. State current CTC honestly (they often verify via payslips). For expected, give a researched <b>range</b> with justification.</p>
+     <p><i>Say:</i> "My current fixed CTC is &#8377;X LPA. Based on my 8 years, my Power BI + DAX + Fabric skill set, and the market for this role, I'm looking at &#8377;Y&ndash;Z LPA. I'm open to discussing the full package &mdash; fixed, variable, and growth path." </p>
+     <p>Tips: anchor on a number you can defend, factor a 20&ndash;40% hike on switch, and don't undersell. If pushed for an exact figure, give the range and say you're flexible for the right role.</p>`},
+
+ {cat:"HR / Behavioral",diff:"easy",q:"What is your notice period? Can you join earlier?",hint:"state honestly, mention buyout/negotiation if possible",
+  a:`<p>State it plainly: "My notice period is 60/90 days." Then add flexibility: "I can request early release or buy out part of it &mdash; I'd target joining within [X] weeks." Indian employers weigh notice period heavily, so signaling you'll try to expedite is a plus. Don't over-promise a date you can't hit.</p>`},
+
+ {cat:"HR / Behavioral",diff:"med",q:"Where do you see yourself in 5 years?",hint:"growth into lead/architect, aligned with company",
+  a:`<p>Show ambition aligned to the role, not a different career.</p>
+     <p><i>Say:</i> "In five years I see myself as a BI lead or data architect &mdash; owning the analytics strategy for a domain, setting standards for the team, and mentoring junior developers. I want to stay hands-on with the tech while growing into ownership. I see this role as a strong step toward that." </p>
+     <p>Avoid "I want to start my own company" or vague answers &mdash; signals flight risk.</p>`},
+
+ {cat:"HR / Behavioral",diff:"med",q:"Tell me about a conflict with a colleague or stakeholder and how you handled it.",hint:"STAR, calm, resolution-focused",
+  a:`<p>Use <b>STAR</b> (Situation, Task, Action, Result). Pick a real but professional example, stay neutral about the other person.</p>
+     <p><i>Sample:</i> "<b>S:</b> A business stakeholder insisted a KPI was wrong. <b>T:</b> I had to resolve it without escalating tension. <b>A:</b> I reproduced their filter state, traced the measure back to the source with a SQL query, and found we were using two different definitions of 'active customer'. I set up a 20-min call, walked them through the lineage, and we agreed on one definition which I documented. <b>R:</b> The report was corrected, and we added a definitions glossary so it never recurred." Emphasize listening + data-driven resolution.</p>`},
+
+ {cat:"HR / Behavioral",diff:"med",q:"Tell me about your most challenging project.",hint:"STAR, your specific contribution, measurable impact",
+  a:`<p>Pick a project with real complexity and quantify the outcome. Focus on <b>your</b> contribution.</p>
+     <p><i>Frame:</i> the business problem &rarr; why it was hard (data volume, messy sources, tight deadline, demanding stakeholders) &rarr; what you specifically did (modeling, DAX, optimization) &rarr; result (e.g. "cut refresh from 2 hrs to 15 min", "report adopted by 300 users", "saved X hours of manual reporting weekly"). Numbers make it credible.</p>`},
+
+ {cat:"HR / Behavioral",diff:"easy",q:"What are your strengths and weaknesses?",hint:"real strength with proof; genuine weakness + how you manage it",
+  a:`<p><b>Strength:</b> back it with proof. "My strength is performance optimization &mdash; I enjoy digging into DAX Studio and VertiPaq Analyzer; I once cut a model from 4GB to 1.2GB."</p>
+     <p><b>Weakness:</b> give a genuine one you're actively improving, not a humble-brag. "Earlier I'd over-engineer dashboards with too many visuals. I've learned to start from the business question and keep reports focused &mdash; I now review every visual against 'does this drive a decision'." Avoid "I'm a perfectionist" &mdash; sounds rehearsed.</p>`},
+
+ {cat:"HR / Behavioral",diff:"med",q:"Why should we hire you? / Why this company?",hint:"match skills to their needs, show you researched them",
+  a:`<p>Connect <b>your skills</b> to <b>their needs</b>, and show you researched the company.</p>
+     <p><i>Say:</i> "You need someone who can own Power BI end-to-end and bring it to enterprise scale &mdash; that's exactly my 8 years. I bring strong DAX, data modeling, and now Fabric experience, plus I've mentored juniors. I was drawn to [company] because of [specific: your data-driven culture / Fabric adoption / the product]. I'm confident I can deliver impact from week one." </p>`},
+
+ {cat:"HR / Behavioral",diff:"easy",q:"Do you have any questions for us?",hint:"always ask 2-3 thoughtful ones",
+  a:`<p>Always say yes &mdash; "no questions" signals disinterest. Ask about <b>role, team, tech, growth</b>:</p>
+     <ul><li>"What does the current BI/data stack look like &mdash; are you on Fabric, Synapse, on-prem gateway?"</li>
+     <li>"How is the BI team structured, and who would I work with?"</li>
+     <li>"What would success in this role look like in the first 6 months?"</li>
+     <li>"How does the company support upskilling / certifications?"</li></ul>
+     <p>Avoid leading with leave policy/salary in a technical round &mdash; save those for HR.</p>`},
+
+ {cat:"HR / Behavioral",diff:"med",q:"Describe a time you failed or made a mistake.",hint:"own it, what you learned, how you prevent it now",
+  a:`<p>Show accountability + learning, not blame.</p>
+     <p><i>Sample:</i> "I once published a report where a measure double-counted because of a fan-trap in the model. A stakeholder caught it in a review. I owned it immediately, fixed the relationship, and re-validated against source. Since then I always validate totals against a known-good SQL query before publishing, and I added that as a checklist step for the team." The point: you take responsibility and build a safeguard.</p>`},
+
+ {cat:"HR / Behavioral",diff:"easy",q:"Are you comfortable with onsite/client location, shifts, or relocation?",hint:"common in Indian service companies; be honest but flexible",
+  a:`<p>Common at TCS/Infosys/Wipro/Accenture/Cognizant and client-facing roles. Be honest but show flexibility where you genuinely can.</p>
+     <p><i>Say:</i> "Yes, I'm open to client locations and reasonable relocation for the right opportunity. For shifts, I can do overlapping hours with [US/EU] teams. If there's a specific expectation, I'd like to understand it so I can plan." Don't commit to something you can't sustain &mdash; better to be upfront.</p>`},
+
+ /* ===================== PROJECT & SCENARIO ===================== */
+
+ {cat:"Project & Scenario",diff:"med",q:"Walk me through a Power BI project on your resume end-to-end.",hint:"business problem, sources, model, DAX, deployment, impact",
+  a:`<p>Tell it as a story with structure: <b>Problem &rarr; Data &rarr; Build &rarr; Deliver &rarr; Impact.</b></p>
+     <ul><li><b>Problem:</b> "Sales leadership had no single view of pipeline; they used 5 Excel files."</li>
+     <li><b>Data:</b> sources (SQL, Salesforce, Excel), volume, refresh need.</li>
+     <li><b>Build:</b> Power Query cleaning, star schema, key DAX measures, RLS for regional managers.</li>
+     <li><b>Deliver:</b> workspace, app, scheduled refresh, gateway.</li>
+     <li><b>Impact:</b> "Replaced manual reporting, saved ~10 hrs/week, adopted by 150 users."</li></ul>
+     <p>Be ready for follow-up drill-downs on any layer &mdash; interviewers test if the project is really yours.</p>`},
+
+ {cat:"Project & Scenario",diff:"med",q:"A client wants a report refreshed every hour but the source is a large on-prem SQL DB. How do you design it?",hint:"gateway, incremental refresh, or DirectQuery/composite, aggregations",
+  a:`<ul><li>Install/configure an <b>on-premises data gateway</b> (standard mode) for connectivity.</li>
+     <li>If data volume is large, use <b>incremental refresh</b> so only recent partitions reload each hour (fast, low DB load) &mdash; needs query folding on a date column.</li>
+     <li>If near-real-time is essential, consider <b>DirectQuery</b> or a <b>composite model</b> (import dimensions + aggregations, DirectQuery the big fact) to balance freshness and speed.</li>
+     <li>Schedule 1-hour refresh in the Service; coordinate with DBA on a read replica or off-peak indexing so you don't hammer production.</li></ul>`},
+
+ {cat:"Project & Scenario",diff:"med",q:"Stakeholders want one report but each region should see only their data. How?",hint:"RLS, single report, dynamic role",
+  a:`<p>Build <b>one</b> report with <b>Row-Level Security</b> &mdash; not separate reports per region (unmaintainable).</p>
+     <ul><li>Create a role with a DAX filter, ideally <b>dynamic</b>: a user-to-region mapping table filtered by <code class="inl">USERPRINCIPALNAME()</code>.</li>
+     <li>Assign AAD groups to the role in the Service.</li>
+     <li>Test with <i>View as Role</i>. One report, one dataset, everyone sees only their slice.</li></ul>
+     <p>Mention you'd avoid bidirectional relationships that could leak RLS.</p>`},
+
+ {cat:"Project & Scenario",diff:"hard",q:"Your dataset refresh started failing in production. How do you troubleshoot?",hint:"check error, credentials, gateway, source change, timeout, schema",
+  a:`<ul><li>Open the dataset's <b>refresh history</b> in the Service and read the actual error.</li>
+     <li>Common causes: expired <b>credentials</b>, <b>gateway</b> offline, source <b>schema change</b> (renamed column breaks a step), <b>timeout</b> on a large pull, or a data type/privacy-level error.</li>
+     <li>Reproduce in Desktop with the same query; check Power Query steps for the break.</li>
+     <li>Fix root cause: re-enter creds, restart gateway, make the query resilient (e.g. handle the renamed column), or move to incremental refresh to beat timeouts.</li>
+     <li>Add monitoring/alerts so failures are caught proactively, and document the fix.</li></ul>`},
+
+ {cat:"Project & Scenario",diff:"med",q:"A user says 'the dashboard is too slow.' What do you do?",hint:"Performance Analyzer, model, visuals, DirectQuery",
+  a:`<p>Diagnose methodically (also a top technical question):</p>
+     <ul><li>Run <b>Performance Analyzer</b> to see which visual/DAX is slow.</li>
+     <li>Reduce visuals per page; remove unnecessary high-cardinality columns; fix the model toward a clean star schema.</li>
+     <li>Move heavy calculated columns to Power Query or measures; optimize DAX with DAX Studio.</li>
+     <li>If DirectQuery, add aggregations or switch heavy parts to Import.</li></ul>
+     <p>Then validate the improvement and tell the user the before/after numbers &mdash; closing the loop matters.</p>`},
+
+ {cat:"Project & Scenario",diff:"hard",q:"How would you migrate 50 existing Excel/SSRS reports to Power BI?",hint:"assess, prioritize, common model, phased, governance",
+  a:`<ul><li><b>Assess &amp; rationalize</b>: many of 50 reports overlap &mdash; consolidate into fewer dashboards. Catalog users, sources, KPIs.</li>
+     <li><b>Prioritize</b>: start with high-value, high-usage reports for quick wins.</li>
+     <li><b>Build shared semantic models</b> instead of one dataset per report, so logic is reused and certified.</li>
+     <li><b>Phased rollout</b> with parallel run (old + new) to build trust, validate numbers, then retire the old.</li>
+     <li><b>Governance</b>: workspaces, naming standards, RLS, refresh, training for users.</li></ul>
+     <p>Frame it as a program, not a one-shot &mdash; shows seniority.</p>`},
+
+ {cat:"Project & Scenario",diff:"med",q:"How do you ensure your reports are accurate before delivery (data validation)?",hint:"reconcile to source, totals, edge cases, peer review",
+  a:`<ul><li><b>Reconcile to source</b>: run a SQL <code class="inl">SUM</code>/<code class="inl">COUNT</code> and match it to the report's totals.</li>
+     <li>Check <b>grand totals</b> and a few drill-downs; watch non-additive measures.</li>
+     <li>Test <b>edge cases</b>: nulls, date boundaries, RLS as different users, empty filters.</li>
+     <li>Validate <b>refresh</b> end-to-end on the gateway, not just Desktop.</li>
+     <li>Get a <b>peer review</b> and sign-off from a business SME on definitions.</li></ul>`},
+
+ /* ===================== EXCEL & BASICS (commonly asked in India) ===================== */
+
+ {cat:"Excel & Basics",diff:"easy",q:"What are the main components / building blocks of Power BI?",hint:"Desktop, Service, Mobile, Gateway, Report Server",
+  a:`<ul><li><b>Power BI Desktop</b> &mdash; authoring tool (build models &amp; reports).</li>
+     <li><b>Power BI Service</b> (app.powerbi.com) &mdash; cloud for publishing, dashboards, sharing, refresh, RLS.</li>
+     <li><b>Power BI Mobile</b> &mdash; apps to view on phone/tablet.</li>
+     <li><b>Data Gateway</b> &mdash; secure bridge to on-prem sources for refresh.</li>
+     <li><b>Power BI Report Server</b> &mdash; on-prem hosting option.</li></ul>
+     <p>Underlying tech: Power Query (M) for ETL, VertiPaq + DAX for modeling/calc.</p>`},
+
+ {cat:"Excel & Basics",diff:"easy",q:"Difference between a dashboard and a report in Power BI?",hint:"report multi-page interactive; dashboard single-page pinned tiles, service-only",
+  a:`<p>A <b>report</b> is multi-page, highly interactive, built in Desktop, bound to one dataset, with slicers/filters/drill-through. A <b>dashboard</b> exists only in the Service &mdash; a single canvas of <b>pinned tiles</b> (often from multiple reports/datasets), good for an at-a-glance executive view, with features like Q&amp;A and alerts. Rule: build in reports, surface highlights on a dashboard.</p>`},
+
+ {cat:"Excel & Basics",diff:"easy",q:"What data sources can Power BI connect to?",hint:"files, databases, online services, OData/API, folder",
+  a:`<p>Hundreds: files (Excel, CSV, XML, JSON, PDF), databases (SQL Server, Azure SQL, Oracle, MySQL, PostgreSQL, Snowflake), online services (Salesforce, Google Analytics, Dynamics, SharePoint), Azure (Synapse, Data Lake, Databricks), OData/Web APIs, and folders of files. Mention you'd pick Import vs DirectQuery based on freshness and volume.</p>`},
+
+ {cat:"Excel & Basics",diff:"easy",q:"What are filters in Power BI and their levels?",hint:"visual, page, report, drill-through; plus slicers",
+  a:`<p>Filter scopes in the Filters pane: <b>Visual-level</b> (one visual), <b>Page-level</b> (all visuals on a page), <b>Report-level</b> (every page), and <b>Drill-through</b> (navigate to a detail page filtered to a selected entity). <b>Slicers</b> are on-canvas filters users interact with directly. Know the difference between a slicer and a filter-pane filter &mdash; commonly asked.</p>`},
+
+ {cat:"Excel & Basics",diff:"med",q:"How is Power BI better than Excel for reporting?",hint:"data volume, model, refresh, interactivity, sharing, governance",
+  a:`<ul><li><b>Volume</b>: VertiPaq handles tens of millions of rows; Excel struggles past ~1M.</li>
+     <li><b>Data model + relationships</b> across many tables vs flat sheets/VLOOKUP.</li>
+     <li><b>Automated refresh</b> &amp; single source of truth vs manual copy-paste.</li>
+     <li><b>Interactivity</b>: cross-filtering, drill-through, slicers.</li>
+     <li><b>Sharing &amp; governance</b>: Service, apps, RLS, certified datasets.</li></ul>
+     <p>Balanced close: "Excel is still great for ad-hoc analysis; Power BI wins for repeatable, governed, scalable reporting."</p>`},
+
+ {cat:"Excel & Basics",diff:"easy",q:"What is a slicer and how is it different from a filter?",hint:"slicer = on-canvas visual filter for users",
+  a:`<p>A <b>slicer</b> is a visual placed on the report canvas that lets end-users filter data themselves (dropdown, list, date range, buttons). A <b>filter</b> in the Filters pane is set by the developer and is less prominent to users. Slicers improve self-service; filters control scope behind the scenes. Slicers can sync across pages too.</p>`},
+
+ {cat:"Excel & Basics",diff:"med",q:"What is Q&A in Power BI?",hint:"natural-language query feature",
+  a:`<p><b>Q&amp;A</b> lets users type natural-language questions ("total sales by region last quarter") and Power BI generates a visual automatically. It works best with a clean model, good table/column names, and <b>synonyms</b> you define. Available as a visual in reports and on dashboards. Good talking point for self-service BI.</p>`},
+
+ {cat:"Excel & Basics",diff:"easy",q:"What file formats does Power BI Desktop use (.pbix, .pbit, .pbip)?",hint:"pbix report+data, pbit template, pbip project for git",
+  a:`<p><b>.pbix</b> &mdash; the standard file: report + model + (for Import) data. <b>.pbit</b> &mdash; a <b>template</b>: report + model structure but no data, with parameters prompted on open (great for reuse). <b>.pbip</b> &mdash; <b>Power BI Project</b> format: saves report/model as text files for <b>Git</b> version control and CI/CD.</p>`},
+
+ /* ===================== MORE COMMON TECHNICAL (India interview staples) ===================== */
+
+ {cat:"DAX",diff:"med",q:"Difference between ALL, ALLEXCEPT and ALLSELECTED?",hint:"remove all filters / all but some / respect outer slicers",
+  a:`<ul><li><code class="inl">ALL(table/col)</code> &mdash; removes <b>all</b> filters (ignores slicers and row context). Used for grand totals / % of grand total.</li>
+     <li><code class="inl">ALLEXCEPT(table, col1, ...)</code> &mdash; removes all filters <b>except</b> the listed columns. Handy for "% within category".</li>
+     <li><code class="inl">ALLSELECTED</code> &mdash; removes row/visual filters but <b>respects outer slicer</b> selections &mdash; the "visible total".</li></ul>
+     <p>Classic interview trap: % of total &mdash; ALL = of everything, ALLSELECTED = of what the user filtered to.</p>`},
+
+ {cat:"DAX",diff:"easy",q:"What is RELATED vs RELATEDTABLE?",hint:"many-side pulls one value; one-side pulls a table",
+  a:`<p><code class="inl">RELATED</code> &mdash; from the <b>many</b> side, fetch a single value from the <b>one</b> side (e.g. pull Product[Category] into the Sales row). <code class="inl">RELATEDTABLE</code> &mdash; from the <b>one</b> side, return the <b>related rows</b> on the many side as a table (usually wrapped in an aggregator like <code class="inl">COUNTROWS</code>). Both follow an existing relationship.</p>`},
+
+ {cat:"DAX",diff:"med",q:"What does the FILTER function do and when do you need it over a simple CALCULATE filter?",hint:"row-by-row table filter for complex conditions",
+  a:`<p><code class="inl">FILTER</code> returns a table, evaluating a condition row by row &mdash; use it inside <code class="inl">CALCULATE</code> when the condition is <b>complex</b> or references a measure, which a simple boolean filter argument can't do.</p>
+     <pre><span class="f">High-Value Sales</span> =
+<span class="k">CALCULATE</span>( [Total Sales],
+    <span class="f">FILTER</span>( Sales, Sales[Qty] * Sales[Price] &gt; 1000 ) )</pre>
+     <p>Caveat: FILTER iterates, so on huge tables it's slower than a plain column filter &mdash; use it only when needed.</p>`},
+
+ {cat:"Power Query",diff:"easy",q:"What is the difference between Pivot and Unpivot, and when do you use each?",hint:"rows<->columns; unpivot for tidy data",
+  a:`<p><b>Unpivot</b> turns wide columns into rows (Jan/Feb/Mar columns &rarr; a Month column + Value column) &mdash; the usual move to make data model-friendly. <b>Pivot</b> does the reverse, turning row values into columns (rarely needed for modeling, sometimes for a specific matrix shape). Interviewers love unpivot because it shows you understand tidy data for Power BI.</p>`},
+
+ {cat:"Modeling",diff:"easy",q:"What is the difference between a fact table and a dimension table?",hint:"measures+keys vs descriptive attributes",
+  a:`<p><b>Fact</b> table stores measurable business events &mdash; numeric measures (sales amount, qty) plus foreign keys, usually long and narrow, high row count. <b>Dimension</b> table stores descriptive context &mdash; attributes you slice/filter by (Product name, Customer city, Date), usually wider but fewer rows. Facts answer "how much", dimensions answer "by what".</p>`},
+
+ {cat:"Modeling",diff:"med",q:"Star schema vs snowflake schema &mdash; which and why?",hint:"denormalized vs normalized dimensions; prefer star",
+  a:`<p><b>Star</b>: dimensions are denormalized into single tables around the fact &mdash; simpler, fewer joins, faster in VertiPaq. <b>Snowflake</b>: dimensions are normalized into sub-dimensions (Product &rarr; Category &rarr; Dept) &mdash; less redundancy but more joins and slower filter propagation. <b>Prefer star</b> in Power BI; only snowflake when a dimension is huge and shared. This is asked in almost every India BI interview.</p>`},
+
+ {cat:"SQL & Data",diff:"easy",q:"What is the difference between UNION and UNION ALL?",hint:"dedupe vs keep duplicates / performance",
+  a:`<p><code class="inl">UNION</code> stacks two result sets and <b>removes duplicates</b> (does a distinct sort &mdash; slower). <code class="inl">UNION ALL</code> keeps <b>all</b> rows including duplicates and is <b>faster</b> because it skips the dedupe. Use UNION ALL when you know there are no dups or you want them &mdash; common performance answer.</p>`},
+
+ {cat:"SQL & Data",diff:"easy",q:"What is the difference between DELETE, TRUNCATE and DROP?",hint:"rows+logged+rollback / fast reset / removes object",
+  a:`<ul><li><b>DELETE</b> &mdash; removes rows (optionally with WHERE), logged, can roll back, keeps the table/structure, doesn't reset identity.</li>
+     <li><b>TRUNCATE</b> &mdash; removes <b>all</b> rows fast, minimally logged, resets identity, can't use WHERE.</li>
+     <li><b>DROP</b> &mdash; removes the entire <b>table/object</b> (structure + data).</li></ul>
+     <p>Frequent India SQL screening question &mdash; know DML vs DDL too.</p>`},
+
+ {cat:"SQL & Data",diff:"med",q:"What are primary key vs foreign key, and what is a surrogate key?",hint:"uniqueness, referential integrity, system-generated key",
+  a:`<p><b>Primary key</b> &mdash; uniquely identifies each row, no nulls/dups. <b>Foreign key</b> &mdash; a column referencing another table's PK, enforcing referential integrity (the join). <b>Surrogate key</b> &mdash; a system-generated meaningless integer (identity) used as PK instead of a natural/business key; preferred in warehouses because it's stable, compact (great for VertiPaq), and supports SCD-2 versioning.</p>`},
+
+ {cat:"Viz",diff:"easy",q:"What is drill-through and drill-down in Power BI?",hint:"down=hierarchy in same visual; through=detail page",
+  a:`<p><b>Drill-down</b> moves through a hierarchy <b>within the same visual</b> (Year &rarr; Quarter &rarr; Month on a chart). <b>Drill-through</b> takes the user to a <b>separate detail page</b> filtered to the item they right-clicked (e.g. right-click a customer &rarr; go to a Customer Detail page). Drill-down explores levels; drill-through navigates to context-specific detail.</p>`},
+
+ {cat:"Viz",diff:"easy",q:"What are custom visuals and how do you add them?",hint:"AppSource marketplace, .pbiviz, org store",
+  a:`<p>Beyond built-in charts, you can import <b>custom visuals</b> from <b>AppSource</b> (the marketplace) &mdash; e.g. advanced KPIs, charticulator, decomposition trees. Add via <i>Get more visuals</i> in the Visualizations pane, or import a <code class="inl">.pbiviz</code> file. Organizations can curate an <b>org visuals store</b> for governance. Mention security: only use certified visuals in enterprise.</p>`},
+
+ {cat:"Workflow",diff:"easy",q:"What is the Power BI Gateway and when do you need it?",hint:"on-prem refresh bridge; personal vs standard mode",
+  a:`<p>The <b>on-premises data gateway</b> securely connects the Power BI Service to data sources that aren't in the cloud (on-prem SQL, file shares) for <b>scheduled refresh</b> and DirectQuery. <b>Standard (enterprise) mode</b> is shared across users/datasets and admin-managed; <b>personal mode</b> is single-user, import-only. If your source is fully cloud (Azure SQL), you may not need a gateway.</p>`},
+
+ {cat:"Workflow",diff:"med",q:"How do you share a Power BI report with business users?",hint:"workspace + App, not raw sharing; licensing",
+  a:`<p>Publish to a <b>workspace</b>, then package it as an <b>App</b> and distribute to AAD users/groups &mdash; the clean, governed way (versioned, controlled audience). Avoid ad-hoc "Share" links for broad distribution. Note licensing: viewers need <b>Pro</b> (or the workspace on <b>Premium/Fabric capacity</b> so Free users can view). Apply <b>RLS</b> so users see only their data.</p>`},
+
+ /* ===================== COMPANY-SPECIFIC PATTERNS (India) ===================== */
+
+ {cat:"Company-Specific",diff:"med",q:"TCS Power BI interview &mdash; what to expect and how to prepare?",hint:"project deep-dive, fundamentals, scenario, managerial + HR",
+  a:`<p>TCS rounds are usually <b>Technical &rarr; Managerial &rarr; HR</b>. They lean on <b>project deep-dives</b> and fundamentals over trick questions.</p>
+     <ul><li>Expect: "Explain your project", DAX vs measure vs calculated column, star schema, RLS, refresh/gateway, basic SQL.</li>
+     <li>Managerial: handling client escalations, working in Agile, onsite readiness, flexibility on shifts/location.</li>
+     <li>HR: notice period, CTC, relocation, why TCS.</li></ul>
+     <p>Prep: know <b>every line of your resume</b> cold, keep STAR stories ready, and be honest about what you built vs what the team built.</p>`},
+
+ {cat:"Company-Specific",diff:"med",q:"Infosys / Wipro BI interview pattern?",hint:"strong fundamentals, SQL, scenario, communication",
+  a:`<p>Infosys/Wipro test <b>fundamentals + SQL + communication</b> heavily, especially for client-facing roles.</p>
+     <ul><li>Strong on SQL: joins, group by/having, window functions, query writing.</li>
+     <li>Power BI: modeling, DAX basics-to-intermediate, Power Query transforms, RLS, performance.</li>
+     <li>Scenario: "client wants X by tomorrow", prioritization, communication clarity.</li></ul>
+     <p>They value clear English communication and stability. Prep crisp 2-minute project explanations and practice writing SQL on a whiteboard/notepad.</p>`},
+
+ {cat:"Company-Specific",diff:"hard",q:"Accenture / Capgemini / Deloitte (consulting) BI interview &mdash; how is it different?",hint:"client-first, end-to-end design, case/scenario, business acumen",
+  a:`<p>Consulting firms push <b>client-first thinking, end-to-end design, and business acumen</b> beyond pure tech.</p>
+     <ul><li>Scenario/case style: "A retail client wants to track store performance &mdash; design the solution." They want requirements-gathering, data model, KPIs, rollout, governance.</li>
+     <li>Deeper architecture: Fabric/Azure stack, deployment pipelines, RLS at scale, cost.</li>
+     <li>Soft skills: stakeholder management, ambiguity handling, presenting to executives.</li></ul>
+     <p>Prep: practice talking through a full solution out loud, tie every technical choice to <b>business value</b>, and show you can lead a client conversation.</p>`},
+
+ {cat:"Company-Specific",diff:"med",q:"Cognizant / product-company BI interview tips?",hint:"product = deeper DAX/perf + portfolio; Cognizant = balanced rounds",
+  a:`<p><b>Cognizant</b> runs balanced technical + managerial + HR, similar to other service firms &mdash; solid fundamentals, SQL, project depth.</p>
+     <p><b>Product companies</b> (and GCCs/captives) go <b>deeper technically</b>: advanced DAX, performance internals (VertiPaq, DAX Studio), data modeling rigor, sometimes a take-home or live build. They care about your <b>portfolio</b> and problem-solving, less about onsite/relocation.</p>
+     <p>Prep for product: expect to actually write DAX/SQL live and justify design trade-offs; have a GitHub/portfolio of dashboards ready.</p>`},
+
+ {cat:"Company-Specific",diff:"easy",q:"How should you explain your project when you're on the bench / between projects?",hint:"frame training/POCs/self-projects as real work",
+  a:`<p>Common in Indian service companies. Don't say "I had nothing to do." Frame bench time productively:</p>
+     <p><i>Say:</i> "Between projects I upskilled &mdash; I built POCs in Power BI and Fabric, earned [PL-300] certification, and created sample dashboards on public datasets to sharpen DAX and modeling. I also supported pre-sales/estimation work." Show initiative and have a <b>self-built project</b> you can demo.</p>`},
+
+ /* ===================== SQL CODING ROUND (write the query) ===================== */
+
+ {cat:"SQL Coding",diff:"med",q:"Write a query to find the top 3 highest-paid employees per department.",hint:"window function with partition, filter rank<=3",
+  a:`<pre><span class="k">SELECT</span> * <span class="k">FROM</span> (
+  <span class="k">SELECT</span> emp_id, name, dept_id, salary,
+    <span class="f">DENSE_RANK</span>() <span class="k">OVER</span>(
+        <span class="k">PARTITION BY</span> dept_id <span class="k">ORDER BY</span> salary <span class="k">DESC</span>) AS rnk
+  <span class="k">FROM</span> employees
+) t
+<span class="k">WHERE</span> rnk &lt;= 3;</pre>
+     <p><code class="inl">DENSE_RANK</code> handles ties (two people at the same salary share a rank). Partition resets the ranking per department. Mention <code class="inl">ROW_NUMBER</code> if they want exactly 3 regardless of ties.</p>`},
+
+ {cat:"SQL Coding",diff:"med",q:"Write a query to find the second highest salary.",hint:"subquery MAX-of-less-than, or DENSE_RANK=2",
+  a:`<pre><span class="c">-- simple, handles the general case</span>
+<span class="k">SELECT</span> <span class="f">MAX</span>(salary) AS second_highest
+<span class="k">FROM</span> employees
+<span class="k">WHERE</span> salary &lt; (<span class="k">SELECT</span> <span class="f">MAX</span>(salary) <span class="k">FROM</span> employees);
+
+<span class="c">-- generalize to Nth highest</span>
+<span class="k">SELECT</span> salary <span class="k">FROM</span> (
+  <span class="k">SELECT</span> salary, <span class="f">DENSE_RANK</span>() <span class="k">OVER</span>(<span class="k">ORDER BY</span> salary <span class="k">DESC</span>) r
+  <span class="k">FROM</span> employees) t
+<span class="k">WHERE</span> r = 2;</pre>
+     <p>Note: <code class="inl">DENSE_RANK</code> vs <code class="inl">ROW_NUMBER</code> matters if salaries tie.</p>`},
+
+ {cat:"SQL Coding",diff:"easy",q:"Write a query to find duplicate records in a table.",hint:"GROUP BY the columns, HAVING COUNT>1",
+  a:`<pre><span class="k">SELECT</span> email, <span class="f">COUNT</span>(*) AS cnt
+<span class="k">FROM</span> users
+<span class="k">GROUP BY</span> email
+<span class="k">HAVING</span> <span class="f">COUNT</span>(*) &gt; 1;
+
+<span class="c">-- to delete dups keeping the lowest id</span>
+<span class="k">DELETE</span> u1 <span class="k">FROM</span> users u1
+<span class="k">JOIN</span> users u2
+  <span class="k">ON</span> u1.email = u2.email <span class="k">AND</span> u1.id &gt; u2.id;</pre>`},
+
+ {cat:"SQL Coding",diff:"med",q:"Write a query for month-over-month growth %.",hint:"LAG to get previous month, then divide",
+  a:`<pre><span class="k">SELECT</span> month, revenue,
+  <span class="f">LAG</span>(revenue) <span class="k">OVER</span>(<span class="k">ORDER BY</span> month) AS prev_rev,
+  <span class="f">ROUND</span>(100.0 * (revenue - <span class="f">LAG</span>(revenue) <span class="k">OVER</span>(<span class="k">ORDER BY</span> month))
+        / <span class="f">NULLIF</span>(<span class="f">LAG</span>(revenue) <span class="k">OVER</span>(<span class="k">ORDER BY</span> month),0), 2) AS mom_pct
+<span class="k">FROM</span> monthly_sales
+<span class="k">ORDER BY</span> month;</pre>
+     <p><code class="inl">LAG</code> pulls the previous row's value; <code class="inl">NULLIF(...,0)</code> guards divide-by-zero. Same pattern with <code class="inl">LEAD</code> for next period.</p>`},
+
+ {cat:"SQL Coding",diff:"hard",q:"Find customers who bought in Jan but NOT in Feb.",hint:"NOT EXISTS / LEFT JOIN ... IS NULL / EXCEPT",
+  a:`<pre><span class="k">SELECT DISTINCT</span> c.customer_id
+<span class="k">FROM</span> orders c
+<span class="k">WHERE</span> c.order_month = '2026-01'
+  <span class="k">AND NOT EXISTS</span> (
+    <span class="k">SELECT</span> 1 <span class="k">FROM</span> orders f
+    <span class="k">WHERE</span> f.customer_id = c.customer_id
+      <span class="k">AND</span> f.order_month = '2026-02');</pre>
+     <p>Alternatives: <code class="inl">LEFT JOIN</code> Feb orders and filter <code class="inl">IS NULL</code>, or set-based <code class="inl">EXCEPT</code>. Good chance to discuss anti-join performance.</p>`},
+
+ {cat:"SQL Coding",diff:"med",q:"Write a running / cumulative total of sales by date.",hint:"SUM OVER ORDER BY with frame",
+  a:`<pre><span class="k">SELECT</span> order_date, daily_sales,
+  <span class="f">SUM</span>(daily_sales) <span class="k">OVER</span>(
+      <span class="k">ORDER BY</span> order_date
+      <span class="k">ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>
+  ) AS running_total
+<span class="k">FROM</span> daily_sales
+<span class="k">ORDER BY</span> order_date;</pre>
+     <p>The window frame <code class="inl">UNBOUNDED PRECEDING &rarr; CURRENT ROW</code> accumulates. Partition by e.g. region to get a per-region running total.</p>`},
+
+ {cat:"SQL Coding",diff:"hard",q:"Write a query to pivot rows into columns (e.g. sales by quarter as columns).",hint:"conditional aggregation CASE, or PIVOT",
+  a:`<pre><span class="c">-- portable conditional aggregation</span>
+<span class="k">SELECT</span> product,
+  <span class="f">SUM</span>(<span class="k">CASE WHEN</span> quarter='Q1' <span class="k">THEN</span> amount <span class="k">END</span>) AS Q1,
+  <span class="f">SUM</span>(<span class="k">CASE WHEN</span> quarter='Q2' <span class="k">THEN</span> amount <span class="k">END</span>) AS Q2,
+  <span class="f">SUM</span>(<span class="k">CASE WHEN</span> quarter='Q3' <span class="k">THEN</span> amount <span class="k">END</span>) AS Q3,
+  <span class="f">SUM</span>(<span class="k">CASE WHEN</span> quarter='Q4' <span class="k">THEN</span> amount <span class="k">END</span>) AS Q4
+<span class="k">FROM</span> sales
+<span class="k">GROUP BY</span> product;</pre>
+     <p>SQL Server also has a <code class="inl">PIVOT</code> operator, but <code class="inl">CASE</code>-based conditional aggregation is portable and the safer interview answer.</p>`},
+
+ {cat:"SQL Coding",diff:"easy",q:"Write a query using JOIN to combine orders with customer names.",hint:"INNER vs LEFT JOIN on key",
+  a:`<pre><span class="k">SELECT</span> o.order_id, o.amount, c.customer_name
+<span class="k">FROM</span> orders o
+<span class="k">LEFT JOIN</span> customers c
+  <span class="k">ON</span> o.customer_id = c.customer_id;</pre>
+     <p>Use <code class="inl">LEFT JOIN</code> to keep all orders even if a customer record is missing (you'll see NULL names &mdash; a data-quality signal). Use <code class="inl">INNER JOIN</code> if you only want orders with a matching customer.</p>`},
+
+ /* ===================== SALARY & OFFER PLAYBOOK ===================== */
+
+ {cat:"Salary & Offer",diff:"med",q:"How do you negotiate salary without losing the offer?",hint:"research, range, total package, stay collaborative",
+  a:`<ul><li><b>Research first</b>: know the market band for your role/experience/city (AmbitionBox, Glassdoor, levels.fyi, peers).</li>
+     <li><b>Anchor with a range</b>, slightly above target, and justify with skills + competing interest: "Based on my 8 years and the scope here, I'm looking at &#8377;Y&ndash;Z LPA."</li>
+     <li><b>Negotiate the total package</b>, not just fixed &mdash; variable, joining bonus, ESOPs, retention bonus, WFH, band/designation, review cycle.</li>
+     <li><b>Stay collaborative, never ultimatum</b>: "I'm very keen to join &mdash; can we work toward X?"</li>
+     <li>Get the final offer <b>in writing</b> before resigning.</li></ul>`},
+
+ {cat:"Salary & Offer",diff:"med",q:"They ask your expected CTC early &mdash; how do you respond without anchoring too low?",hint:"deflect to market/range, ask their band",
+  a:`<p>Avoid blurting a single low number. Tactics:</p>
+     <ul><li>Deflect once: "I'd like to understand the role and responsibilities first, but I'm flexible for the right fit."</li>
+     <li>If pressed, give a <b>researched range</b>: "For this role and my experience, market is around &#8377;Y&ndash;Z LPA; I'm looking in that band."</li>
+     <li>Turn it around: "What range has been budgeted for this position?"</li></ul>
+     <p>Never state below-market out of fear &mdash; you can't recover it later. A 20&ndash;40% hike on a switch is normal in India.</p>`},
+
+ {cat:"Salary & Offer",diff:"hard",q:"You have a counter-offer from your current employer. How do you handle it?",hint:"why you were leaving still stands; weigh carefully",
+  a:`<p>Be thoughtful, not flattered. The reasons you started looking (growth, scope, tech) usually <b>still exist</b> after a pay bump.</p>
+     <ul><li>Evaluate the <b>new role's</b> long-term growth vs a short-term raise to retain you.</li>
+     <li>Counter-offers can mark you as a flight risk internally.</li>
+     <li>Decide on <b>career trajectory</b>, not just the number.</li></ul>
+     <p>Handle it professionally either way &mdash; the industry is small; don't burn bridges. If you stay, be sure it solves the real reason you were leaving.</p>`},
+
+ {cat:"Salary & Offer",diff:"easy",q:"What documents/things should you verify before accepting an offer?",hint:"written offer, components, role, location, bond, joining date",
+  a:`<ul><li><b>Written offer letter</b> with full CTC <b>breakup</b> (fixed vs variable vs retention/joining bonus).</li>
+     <li><b>Designation/band</b> and reporting structure.</li>
+     <li><b>Work location</b>, WFH/hybrid policy, shift expectations.</li>
+     <li>Any <b>service bond</b> or clawback on joining bonus &mdash; read carefully.</li>
+     <li><b>Joining date</b> alignment with your notice period, and probation terms.</li></ul>
+     <p>Clarify variable pay payout history &mdash; a high CTC with large unpaid variable can be misleading.</p>`},
+];
+
+/* ---------- STATE ---------- */
+const KEY="rhea_trainer_v1";
+let state=JSON.parse(localStorage.getItem(KEY)||"{}"); // id -> 'got'|'miss'
+let activeCat="All", activeDiff="", term="";
+
+const cats=["All",...[...new Set(Q.map(q=>q.cat))]];
+const diffLabel={easy:"Easy",med:"Medium",hard:"Hard",expert:"Expert"};
+
+/* ---------- RENDER ---------- */
+const list=document.getElementById('list');
+const chipsEl=document.getElementById('chips');
+
+function renderChips(){
+  chipsEl.innerHTML=cats.map(c=>{
+    const n = c==="All"?Q.length:Q.filter(q=>q.cat===c).length;
+    return `<div class="chip ${c===activeCat?'active':''}" data-c="${c}">${c} <span style="opacity:.6">${n}</span></div>`;
+  }).join("");
+}
+
+function filtered(){
+  return Q.map((q,i)=>({...q,id:i})).filter(q=>{
+    if(activeCat!=="All" && q.cat!==activeCat) return false;
+    if(activeDiff && q.diff!==activeDiff) return false;
+    if(term){
+      const hay=(q.q+" "+q.a+" "+q.cat+" "+(q.hint||"")).toLowerCase();
+      if(!hay.includes(term)) return false;
+    }
+    return true;
+  });
+}
+
+function render(){
+  const items=filtered();
+  document.getElementById('empty').style.display=items.length?'none':'block';
+  list.innerHTML=items.map(q=>{
+    const g=state[q.id];
+    return `<div class="q ${g?('graded-'+g):''}" data-id="${q.id}">
+      <div class="q-head">
+        <div class="q-meta">
+          <span class="tag cat">${q.cat}</span>
+          <span class="tag ${q.diff}">${diffLabel[q.diff]}</span>
+        </div>
+        <div class="q-body">
+          <div class="q-text">${q.q}</div>
+          ${q.hint?`<div class="q-hint">Think: ${q.hint}</div>`:""}
+        </div>
+        <svg class="chev" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6"/></svg>
+      </div>
+      <div class="answer">
+        <h5>Model answer</h5>
+        ${q.a}
+        <div class="self">
+          <span>How did you do?</span>
+          <button class="grade got" data-g="got" data-id="${q.id}">&#10003; Got it</button>
+          <button class="grade miss" data-g="miss" data-id="${q.id}">&#8635; Revisit</button>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+  updateStats();
+}
+
+function updateStats(){
+  const seen=Object.keys(state).length;
+  const got=Object.values(state).filter(v=>v==='got').length;
+  const miss=Object.values(state).filter(v=>v==='miss').length;
+  document.getElementById('sTotal').textContent=Q.length;
+  document.getElementById('sSeen').textContent=seen;
+  document.getElementById('sSeenPct').textContent=seen?` / ${Math.round(seen/Q.length*100)}%`:"";
+  document.getElementById('sGot').textContent=got;
+  document.getElementById('sMiss').textContent=miss;
+}
+
+/* ---------- EVENTS ---------- */
+chipsEl.addEventListener('click',e=>{
+  const c=e.target.closest('.chip'); if(!c)return;
+  activeCat=c.dataset.c; renderChips(); render();
+});
+list.addEventListener('click',e=>{
+  const grade=e.target.closest('.grade');
+  if(grade){
+    e.stopPropagation();
+    const id=grade.dataset.id;
+    state[id]=grade.dataset.g;
+    localStorage.setItem(KEY,JSON.stringify(state));
+    render(); return;
+  }
+  const head=e.target.closest('.q-head');
+  if(head) head.parentElement.classList.toggle('open');
+});
+document.getElementById('search').addEventListener('input',e=>{term=e.target.value.toLowerCase().trim();render();});
+document.getElementById('diff').addEventListener('change',e=>{activeDiff=e.target.value;render();});
+document.getElementById('random').addEventListener('click',()=>{
+  const items=filtered(); if(!items.length)return;
+  const pick=items[Math.floor(Math.random()*items.length)];
+  render();
+  const el=list.querySelector(`.q[data-id="${pick.id}"]`);
+  el.classList.add('open'); el.scrollIntoView({behavior:'smooth',block:'center'});
+});
+document.getElementById('reset').addEventListener('click',()=>{
+  if(confirm("Clear all your progress on this device?")){state={};localStorage.removeItem(KEY);render();}
+});
+
+/* theme */
+const tBtn=document.getElementById('themeBtn');
+function setTheme(t){
+  document.documentElement.setAttribute('data-theme',t);
+  localStorage.setItem('rhea_theme',t);
+  tBtn.innerHTML = t==='dark' ? '&#9728; Light' : '&#9789; Dark';
+}
+tBtn.addEventListener('click',()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark'));
+setTheme(localStorage.getItem('rhea_theme')||'light');
+
+/* ===================== TIMED MOCK ===================== */
+const MOCK_N=10, MOCK_SECONDS=30*60;
+const overlay=document.getElementById('overlay');
+const timerEl=document.getElementById('timer');
+const pbar=document.getElementById('pbar');
+const content=document.getElementById('mockContent');
+let mock=null, ticker=null;
+
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+
+function startMock(){
+  let pool=Q.map((q,i)=>({...q,id:i})).filter(q=>q.diff==='expert');
+  if(pool.length<MOCK_N) pool=pool.concat(Q.map((q,i)=>({...q,id:i})).filter(q=>q.diff==='hard'));
+  const picks=shuffle(pool).slice(0,MOCK_N);
+  mock={qs:picks, cur:0, results:Array(picks.length).fill(null), remaining:MOCK_SECONDS, done:false};
+  overlay.classList.add('show');
+  document.body.style.overflow='hidden';
+  startTimer();
+  renderMockQ();
+}
+
+function startTimer(){
+  clearInterval(ticker);
+  paintTimer();
+  ticker=setInterval(()=>{
+    mock.remaining--;
+    paintTimer();
+    if(mock.remaining<=0){clearInterval(ticker);finishMock(true);}
+  },1000);
+}
+function paintTimer(){
+  const m=Math.floor(mock.remaining/60), s=mock.remaining%60;
+  timerEl.textContent=`${m}:${String(s).padStart(2,'0')}`;
+  timerEl.className='timer'+(mock.remaining<=60?' danger':mock.remaining<=300?' warn':'');
+}
+
+function renderMockQ(){
+  const i=mock.cur, q=mock.qs[i];
+  pbar.style.width=((i)/mock.qs.length*100)+'%';
+  const dots=mock.qs.map((_,k)=>{
+    const r=mock.results[k];
+    return `<b class="${k===i?'cur':''} ${r||''}" data-k="${k}"></b>`;
+  }).join('');
+  content.innerHTML=`
+    <div class="mock-body">
+      <div class="mock-qnum"><span>Question ${i+1} / ${mock.qs.length}</span>
+        <span class="tag cat">${q.cat}</span><span class="tag expert">Expert</span></div>
+      <div class="mock-q">${q.q}</div>
+      ${q.hint?`<div class="mock-hint">Think: ${q.hint}</div>`:''}
+      <div class="mock-ans" id="mAns"><h5>Model answer</h5>${q.a}</div>
+    </div>
+    <div class="mock-foot">
+      <button class="btn" id="mPrev" ${i===0?'disabled style=opacity:.4':''}>&larr; Prev</button>
+      <button class="btn btn-primary" id="mReveal">Reveal answer</button>
+      <button class="grade got" id="mGot" style="display:none">&#10003; Got it</button>
+      <button class="grade miss" id="mMiss" style="display:none">&#8635; Missed</button>
+      <span class="spacer"></span>
+      <div class="dotrow">${dots}</div>
+      <button class="btn" id="mNext">${i===mock.qs.length-1?'Finish &rarr;':'Next &rarr;'}</button>
+    </div>`;
+
+  // restore reveal/grade state if revisiting
+  if(mock.results[i]!==null) showAnswer();
+
+  document.getElementById('mReveal').onclick=showAnswer;
+  document.getElementById('mGot').onclick=()=>grade('got');
+  document.getElementById('mMiss').onclick=()=>grade('miss');
+  document.getElementById('mPrev').onclick=()=>{if(mock.cur>0){mock.cur--;renderMockQ();}};
+  document.getElementById('mNext').onclick=()=>{
+    if(mock.cur===mock.qs.length-1) finishMock(false);
+    else {mock.cur++;renderMockQ();}
+  };
+  content.querySelectorAll('.dotrow b').forEach(d=>d.onclick=()=>{mock.cur=+d.dataset.k;renderMockQ();});
+}
+function showAnswer(){
+  document.getElementById('mAns').classList.add('show');
+  document.getElementById('mReveal').style.display='none';
+  document.getElementById('mGot').style.display='';
+  document.getElementById('mMiss').style.display='';
+}
+function grade(g){
+  mock.results[mock.cur]=g;
+  // also persist to the main study tracker
+  state[mock.qs[mock.cur].id]=g;
+  localStorage.setItem(KEY,JSON.stringify(state));
+  if(mock.cur===mock.qs.length-1) finishMock(false);
+  else {mock.cur++;renderMockQ();}
+}
+
+function finishMock(timeUp){
+  clearInterval(ticker);
+  mock.done=true;
+  const got=mock.results.filter(r=>r==='got').length;
+  const answered=mock.results.filter(r=>r).length;
+  const pct=Math.round(got/mock.qs.length*100);
+  const used=MOCK_SECONDS-Math.max(mock.remaining,0);
+  const um=Math.floor(used/60), us=used%60;
+  const col=pct>=80?'var(--green)':pct>=50?'var(--amber)':'var(--red)';
+  const verdict=pct>=80?'Strong senior performance.':pct>=50?'Solid base &mdash; tighten the misses.':'Keep drilling the fundamentals.';
+  pbar.style.width='100%';
+  content.innerHTML=`
+    <div class="score">
+      ${timeUp?'<p style="color:var(--red);font-weight:600;margin-bottom:14px">&#9201; Time up!</p>':''}
+      <div class="ring" style="background:conic-gradient(${col} ${pct}%, var(--line) 0)">
+        <div style="position:absolute;inset:12px;border-radius:50%;background:var(--panel);display:grid;place-items:center">
+          <span style="color:${col}">${pct}%</span>
+        </div>
+      </div>
+      <h2>${got} / ${mock.qs.length} correct</h2>
+      <p>${verdict} &middot; Time used ${um}:${String(us).padStart(2,'0')} &middot; Answered ${answered}/${mock.qs.length}</p>
+      <div class="breakdown">
+        ${mock.qs.map((q,k)=>{
+          const r=mock.results[k];
+          const lbl=r==='got'?'Got it':r==='miss'?'Missed':'Skipped';
+          const cls=r==='got'?'got':r==='miss'?'miss':'';
+          return `<div class="brow"><span class="tag cat">${q.cat}</span><span class="qq">${q.q}</span><span class="res ${cls}">${lbl}</span></div>`;
+        }).join('')}
+      </div>
+      <button class="btn btn-primary" id="mAgain">Run another mock</button>
+      <button class="btn" id="mDone" style="margin-left:8px">Close &amp; review</button>
+    </div>`;
+  document.getElementById('mAgain').onclick=startMock;
+  document.getElementById('mDone').onclick=closeMock;
+}
+
+function closeMock(){
+  clearInterval(ticker);
+  overlay.classList.remove('show');
+  document.body.style.overflow='';
+  mock=null;
+  render(); // refresh stats with any grades from the mock
+}
+document.getElementById('mock').addEventListener('click',startMock);
+document.getElementById('mockClose').addEventListener('click',()=>{
+  if(mock && !mock.done && !confirm('End the mock now? Progress this run is lost.')) return;
+  closeMock();
+});
+document.addEventListener('keydown',e=>{
+  if(!overlay.classList.contains('show')||!mock||mock.done) return;
+  if(e.key==='ArrowRight'){document.getElementById('mNext')?.click();}
+  if(e.key==='ArrowLeft'){document.getElementById('mPrev')?.click();}
+  if(e.key===' '){e.preventDefault();document.getElementById('mReveal')?.click();}
+});
+
+document.getElementById('qCount').textContent=Q.length;
+renderChips(); render();
+</script>
+</body>
+</html>
