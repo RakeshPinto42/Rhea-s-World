@@ -131,6 +131,16 @@
   .b-steam{animation:steam 2.6s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
   .b-steam.d{animation-delay:.7s}
   @keyframes steam{0%{opacity:0;transform:translateY(3px)}45%{opacity:.55}100%{opacity:0;transform:translateY(-7px)}}
+  .b-bob{transform-box:fill-box;transform-origin:center;animation:bob 3.2s ease-in-out infinite}
+  @keyframes bob{50%{transform:translateY(-6px)}}
+  .b-wave{transform-box:fill-box;transform-origin:28% 92%;animation:wave 1.7s ease-in-out infinite}
+  @keyframes wave{0%,100%{transform:rotate(10deg)}50%{transform:rotate(-26deg)}}
+  .b-blink{transform-box:fill-box;transform-origin:center;animation:blink 3.8s infinite}
+  @keyframes blink{0%,92%,100%{transform:scaleY(1)}96%{transform:scaleY(.12)}}
+  .b-blush{animation:blush 3s ease-in-out infinite}
+  @keyframes blush{0%,100%{opacity:.4}50%{opacity:.78}}
+  .b-pop{transform-box:fill-box;transform-origin:center;animation:pop 2.6s ease-in-out infinite}
+  @keyframes pop{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.08)}}
   .bio .hi{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:700;letter-spacing:-.01em;margin-bottom:16px}
   .bio p{color:var(--muted);font-size:1.05rem;line-height:1.75;max-width:780px;margin-bottom:16px}
   .bio p b{color:var(--ink);font-weight:600}
@@ -251,60 +261,91 @@
         <p class="close">Welcome to my little corner of the internet, where data meets caffeine and logic occasionally wins.</p>
       </div>
       <div class="bio-art" aria-hidden="true">
-        <svg viewBox="0 0 340 300" role="img" aria-label="Rhea relaxing with a laptop and coffee among floating charts">
+        <svg viewBox="0 0 340 300" role="img" aria-label="Rhea, a cheerful round-faced girl, waving while relaxing with a laptop and coffee among floating charts">
           <defs>
             <linearGradient id="chair" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#5b3fd6"/></linearGradient>
           </defs>
           <!-- backdrop + floor shadow -->
-          <circle cx="170" cy="150" r="132" fill="var(--accent-2)" opacity=".08"/>
-          <ellipse cx="170" cy="256" rx="118" ry="15" fill="#000" opacity=".06"/>
+          <circle cx="170" cy="150" r="134" fill="var(--accent-2)" opacity=".08"/>
+          <ellipse cx="170" cy="258" rx="120" ry="15" fill="#000" opacity=".06"/>
           <!-- floating chart chips -->
           <g class="floaty">
-            <rect x="40" y="64" width="74" height="54" rx="11" fill="var(--panel)" stroke="var(--line)"/>
-            <polyline points="50,100 62,88 74,94 86,76 98,82 106,68" fill="none" stroke="var(--accent-2)" stroke-width="2.5" stroke-linecap="round"/>
-            <circle cx="106" cy="68" r="3" fill="var(--accent)"/>
+            <rect x="36" y="58" width="76" height="54" rx="11" fill="var(--panel)" stroke="var(--line)"/>
+            <polyline points="46,94 58,82 70,88 82,70 94,76 104,62" fill="none" stroke="var(--accent-2)" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="104" cy="62" r="3" fill="var(--accent)"/>
           </g>
           <g class="floaty" style="animation-delay:.9s">
-            <rect x="244" y="80" width="60" height="46" rx="11" fill="var(--panel)" stroke="var(--line)"/>
-            <rect x="254" y="106" width="9" height="12" rx="2" fill="var(--accent)"/>
-            <rect x="268" y="98" width="9" height="20" rx="2" fill="var(--violet)"/>
-            <rect x="282" y="92" width="9" height="26" rx="2" fill="var(--accent-2)"/>
+            <rect x="246" y="72" width="60" height="46" rx="11" fill="var(--panel)" stroke="var(--line)"/>
+            <rect x="256" y="98" width="9" height="12" rx="2" fill="var(--accent)"/>
+            <rect x="270" y="90" width="9" height="20" rx="2" fill="var(--violet)"/>
+            <rect x="284" y="84" width="9" height="26" rx="2" fill="var(--accent-2)"/>
           </g>
+          <!-- floating heart -->
+          <path class="b-pop" d="M214 150 q5 -8 11 -3 q6 -5 11 3 q4 7 -11 17 q-15 -10 -11 -17z" fill="var(--accent)" opacity=".9"/>
+
           <!-- armchair -->
-          <rect x="86" y="130" width="168" height="70" rx="24" fill="url(#chair)"/>
-          <rect x="74" y="160" width="28" height="72" rx="13" fill="#6b4dd0"/>
-          <rect x="238" y="160" width="28" height="72" rx="13" fill="#6b4dd0"/>
-          <rect x="92" y="190" width="156" height="42" rx="18" fill="#8a6dff"/>
-          <!-- girl -->
-          <path d="M150 162 q-24 20 -46 12" stroke="#c98a5b" stroke-width="12" fill="none" stroke-linecap="round" opacity=".95"/>
-          <path d="M190 162 q24 20 46 12" stroke="#c98a5b" stroke-width="12" fill="none" stroke-linecap="round" opacity=".95"/>
-          <path d="M146 150 q24 -22 48 0 l5 54 q-29 14 -58 0 z" fill="var(--accent)"/>
-          <circle cx="170" cy="126" r="23" fill="#c98a5b"/>
-          <path d="M147 126 q-4 -32 23 -34 q27 2 23 34 q-8 -14 -23 -14 q-15 0 -23 14z" fill="#241327"/>
-          <path d="M147 124 q-7 22 -3 42 l9 -3 q-6 -20 -2 -38z" fill="#241327"/>
-          <path d="M193 124 q7 22 3 42 l-9 -3 q6 -20 2 -38z" fill="#241327"/>
-          <circle cx="163" cy="124" r="2" fill="#3a2a20"/><circle cx="178" cy="124" r="2" fill="#3a2a20"/>
-          <path d="M164 132 q6 5 13 0" stroke="#3a2a20" stroke-width="2" fill="none" stroke-linecap="round"/>
-          <!-- laptop on lap -->
-          <rect x="143" y="180" width="54" height="34" rx="4" fill="#2b3242"/>
-          <rect x="147" y="184" width="46" height="26" rx="2" fill="#0b0e14"/>
-          <rect x="153" y="200" width="6" height="8" fill="var(--accent)"/>
-          <rect x="163" y="196" width="6" height="12" fill="var(--accent-2)"/>
-          <rect x="173" y="192" width="6" height="16" fill="#9a7cff"/>
-          <rect x="183" y="198" width="6" height="10" fill="var(--accent)"/>
+          <rect x="84" y="150" width="172" height="66" rx="24" fill="url(#chair)"/>
+          <rect x="70" y="176" width="30" height="68" rx="14" fill="#6b4dd0"/>
+          <rect x="240" y="176" width="30" height="68" rx="14" fill="#6b4dd0"/>
+          <rect x="92" y="196" width="156" height="44" rx="20" fill="#8a6dff"/>
+
+          <!-- girl (whole figure gently bobs) -->
+          <g class="b-bob">
+            <!-- legs dangling -->
+            <path d="M158 206 v26" stroke="#c98a5b" stroke-width="12" fill="none" stroke-linecap="round"/>
+            <path d="M182 206 v26" stroke="#c98a5b" stroke-width="12" fill="none" stroke-linecap="round"/>
+            <ellipse cx="158" cy="236" rx="8" ry="5" fill="#241327"/>
+            <ellipse cx="182" cy="236" rx="8" ry="5" fill="#241327"/>
+            <!-- body -->
+            <path d="M148 156 q22 -20 44 0 l5 42 q-27 13 -54 0 z" fill="var(--accent)"/>
+            <!-- resting left arm to laptop -->
+            <path d="M150 162 q-16 14 -6 28" stroke="#c98a5b" stroke-width="11" fill="none" stroke-linecap="round"/>
+            <!-- laptop on lap -->
+            <rect x="146" y="188" width="50" height="30" rx="4" fill="#2b3242"/>
+            <rect x="150" y="192" width="42" height="22" rx="2" fill="#0b0e14"/>
+            <rect x="155" y="204" width="6" height="8" fill="var(--accent)"/>
+            <rect x="164" y="200" width="6" height="12" fill="var(--accent-2)"/>
+            <rect x="173" y="196" width="6" height="16" fill="#9a7cff"/>
+            <rect x="182" y="202" width="6" height="10" fill="var(--accent)"/>
+            <!-- waving right arm -->
+            <g class="b-wave">
+              <path d="M192 160 q22 -10 30 -34" stroke="#c98a5b" stroke-width="11" fill="none" stroke-linecap="round"/>
+              <circle cx="224" cy="124" r="8" fill="#e0a87a"/>
+            </g>
+            <!-- head: big round cute face -->
+            <circle cx="170" cy="120" r="33" fill="#241327"/>
+            <circle cx="170" cy="122" r="30" fill="#e0a87a"/>
+            <!-- hair -->
+            <path d="M138 120 q2 -38 32 -39 q30 1 32 39 q-11 -17 -32 -17 q-21 0 -32 17z" fill="#241327"/>
+            <path d="M140 118 q-9 24 -4 48 l11 -4 q-8 -22 -3 -42z" fill="#241327"/>
+            <path d="M200 118 q9 24 4 48 l-11 -4 q8 -22 3 -42z" fill="#241327"/>
+            <circle cx="170" cy="84" r="10" fill="#241327"/>
+            <path d="M163 80 q7 -9 14 0 q-7 4 -14 0z" fill="var(--accent)"/>
+            <!-- blush -->
+            <circle cx="152" cy="130" r="6" fill="#ff8fae" class="b-blush"/>
+            <circle cx="188" cy="130" r="6" fill="#ff8fae" class="b-blush"/>
+            <!-- eyes (blink) -->
+            <g class="b-blink"><circle cx="160" cy="120" r="5" fill="#2a1a18"/><circle cx="162" cy="118" r="1.6" fill="#fff"/></g>
+            <g class="b-blink"><circle cx="180" cy="120" r="5" fill="#2a1a18"/><circle cx="182" cy="118" r="1.6" fill="#fff"/></g>
+            <!-- brows + happy smile -->
+            <path d="M154 110 q6 -4 12 -1" stroke="#3a2018" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M174 109 q6 -3 12 1" stroke="#3a2018" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <path d="M162 132 q8 8 16 0" stroke="#3a2018" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+          </g>
+
           <!-- coffee mug + steam on right arm -->
-          <rect x="274" y="196" width="24" height="22" rx="5" fill="var(--accent)"/>
-          <path d="M298 201 q9 0 9 7 q0 7 -9 7" stroke="var(--accent)" stroke-width="4" fill="none"/>
-          <path d="M281 192 q-4 -8 2 -15" class="b-steam" stroke="var(--faint)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-          <path d="M290 192 q4 -8 -2 -15" class="b-steam d" stroke="var(--faint)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <rect x="276" y="200" width="24" height="22" rx="5" fill="var(--accent)"/>
+          <path d="M300 205 q9 0 9 7 q0 7 -9 7" stroke="var(--accent)" stroke-width="4" fill="none"/>
+          <path d="M283 196 q-4 -8 2 -15" class="b-steam" stroke="var(--faint)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M292 196 q4 -8 -2 -15" class="b-steam d" stroke="var(--faint)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
           <!-- plant -->
-          <path d="M40 250 h26 l-4 -20 h-18 z" fill="#b5683f"/>
-          <path d="M53 230 q-15 -19 -2 -38 q13 17 2 38z" fill="#2f9e6f"/>
-          <path d="M53 230 q15 -17 4 -34 q-11 15 -4 34z" fill="#37b27d"/>
+          <path d="M40 252 h26 l-4 -20 h-18 z" fill="#b5683f"/>
+          <path d="M53 232 q-15 -19 -2 -38 q13 17 2 38z" fill="#2f9e6f"/>
+          <path d="M53 232 q15 -17 4 -34 q-11 15 -4 34z" fill="#37b27d"/>
           <!-- sparkles -->
-          <circle cx="128" cy="56" r="3" fill="var(--accent)" class="twinkle"/>
-          <circle cx="300" cy="158" r="2.5" fill="var(--violet)" class="twinkle d"/>
-          <circle cx="58" cy="150" r="2.5" fill="var(--accent-2)" class="twinkle"/>
+          <circle cx="120" cy="48" r="3" fill="var(--accent)" class="twinkle"/>
+          <circle cx="302" cy="150" r="2.5" fill="var(--violet)" class="twinkle d"/>
+          <circle cx="52" cy="148" r="2.5" fill="var(--accent-2)" class="twinkle"/>
         </svg>
       </div>
     </div>
