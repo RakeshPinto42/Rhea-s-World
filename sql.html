@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; SQL Handbook</title>
+<meta name="description" content="An end-to-end SQL handbook: query model, joins, aggregation, window functions, CTEs, transactions, indexing, performance, modeling, and analytics patterns." />
+<meta property="og:title" content="Rhea — SQL Handbook" />
+<meta property="og:description" content="SQL from SELECT to window functions, indexing, and analytics patterns — end to end." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8a200'/%3E%3Cpath d='M16 7C24 7 27 12.5 27 16C27 21 21.5 24.5 17 24.5C13 24.5 10 21.5 10 17.5C10 14.5 12 12.5 14.5 12.5C16.5 12.5 18 14 18 16' fill='none' stroke='%231b1500' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='16.2' r='2.2' fill='%231b1500'/%3E%3C/svg%3E" />
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="site.css" />
+<link rel="stylesheet" href="handbook.css" />
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<header class="site-header">
+  <div class="bar">
+    <a class="logo" href="index.html"><span class="mark">R</span><div>SQL Handbook<small>from SELECT to window functions</small></div></a>
+    <span class="spacer"></span>
+    <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="ghost-link" href="index.html">Home</a>
+      <a class="ghost-link active" href="learn.html">Handbook</a>
+      <a class="ghost-link" href="projects.html">Projects</a>
+      <a class="ghost-link" href="study.html">Trainer</a>
+      <a class="ghost-link" href="interview.html">AI Interviewer</a>
+    </nav>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <div class="grp">Foundations</div>
+    <a href="#intro">0 &middot; Overview</a>
+    <a href="#what">1 &middot; What SQL is</a>
+    <a href="#order">2 &middot; Logical query order</a>
+    <div class="grp">Querying</div>
+    <a href="#select">3 &middot; SELECT &amp; projection</a>
+    <a href="#filter">4 &middot; Filtering &amp; NULL</a>
+    <a href="#sort">5 &middot; Sorting &amp; paging</a>
+    <a href="#case">6 &middot; CASE &amp; conditionals</a>
+    <div class="grp">Combining data</div>
+    <a href="#joins">7 &middot; Joins</a>
+    <a href="#setops">8 &middot; Set operations</a>
+    <a href="#subq">9 &middot; Subqueries</a>
+    <a href="#cte">10 &middot; CTEs &amp; recursion</a>
+    <div class="grp">Aggregation</div>
+    <a href="#groupby">11 &middot; GROUP BY &amp; HAVING</a>
+    <a href="#window">12 &middot; Window functions</a>
+    <div class="grp">Data &amp; changes</div>
+    <a href="#types">13 &middot; Types, strings, dates</a>
+    <a href="#dml">14 &middot; INSERT / UPDATE / DELETE / MERGE</a>
+    <a href="#ddl">15 &middot; DDL &amp; constraints</a>
+    <div class="grp">Reliability &amp; speed</div>
+    <a href="#tx">16 &middot; Transactions &amp; ACID</a>
+    <a href="#index">17 &middot; Indexing</a>
+    <a href="#perf">18 &middot; Query performance</a>
+    <div class="grp">Modeling</div>
+    <a href="#normal">19 &middot; Normalization</a>
+    <a href="#schema">20 &middot; Schema patterns</a>
+    <div class="grp">Advanced</div>
+    <a href="#advanced">21 &middot; Pivot, JSON, procs</a>
+    <a href="#dialects">22 &middot; Dialect differences</a>
+    <a href="#patterns">23 &middot; Analytics patterns</a>
+    <a href="#interview">24 &middot; Interview drills</a>
+  </nav>
+
+  <main class="content">
+  <section id="intro">
+    <p><a class="anchor" href="learn.html">&larr; All handbooks</a></p>
+    <h1>SQL Handbook</h1>
+    <p class="lead">Structured Query Language end to end &mdash; from a single <code class="inl">SELECT</code> to window functions, recursive CTEs, transactions, indexing, and the analytics patterns interviews love. ANSI SQL with notes where PostgreSQL, SQL Server, MySQL, Snowflake and BigQuery diverge.</p>
+    <div class="pillrow">
+      <span class="pill">joins</span><span class="pill">window functions</span><span class="pill">CTEs</span><span class="pill">indexing</span><span class="pill">transactions</span><span class="pill">analytics patterns</span>
+    </div>
+    <div class="callout tip"><b>How to read this</b>Type every query against a real DB (a free Postgres or SQLite is enough). SQL only sticks when you run it and break it.</div>
+  </section>
+
+  <section id="what">
+    <h2><span class="ix">01</span> What SQL is</h2>
+    <p>SQL is a <b>declarative</b> language: you state <i>what</i> result you want, the engine&rsquo;s <b>query planner</b> decides <i>how</i> to get it (which indexes, join order, algorithms). It runs over a <b>relational database</b> &mdash; data in tables (relations) of rows and columns, linked by keys.</p>
+    <h3>The sub-languages</h3>
+    <table>
+      <tr><th>Group</th><th>Statements</th><th>Purpose</th></tr>
+      <tr><td><b>DQL</b></td><td><code>SELECT</code></td><td>Query / read data.</td></tr>
+      <tr><td><b>DML</b></td><td><code>INSERT UPDATE DELETE MERGE</code></td><td>Change rows.</td></tr>
+      <tr><td><b>DDL</b></td><td><code>CREATE ALTER DROP TRUNCATE</code></td><td>Define structure.</td></tr>
+      <tr><td><b>DCL</b></td><td><code>GRANT REVOKE</code></td><td>Permissions.</td></tr>
+      <tr><td><b>TCL</b></td><td><code>COMMIT ROLLBACK SAVEPOINT</code></td><td>Transactions.</td></tr>
+    </table>
+    <h3>Keys</h3>
+    <ul>
+      <li><b>Primary key</b> &mdash; unique, non-null row identifier (one per table).</li>
+      <li><b>Foreign key</b> &mdash; column referencing a PK in another table; enforces referential integrity.</li>
+      <li><b>Composite key</b> &mdash; key spanning multiple columns. <b>Surrogate key</b> &mdash; meaningless generated id (identity/sequence) vs <b>natural key</b> from the data.</li>
+    </ul>
+  </section>
+
+  <section id="order">
+    <h2><span class="ix">02</span> Logical query processing order</h2>
+    <p>You <i>write</i> <code class="inl">SELECT</code> first, but the engine <i>evaluates</i> in this order. This explains why you can&rsquo;t use a <code class="inl">SELECT</code> alias in <code class="inl">WHERE</code>, but can in <code class="inl">ORDER BY</code>.</p>
+    <pre><span class="c">-- written order vs evaluation order</span>
+FROM        <span class="c">-- 1  pick tables, resolve joins</span>
+WHERE       <span class="c">-- 2  filter rows (no aggregates yet)</span>
+GROUP BY    <span class="c">-- 3  collapse into groups</span>
+HAVING      <span class="c">-- 4  filter groups (aggregates allowed)</span>
+SELECT      <span class="c">-- 5  projection + window functions + aliases born here</span>
+DISTINCT    <span class="c">-- 6  dedupe</span>
+ORDER BY    <span class="c">-- 7  sort (can use SELECT aliases)</span>
+LIMIT/OFFSET<span class="c">-- 8  slice</span></pre>
+    <div class="callout"><b>Why it matters</b><code class="inl">WHERE</code> runs before <code class="inl">SELECT</code>, so aliases and window functions aren&rsquo;t visible there &mdash; wrap them in a subquery/CTE to filter on them.</div>
+  </section>
+
+  <section id="select">
+    <h2><span class="ix">03</span> SELECT &amp; projection</h2>
+    <pre><span class="k">SELECT</span> customer_id,
+       amount * <span class="s">1.1</span> <span class="k">AS</span> amount_with_tax,
+       <span class="f">UPPER</span>(status) <span class="k">AS</span> status
+<span class="k">FROM</span> orders;</pre>
+    <ul>
+      <li><code class="inl">SELECT *</code> is fine to explore, bad in production code &mdash; it breaks when columns change and reads extra data. List columns explicitly.</li>
+      <li><b>Aliases</b> rename output (<code class="inl">AS</code> optional). Quote with double quotes for spaces/case: <code class="inl">"Total Sales"</code>.</li>
+      <li><code class="inl">DISTINCT</code> dedupes the whole row. <code class="inl">COUNT(DISTINCT col)</code> counts unique values.</li>
+    </ul>
+  </section>
+
+  <section id="filter">
+    <h2><span class="ix">04</span> Filtering &amp; NULL logic</h2>
+    <pre><span class="k">SELECT</span> * <span class="k">FROM</span> orders
+<span class="k">WHERE</span> status <span class="k">IN</span> (<span class="s">'paid'</span>,<span class="s">'shipped'</span>)
+  <span class="k">AND</span> amount <span class="k">BETWEEN</span> <span class="s">100</span> <span class="k">AND</span> <span class="s">500</span>
+  <span class="k">AND</span> created_at &gt;= <span class="s">'2026-01-01'</span>
+  <span class="k">AND</span> email <span class="k">LIKE</span> <span class="s">'%@gmail.com'</span>;</pre>
+    <h3>NULL is not a value &mdash; it&rsquo;s &ldquo;unknown&rdquo;</h3>
+    <ul>
+      <li>Three-valued logic: comparisons with NULL yield <b>UNKNOWN</b>, not true/false. <code class="inl">WHERE x = NULL</code> never matches &mdash; use <code class="inl">IS NULL</code> / <code class="inl">IS NOT NULL</code>.</li>
+      <li><code class="inl">NULL = NULL</code> &rarr; UNKNOWN. <code class="inl">COUNT(col)</code> ignores NULLs; <code class="inl">COUNT(*)</code> counts rows.</li>
+      <li>Coalesce defaults: <code class="inl">COALESCE(discount, 0)</code>. <code class="inl">NULLIF(a,b)</code> returns NULL when equal (guard divide-by-zero: <code class="inl">a / NULLIF(b,0)</code>).</li>
+      <li><code class="inl">NOT IN (subquery)</code> with any NULL in the list returns no rows &mdash; prefer <code class="inl">NOT EXISTS</code>.</li>
+    </ul>
+  </section>
+
+  <section id="sort">
+    <h2><span class="ix">05</span> Sorting &amp; paging</h2>
+    <pre><span class="k">SELECT</span> * <span class="k">FROM</span> products
+<span class="k">ORDER BY</span> category <span class="k">ASC</span>, price <span class="k">DESC</span> <span class="k">NULLS LAST</span>
+<span class="k">LIMIT</span> <span class="s">20</span> <span class="k">OFFSET</span> <span class="s">40</span>;   <span class="c">-- page 3 of 20</span></pre>
+    <ul>
+      <li>SQL Server uses <code class="inl">OFFSET 40 ROWS FETCH NEXT 20 ROWS ONLY</code> (or <code class="inl">TOP n</code>).</li>
+      <li><b>Keyset pagination</b> beats <code class="inl">OFFSET</code> for deep pages: <code class="inl">WHERE (price,id) &lt; (:last_price,:last_id) ORDER BY price DESC,id DESC LIMIT 20</code> &mdash; O(1) instead of scanning skipped rows.</li>
+      <li>Always include a tiebreaker column in <code class="inl">ORDER BY</code> or row order is non-deterministic.</li>
+    </ul>
+  </section>
+
+  <section id="case">
+    <h2><span class="ix">06</span> CASE &amp; conditionals</h2>
+    <pre><span class="k">SELECT</span> order_id,
+  <span class="k">CASE WHEN</span> amount &gt;= <span class="s">500</span> <span class="k">THEN</span> <span class="s">'large'</span>
+       <span class="k">WHEN</span> amount &gt;= <span class="s">100</span> <span class="k">THEN</span> <span class="s">'medium'</span>
+       <span class="k">ELSE</span> <span class="s">'small'</span> <span class="k">END</span> <span class="k">AS</span> bucket,
+  <span class="f">SUM</span>(<span class="k">CASE WHEN</span> status=<span class="s">'paid'</span> <span class="k">THEN</span> amount <span class="k">ELSE</span> <span class="s">0</span> <span class="k">END</span>) <span class="k">AS</span> paid_total
+<span class="k">FROM</span> orders <span class="k">GROUP BY</span> order_id;</pre>
+    <p><b>Conditional aggregation</b> (the <code class="inl">SUM(CASE...)</code> trick) is how you pivot and compute filtered metrics in one pass &mdash; learn it cold.</p>
+  </section>
+
+  <section id="joins">
+    <h2><span class="ix">07</span> Joins</h2>
+    <table>
+      <tr><th>Join</th><th>Returns</th></tr>
+      <tr><td><b>INNER</b></td><td>Only rows matching in both tables.</td></tr>
+      <tr><td><b>LEFT</b></td><td>All left rows + matches; NULLs where no right match.</td></tr>
+      <tr><td><b>RIGHT</b></td><td>All right rows + matches.</td></tr>
+      <tr><td><b>FULL OUTER</b></td><td>All rows from both; NULLs where unmatched.</td></tr>
+      <tr><td><b>CROSS</b></td><td>Cartesian product (every combo).</td></tr>
+    </table>
+    <pre><span class="k">SELECT</span> o.id, c.name, p.title
+<span class="k">FROM</span> orders o
+<span class="k">JOIN</span>      customers c <span class="k">ON</span> c.id = o.customer_id
+<span class="k">LEFT JOIN</span> products  p <span class="k">ON</span> p.id = o.product_id
+<span class="k">WHERE</span> c.country = <span class="s">'IN'</span>;</pre>
+    <h3>Semi / anti joins</h3>
+    <pre><span class="c">-- customers WITH an order (semi-join)</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> customers c
+<span class="k">WHERE EXISTS</span> (<span class="k">SELECT</span> <span class="s">1</span> <span class="k">FROM</span> orders o <span class="k">WHERE</span> o.customer_id=c.id);
+
+<span class="c">-- customers WITHOUT an order (anti-join)</span>
+<span class="k">SELECT</span> * <span class="k">FROM</span> customers c
+<span class="k">WHERE NOT EXISTS</span> (<span class="k">SELECT</span> <span class="s">1</span> <span class="k">FROM</span> orders o <span class="k">WHERE</span> o.customer_id=c.id);</pre>
+    <div class="callout warn"><b>Fan-out trap</b>Joining a fact to a dimension that has duplicates multiplies rows &mdash; your <code class="inl">SUM</code> doubles. Aggregate the duplicate side first, or join on a unique key. Always know the join&rsquo;s <i>grain</i>.</div>
+    <p><b>Self-join</b>: join a table to itself (e.g. employee &rarr; manager). <b>Join order</b> doesn&rsquo;t change results for inner joins (planner reorders), but does for outer joins.</p>
+  </section>
+
+  <section id="setops">
+    <h2><span class="ix">08</span> Set operations</h2>
+    <ul>
+      <li><code class="inl">UNION</code> &mdash; stack rows, remove duplicates (sorts &rarr; cost). <code class="inl">UNION ALL</code> keeps dupes and is much faster &mdash; use it unless you need dedup.</li>
+      <li><code class="inl">INTERSECT</code> &mdash; rows in both. <code class="inl">EXCEPT</code> (MySQL: <code class="inl">EXCEPT</code> 8.0+ / else anti-join) &mdash; rows in first not second.</li>
+      <li>Column count and compatible types must match across both sides.</li>
+    </ul>
+  </section>
+
+  <section id="subq">
+    <h2><span class="ix">09</span> Subqueries</h2>
+    <ul>
+      <li><b>Scalar</b> &mdash; returns one value, usable in SELECT/WHERE: <code class="inl">WHERE amount &gt; (SELECT AVG(amount) FROM orders)</code>.</li>
+      <li><b>Correlated</b> &mdash; references the outer row, runs per row (can be slow): see EXISTS above.</li>
+      <li><b>Derived table</b> &mdash; subquery in FROM: <code class="inl">FROM (SELECT ...) t</code>.</li>
+      <li><code class="inl">IN</code> vs <code class="inl">EXISTS</code>: EXISTS short-circuits and handles NULLs safely; prefer it for existence checks.</li>
+    </ul>
+  </section>
+
+  <section id="cte">
+    <h2><span class="ix">10</span> CTEs &amp; recursion</h2>
+    <p>A <b>Common Table Expression</b> (<code class="inl">WITH</code>) names a subquery for readability and reuse. Chain several to build a pipeline top-to-bottom.</p>
+    <pre><span class="k">WITH</span> paid <span class="k">AS</span> (
+  <span class="k">SELECT</span> customer_id, <span class="f">SUM</span>(amount) <span class="k">AS</span> spend
+  <span class="k">FROM</span> orders <span class="k">WHERE</span> status=<span class="s">'paid'</span>
+  <span class="k">GROUP BY</span> customer_id
+)
+<span class="k">SELECT</span> c.name, paid.spend
+<span class="k">FROM</span> paid <span class="k">JOIN</span> customers c <span class="k">ON</span> c.id=paid.customer_id
+<span class="k">WHERE</span> paid.spend &gt; <span class="s">1000</span>;</pre>
+    <h3>Recursive CTE (hierarchies, sequences)</h3>
+    <pre><span class="k">WITH RECURSIVE</span> tree <span class="k">AS</span> (
+  <span class="k">SELECT</span> id, manager_id, name, <span class="s">1</span> <span class="k">AS</span> lvl
+  <span class="k">FROM</span> employees <span class="k">WHERE</span> manager_id <span class="k">IS NULL</span>   <span class="c">-- anchor</span>
+  <span class="k">UNION ALL</span>
+  <span class="k">SELECT</span> e.id, e.manager_id, e.name, t.lvl+<span class="s">1</span>
+  <span class="k">FROM</span> employees e <span class="k">JOIN</span> tree t <span class="k">ON</span> e.manager_id=t.id  <span class="c">-- recurse</span>
+)
+<span class="k">SELECT</span> * <span class="k">FROM</span> tree <span class="k">ORDER BY</span> lvl;</pre>
+    <div class="callout"><b>CTE vs subquery</b>Same logic, better readability. Note: some engines <i>materialize</i> CTEs (Postgres &lt;12 always did) which can hurt; Postgres 12+ inlines unless <code class="inl">MATERIALIZED</code>. For hot paths, test both.</div>
+  </section>
+
+  <section id="groupby">
+    <h2><span class="ix">11</span> GROUP BY &amp; HAVING</h2>
+    <pre><span class="k">SELECT</span> category, <span class="f">COUNT</span>(*) orders, <span class="f">SUM</span>(amount) revenue, <span class="f">AVG</span>(amount) aov
+<span class="k">FROM</span> sales
+<span class="k">GROUP BY</span> category
+<span class="k">HAVING</span> <span class="f">SUM</span>(amount) &gt; <span class="s">10000</span>      <span class="c">-- filter groups, not rows</span>
+<span class="k">ORDER BY</span> revenue <span class="k">DESC</span>;</pre>
+    <ul>
+      <li>Every non-aggregated SELECT column must be in <code class="inl">GROUP BY</code> (Postgres/SQL Server strict; MySQL lax via <code class="inl">ONLY_FULL_GROUP_BY</code>).</li>
+      <li><code class="inl">WHERE</code> filters rows <i>before</i> grouping; <code class="inl">HAVING</code> filters <i>after</i>.</li>
+      <li><b>Roll-ups:</b> <code class="inl">GROUP BY ROLLUP(region, product)</code> adds subtotal + grand-total rows; <code class="inl">GROUPING SETS</code> / <code class="inl">CUBE</code> for multi-dimension totals.</li>
+      <li>Aggregates: <code class="inl">COUNT SUM AVG MIN MAX</code>, plus <code class="inl">STRING_AGG</code>/<code class="inl">ARRAY_AGG</code>/<code class="inl">LISTAGG</code> to concatenate, and statistical <code class="inl">STDDEV</code>/<code class="inl">PERCENTILE_CONT</code>.</li>
+    </ul>
+  </section>
+
+  <section id="window">
+    <h2><span class="ix">12</span> Window functions</h2>
+    <p>Window functions compute across a set of rows <b>related to the current row</b> &mdash; <i>without</i> collapsing them like <code class="inl">GROUP BY</code>. The single most important advanced SQL skill.</p>
+    <pre><span class="f">function</span>() <span class="k">OVER</span> (
+  <span class="k">PARTITION BY</span> col     <span class="c">-- groups (optional)</span>
+  <span class="k">ORDER BY</span> col          <span class="c">-- order within group</span>
+  <span class="k">ROWS BETWEEN</span> ...      <span class="c">-- frame (optional)</span>
+)</pre>
+    <h3>Ranking &amp; row numbers</h3>
+    <pre><span class="k">SELECT</span> name, dept, salary,
+  <span class="f">ROW_NUMBER</span>() <span class="k">OVER</span>(<span class="k">PARTITION BY</span> dept <span class="k">ORDER BY</span> salary <span class="k">DESC</span>) rn,
+  <span class="f">RANK</span>()       <span class="k">OVER</span>(<span class="k">PARTITION BY</span> dept <span class="k">ORDER BY</span> salary <span class="k">DESC</span>) rnk,
+  <span class="f">DENSE_RANK</span>() <span class="k">OVER</span>(<span class="k">PARTITION BY</span> dept <span class="k">ORDER BY</span> salary <span class="k">DESC</span>) drnk
+<span class="k">FROM</span> employees;</pre>
+    <ul>
+      <li><code class="inl">ROW_NUMBER</code> always unique (1,2,3); <code class="inl">RANK</code> leaves gaps after ties (1,1,3); <code class="inl">DENSE_RANK</code> no gaps (1,1,2).</li>
+      <li><b>Top-N per group:</b> wrap in a subquery and filter <code class="inl">WHERE rn &lt;= 3</code>.</li>
+    </ul>
+    <h3>Offsets &amp; running totals</h3>
+    <pre><span class="k">SELECT</span> day, revenue,
+  <span class="f">LAG</span>(revenue) <span class="k">OVER</span>(<span class="k">ORDER BY</span> day)               <span class="k">AS</span> prev_day,
+  revenue - <span class="f">LAG</span>(revenue) <span class="k">OVER</span>(<span class="k">ORDER BY</span> day)   <span class="k">AS</span> dod_change,
+  <span class="f">SUM</span>(revenue) <span class="k">OVER</span>(<span class="k">ORDER BY</span> day
+      <span class="k">ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW</span>) <span class="k">AS</span> running_total,
+  <span class="f">AVG</span>(revenue) <span class="k">OVER</span>(<span class="k">ORDER BY</span> day
+      <span class="k">ROWS BETWEEN</span> <span class="s">6</span> <span class="k">PRECEDING AND CURRENT ROW</span>)        <span class="k">AS</span> ma7
+<span class="k">FROM</span> daily;</pre>
+    <div class="callout"><b>Frames</b><code class="inl">ROWS</code> counts physical rows; <code class="inl">RANGE</code> counts by value (ties share a frame). Default frame with <code class="inl">ORDER BY</code> is <code class="inl">RANGE UNBOUNDED PRECEDING</code> &mdash; a common subtle bug; specify <code class="inl">ROWS</code> for running totals.</div>
+    <p>Also: <code class="inl">LEAD</code>, <code class="inl">FIRST_VALUE</code>/<code class="inl">LAST_VALUE</code>, <code class="inl">NTILE(4)</code> for quartiles, <code class="inl">PERCENT_RANK</code>, <code class="inl">CUME_DIST</code>. Reuse a window via <code class="inl">WINDOW w AS (...)</code>.</p>
+  </section>
+
+  <section id="types">
+    <h2><span class="ix">13</span> Types, strings &amp; dates</h2>
+    <ul>
+      <li><b>Numeric:</b> <code class="inl">INT/BIGINT</code>, exact <code class="inl">DECIMAL(p,s)</code> for money (never <code class="inl">FLOAT</code> for currency &mdash; rounding errors), approximate <code class="inl">FLOAT/DOUBLE</code>.</li>
+      <li><b>Text:</b> <code class="inl">VARCHAR(n)</code>, <code class="inl">TEXT</code>. <b>Temporal:</b> <code class="inl">DATE</code>, <code class="inl">TIMESTAMP</code>, <code class="inl">TIMESTAMPTZ</code> (store UTC, convert at edges).</li>
+      <li><b>Cast:</b> <code class="inl">CAST(x AS INT)</code> or Postgres <code class="inl">x::int</code>.</li>
+    </ul>
+    <pre><span class="c">-- dates</span>
+<span class="f">DATE_TRUNC</span>(<span class="s">'month'</span>, created_at)            <span class="c">-- bucket to month</span>
+created_at + <span class="k">INTERVAL</span> <span class="s">'7 days'</span>
+<span class="f">EXTRACT</span>(<span class="k">YEAR FROM</span> created_at)
+<span class="f">DATEDIFF</span>(day, a, b)                       <span class="c">-- SQL Server</span>
+<span class="c">-- strings</span>
+<span class="f">CONCAT</span>(first,<span class="s">' '</span>,last)  ||  <span class="f">SUBSTRING</span>(s,<span class="s">1</span>,<span class="s">3</span>)  ||  <span class="f">TRIM</span>(s)  ||  <span class="f">REPLACE</span>(s,<span class="s">'-'</span>,<span class="s">''</span>)</pre>
+    <div class="callout warn"><b>Timezones</b>Store UTC (<code class="inl">TIMESTAMPTZ</code>), convert for display only. Mixing naive timestamps across zones is the #1 reporting bug.</div>
+  </section>
+
+  <section id="dml">
+    <h2><span class="ix">14</span> INSERT / UPDATE / DELETE / MERGE</h2>
+    <pre><span class="k">INSERT INTO</span> orders (customer_id, amount) <span class="k">VALUES</span> (<span class="s">1</span>, <span class="s">99.50</span>);
+<span class="k">INSERT INTO</span> archive <span class="k">SELECT</span> * <span class="k">FROM</span> orders <span class="k">WHERE</span> created_at &lt; <span class="s">'2024-01-01'</span>;
+
+<span class="k">UPDATE</span> orders <span class="k">SET</span> status=<span class="s">'shipped'</span> <span class="k">WHERE</span> id=<span class="s">42</span>;
+<span class="k">DELETE FROM</span> orders <span class="k">WHERE</span> status=<span class="s">'cancelled'</span>;</pre>
+    <div class="callout warn"><b>Always WHERE first</b>Run the <code class="inl">SELECT</code> with your filter <i>before</i> turning it into <code class="inl">UPDATE</code>/<code class="inl">DELETE</code>. A missing <code class="inl">WHERE</code> changes every row. Wrap in a transaction so you can <code class="inl">ROLLBACK</code>.</div>
+    <h3>Upsert / MERGE</h3>
+    <pre><span class="c">-- Postgres upsert</span>
+<span class="k">INSERT INTO</span> stock (sku, qty) <span class="k">VALUES</span> (<span class="s">'A1'</span>, <span class="s">5</span>)
+<span class="k">ON CONFLICT</span> (sku) <span class="k">DO UPDATE SET</span> qty = stock.qty + <span class="k">EXCLUDED</span>.qty;
+
+<span class="c">-- ANSI / SQL Server / Snowflake MERGE</span>
+<span class="k">MERGE INTO</span> stock t <span class="k">USING</span> staging s <span class="k">ON</span> t.sku=s.sku
+<span class="k">WHEN MATCHED THEN UPDATE SET</span> t.qty=s.qty
+<span class="k">WHEN NOT MATCHED THEN INSERT</span> (sku,qty) <span class="k">VALUES</span> (s.sku,s.qty);</pre>
+    <p><code class="inl">TRUNCATE</code> empties a table fast (no per-row delete, often non-logged, resets identity) but can&rsquo;t be filtered and may not be transactional everywhere.</p>
+  </section>
+
+  <section id="ddl">
+    <h2><span class="ix">15</span> DDL &amp; constraints</h2>
+    <pre><span class="k">CREATE TABLE</span> orders (
+  id          <span class="k">BIGINT</span> <span class="k">GENERATED ALWAYS AS IDENTITY PRIMARY KEY</span>,
+  customer_id <span class="k">BIGINT</span> <span class="k">NOT NULL REFERENCES</span> customers(id),
+  amount      <span class="k">DECIMAL</span>(<span class="s">10</span>,<span class="s">2</span>) <span class="k">NOT NULL CHECK</span> (amount &gt;= <span class="s">0</span>),
+  status      <span class="k">VARCHAR</span>(<span class="s">20</span>) <span class="k">NOT NULL DEFAULT</span> <span class="s">'pending'</span>,
+  created_at  <span class="k">TIMESTAMPTZ</span> <span class="k">NOT NULL DEFAULT</span> now(),
+  <span class="k">UNIQUE</span>(customer_id, created_at)
+);</pre>
+    <ul>
+      <li>Constraints: <code class="inl">PRIMARY KEY</code>, <code class="inl">FOREIGN KEY</code>, <code class="inl">UNIQUE</code>, <code class="inl">NOT NULL</code>, <code class="inl">CHECK</code>, <code class="inl">DEFAULT</code>. Let the DB enforce integrity &mdash; don&rsquo;t rely on app code alone.</li>
+      <li><b>Views</b> &mdash; saved query, always fresh, no storage. <b>Materialized views</b> &mdash; stored result, fast reads, must <code class="inl">REFRESH</code>.</li>
+      <li><code class="inl">ALTER TABLE ... ADD COLUMN / ADD CONSTRAINT</code>; mind locks on big tables in production.</li>
+    </ul>
+  </section>
+
+  <section id="tx">
+    <h2><span class="ix">16</span> Transactions &amp; ACID</h2>
+    <pre><span class="k">BEGIN</span>;
+  <span class="k">UPDATE</span> accounts <span class="k">SET</span> bal = bal - <span class="s">100</span> <span class="k">WHERE</span> id=<span class="s">1</span>;
+  <span class="k">UPDATE</span> accounts <span class="k">SET</span> bal = bal + <span class="s">100</span> <span class="k">WHERE</span> id=<span class="s">2</span>;
+<span class="k">COMMIT</span>;   <span class="c">-- or ROLLBACK to undo both</span></pre>
+    <ul>
+      <li><b>ACID:</b> <b>A</b>tomic (all-or-nothing), <b>C</b>onsistent (constraints hold), <b>I</b>solated (concurrent txns don&rsquo;t corrupt), <b>D</b>urable (committed = persisted).</li>
+    </ul>
+    <table>
+      <tr><th>Isolation level</th><th>Prevents</th></tr>
+      <tr><td>READ UNCOMMITTED</td><td>nothing (dirty reads possible)</td></tr>
+      <tr><td>READ COMMITTED <i>(default in PG/Oracle)</i></td><td>dirty reads</td></tr>
+      <tr><td>REPEATABLE READ <i>(MySQL default)</i></td><td>+ non-repeatable reads</td></tr>
+      <tr><td>SERIALIZABLE</td><td>+ phantom reads (full isolation, most locking)</td></tr>
+    </table>
+    <p>Higher isolation = fewer anomalies, more contention. Watch for <b>deadlocks</b> (two txns wait on each other) &mdash; the engine kills one; retry with consistent lock ordering.</p>
+  </section>
+
+  <section id="index">
+    <h2><span class="ix">17</span> Indexing</h2>
+    <p>An index is a sorted side structure (usually a <b>B-tree</b>) that turns a full scan into a lookup. Indexes speed reads, slow writes, and cost storage &mdash; add deliberately.</p>
+    <ul>
+      <li>Index columns used in <code class="inl">WHERE</code>, <code class="inl">JOIN</code>, <code class="inl">ORDER BY</code>. A <b>composite index</b> <code class="inl">(a,b)</code> serves filters on <code class="inl">a</code> and <code class="inl">a,b</code> &mdash; left-prefix rule; not <code class="inl">b</code> alone.</li>
+      <li><b>Covering index</b> includes all columns a query needs &rarr; index-only scan, no table fetch.</li>
+      <li><b>Unique index</b> enforces uniqueness. <b>Partial</b> index (<code class="inl">WHERE active</code>) indexes a subset. <b>Clustered</b> index defines physical row order (SQL Server PK default; one per table).</li>
+      <li>Other types: <b>Hash</b> (equality), <b>GIN/GiST</b> (Postgres JSON/full-text/arrays), <b>bitmap</b> (low-cardinality, OLAP).</li>
+    </ul>
+    <div class="callout warn"><b>Sargability</b>Wrapping an indexed column in a function kills the index: <code class="inl">WHERE YEAR(created_at)=2026</code> scans. Rewrite as a range: <code class="inl">WHERE created_at &gt;= '2026-01-01' AND created_at &lt; '2027-01-01'</code>.</div>
+  </section>
+
+  <section id="perf">
+    <h2><span class="ix">18</span> Query performance</h2>
+    <pre><span class="k">EXPLAIN ANALYZE</span> <span class="k">SELECT</span> ... ;   <span class="c">-- see the actual plan + timings</span></pre>
+    <ul>
+      <li>Read the plan: <b>Seq Scan</b> (full table) vs <b>Index Scan/Seek</b>; join type (<b>Nested Loop</b> for small, <b>Hash Join</b> for big unsorted, <b>Merge Join</b> for sorted); look for the row-count <b>estimate vs actual</b> gap &rarr; stale stats.</li>
+      <li>Keep statistics fresh (<code class="inl">ANALYZE</code> / auto-stats) so the planner estimates well.</li>
+      <li>Filter early and narrow; avoid <code class="inl">SELECT *</code>; push predicates down; avoid functions on indexed columns; prefer <code class="inl">EXISTS</code> over <code class="inl">IN(subquery)</code>; replace <code class="inl">OR</code> with <code class="inl">UNION ALL</code> or <code class="inl">IN</code> when it blocks index use.</li>
+      <li><b>Partitioning</b> (range/list) prunes large tables by date/key. <b>Batch</b> big DML to limit lock time and log growth.</li>
+      <li>N+1 in app code &rarr; one set-based query beats a loop of point queries.</li>
+    </ul>
+  </section>
+
+  <section id="normal">
+    <h2><span class="ix">19</span> Normalization</h2>
+    <table>
+      <tr><th>Form</th><th>Rule</th></tr>
+      <tr><td><b>1NF</b></td><td>Atomic values, no repeating groups/arrays in a column.</td></tr>
+      <tr><td><b>2NF</b></td><td>1NF + no partial dependency on part of a composite key.</td></tr>
+      <tr><td><b>3NF</b></td><td>2NF + no transitive dependency (non-key &rarr; non-key).</td></tr>
+    </table>
+    <p>Normalize OLTP (write-heavy apps) to kill update anomalies and redundancy. <b>Denormalize</b> analytics/reporting (read-heavy) for speed &mdash; fewer joins. The eternal trade-off: normalization optimizes writes &amp; integrity; denormalization optimizes reads.</p>
+  </section>
+
+  <section id="schema">
+    <h2><span class="ix">20</span> Schema patterns</h2>
+    <ul>
+      <li><b>Star schema</b> &mdash; central fact (events, measures + FKs) surrounded by denormalized dimensions (date, product, customer). The analytics default.</li>
+      <li><b>Snowflake schema</b> &mdash; dimensions normalized into sub-tables. Less redundancy, more joins.</li>
+      <li><b>Slowly Changing Dimensions:</b> <b>Type 1</b> overwrite (no history), <b>Type 2</b> add a new row with validity dates + current flag (full history), <b>Type 3</b> add a &ldquo;previous&rdquo; column.</li>
+      <li><b>Surrogate keys</b> in dimensions decouple the warehouse from source natural keys and enable Type-2 history.</li>
+    </ul>
+  </section>
+
+  <section id="advanced">
+    <h2><span class="ix">21</span> Pivot, JSON &amp; procedures</h2>
+    <h3>Pivot (conditional aggregation works everywhere)</h3>
+    <pre><span class="k">SELECT</span> product,
+  <span class="f">SUM</span>(<span class="k">CASE WHEN</span> region=<span class="s">'N'</span> <span class="k">THEN</span> amt <span class="k">END</span>) <span class="k">AS</span> north,
+  <span class="f">SUM</span>(<span class="k">CASE WHEN</span> region=<span class="s">'S'</span> <span class="k">THEN</span> amt <span class="k">END</span>) <span class="k">AS</span> south
+<span class="k">FROM</span> sales <span class="k">GROUP BY</span> product;</pre>
+    <h3>JSON</h3>
+    <pre><span class="c">-- Postgres</span>
+<span class="k">SELECT</span> data-&gt;&gt;<span class="s">'email'</span>, data#&gt;&gt;<span class="s">'{addr,city}'</span> <span class="k">FROM</span> events;
+<span class="k">SELECT</span> * <span class="k">FROM</span> events <span class="k">WHERE</span> data @&gt; <span class="s">'{"active":true}'</span>;   <span class="c">-- GIN-indexable</span></pre>
+    <ul>
+      <li><b>Stored procedures / functions</b> encapsulate logic server-side; functions return values and can be used in queries, procedures run side effects (and can manage transactions).</li>
+      <li><b>Triggers</b> fire on INSERT/UPDATE/DELETE (audit, derived columns) &mdash; powerful but easy to hide logic in; use sparingly.</li>
+      <li><b>Temp tables</b> (<code class="inl">#tmp</code> / <code class="inl">CREATE TEMP TABLE</code>) persist within a session for staging multi-step work; CTEs don&rsquo;t persist.</li>
+    </ul>
+  </section>
+
+  <section id="dialects">
+    <h2><span class="ix">22</span> Dialect cheat-sheet</h2>
+    <table>
+      <tr><th>Need</th><th>Postgres</th><th>SQL Server</th><th>MySQL</th><th>Snowflake / BigQuery</th></tr>
+      <tr><td>Limit</td><td><code>LIMIT n</code></td><td><code>TOP n</code> / <code>FETCH</code></td><td><code>LIMIT n</code></td><td><code>LIMIT n</code></td></tr>
+      <tr><td>Concat</td><td><code>||</code> / <code>CONCAT</code></td><td><code>+</code> / <code>CONCAT</code></td><td><code>CONCAT</code></td><td><code>||</code> / <code>CONCAT</code></td></tr>
+      <tr><td>Cast</td><td><code>::type</code></td><td><code>CONVERT</code></td><td><code>CAST</code></td><td><code>::type</code></td></tr>
+      <tr><td>Upsert</td><td><code>ON CONFLICT</code></td><td><code>MERGE</code></td><td><code>ON DUPLICATE KEY</code></td><td><code>MERGE</code></td></tr>
+      <tr><td>Auto id</td><td><code>IDENTITY</code>/<code>serial</code></td><td><code>IDENTITY</code></td><td><code>AUTO_INCREMENT</code></td><td><code>AUTOINCREMENT</code></td></tr>
+      <tr><td>Group concat</td><td><code>STRING_AGG</code></td><td><code>STRING_AGG</code></td><td><code>GROUP_CONCAT</code></td><td><code>LISTAGG</code> / <code>STRING_AGG</code></td></tr>
+    </table>
+    <p>ANSI window functions, CTEs and standard joins work across all modern engines &mdash; learn the standard, look up the dialect quirk when needed.</p>
+  </section>
+
+  <section id="patterns">
+    <h2><span class="ix">23</span> Analytics patterns to memorize</h2>
+    <h3>Deduplicate, keep latest</h3>
+    <pre><span class="k">WITH</span> r <span class="k">AS</span> (<span class="k">SELECT</span> *, <span class="f">ROW_NUMBER</span>() <span class="k">OVER</span>(<span class="k">PARTITION BY</span> email <span class="k">ORDER BY</span> updated_at <span class="k">DESC</span>) rn <span class="k">FROM</span> users)
+<span class="k">SELECT</span> * <span class="k">FROM</span> r <span class="k">WHERE</span> rn=<span class="s">1</span>;</pre>
+    <h3>Top-N per group</h3>
+    <pre><span class="k">WITH</span> r <span class="k">AS</span> (<span class="k">SELECT</span> *, <span class="f">ROW_NUMBER</span>() <span class="k">OVER</span>(<span class="k">PARTITION BY</span> dept <span class="k">ORDER BY</span> sales <span class="k">DESC</span>) rn <span class="k">FROM</span> reps)
+<span class="k">SELECT</span> * <span class="k">FROM</span> r <span class="k">WHERE</span> rn&lt;=<span class="s">3</span>;</pre>
+    <h3>Running total &amp; month-over-month</h3>
+    <pre><span class="k">SELECT</span> mth, rev,
+  <span class="f">SUM</span>(rev) <span class="k">OVER</span>(<span class="k">ORDER BY</span> mth <span class="k">ROWS UNBOUNDED PRECEDING</span>) <span class="k">AS</span> cumulative,
+  rev/<span class="f">NULLIF</span>(<span class="f">LAG</span>(rev) <span class="k">OVER</span>(<span class="k">ORDER BY</span> mth),<span class="s">0</span>)-<span class="s">1</span> <span class="k">AS</span> mom
+<span class="k">FROM</span> monthly;</pre>
+    <h3>Gaps &amp; islands / sessionization</h3>
+    <pre><span class="c">-- group consecutive activity: subtract row_number from the ordering key</span>
+<span class="k">SELECT</span> user_id, <span class="f">MIN</span>(ts) start_ts, <span class="f">MAX</span>(ts) end_ts
+<span class="k">FROM</span> (<span class="k">SELECT</span> *, <span class="f">ROW_NUMBER</span>() <span class="k">OVER</span>(<span class="k">PARTITION BY</span> user_id <span class="k">ORDER BY</span> ts)
+       - <span class="f">ROW_NUMBER</span>() <span class="k">OVER</span>(<span class="k">PARTITION BY</span> user_id, active <span class="k">ORDER BY</span> ts) grp
+      <span class="k">FROM</span> events) s
+<span class="k">GROUP BY</span> user_id, grp;</pre>
+    <p>Also worth knowing cold: <b>cohort retention</b> (first-event month vs activity month), <b>funnel</b> (conditional aggregation over step events), <b>YoY</b> via self-join or <code class="inl">LAG(...,12)</code>, and <b>median</b> via <code class="inl">PERCENTILE_CONT(0.5)</code>.</p>
+  </section>
+
+  <section id="interview">
+    <h2><span class="ix">24</span> Interview drills</h2>
+    <ul>
+      <li>2nd-highest salary (and per department) &mdash; <code class="inl">DENSE_RANK</code> or <code class="inl">OFFSET</code>.</li>
+      <li>Find duplicate rows &amp; delete all but one &mdash; <code class="inl">ROW_NUMBER</code>.</li>
+      <li>Customers with no orders &mdash; <code class="inl">NOT EXISTS</code> / <code class="inl">LEFT JOIN ... IS NULL</code>.</li>
+      <li>Running total / 7-day moving average &mdash; window frames.</li>
+      <li>Pivot rows to columns &mdash; conditional aggregation.</li>
+      <li>Nth highest, consecutive-days streaks, department-wise top earners, MoM growth.</li>
+      <li>Explain <code class="inl">WHERE</code> vs <code class="inl">HAVING</code>; <code class="inl">RANK</code> vs <code class="inl">DENSE_RANK</code> vs <code class="inl">ROW_NUMBER</code>; <code class="inl">UNION</code> vs <code class="inl">UNION ALL</code>; index vs no index; what makes a query non-sargable.</li>
+    </ul>
+    <div class="callout tip"><b>Drill them out loud</b>Use the <a class="anchor" href="interview.html">AI interviewer</a> to defend each answer, and the <a class="anchor" href="study.html">question bank</a> to grind reps.</div>
+  </section>
+  </main>
+</div>
+
+<button class="backtop" id="backtop" aria-label="Back to top">&uarr;</button>
+<script src="handbook.js"></script>
+</body>
+</html>
