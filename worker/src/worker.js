@@ -20,6 +20,26 @@
 const enc = new TextEncoder();
 const TOKEN_TTL_MS = 1000 * 60 * 60 * 8; // 8 hours
 
+// ---- lightweight per-isolate rate limiter (best-effort; use KV/DO for hard limits) ----
+const RL = { login: new Map(), chat: new Map() };
+function rateLimit(map, key, max, windowMs) {
+  const now = Date.now();
+  const e = map.get(key);
+  if (!e || now > e.reset) { map.set(key, { n: 1, reset: now + windowMs }); return true; }
+  if (e.n >= max) return false;
+  e.n++; return true;
+}
+function clientId(req) { return req.headers.get('CF-Connecting-IP') || 'anon'; }
+
+// ---- server-side guardrails (cannot be bypassed from the browser) ----
+const INJECTION = /(ignore|disregard|forget|override)\s+(all\s+|the\s+|your\s+|previous\s+|prior\s+|above\s+)*(instructions|rules|prompt|guardrails)|reveal\s+(your\s+)?(system\s+)?(prompt|instructions|rules)|you\s+are\s+now\s+a\b|pretend\s+(to\s+be|you\s+are)|jailbreak|developer\s+mode|do\s+anything\s+now/i;
+const UNSAFE = /\b(build|make|create)\s+(a\s+)?(bomb|weapon|explosive)|how\s+to\s+(kill|harm|hurt)\s+(a\s+)?(person|someone|people)|child\s*p|self.?harm|suicide\s+method/i;
+function guardReply(text) {
+  if (UNSAFE.test(text)) return "I can't help with that. I'm strictly an interview coach for Power BI & data engineering — ask me a DAX, modeling, SQL, or pipeline question.";
+  if (INJECTION.test(text)) return "I stay locked to my role as your Power BI / data engineering interview coach and won't change instructions. What topic do you want to drill?";
+  return null;
+}
+
 async function sha256Hex(s) {
   const b = await crypto.subtle.digest('SHA-256', enc.encode(s));
   return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join('');
@@ -73,6 +93,8 @@ export default {
 
     // ---------- LOGIN ----------
     if (url.pathname === '/api/login' && req.method === 'POST') {
+      if (!rateLimit(RL.login, clientId(req), 8, 10 * 60 * 1000))
+        return json({ error: 'Too many attempts — wait a few minutes.' }, 429, env);
       const { username, password } = await req.json().catch(() => ({}));
       const users = JSON.parse(env.USERS_JSON || '{}');
       const u = users[(username || '').toLowerCase()];
@@ -91,11 +113,17 @@ export default {
       const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
       const sess = await verify(token, env.AUTH_SECRET);
       if (!sess) return json({ error: 'Unauthorized — sign in again.' }, 401, env);
+      if (!rateLimit(RL.chat, sess.u || clientId(req), 30, 60 * 1000))
+        return json({ error: 'Slow down — too many requests this minute.' }, 429, env);
 
       const body = await req.json().catch(() => ({}));
       const provider = body.provider || env.DEFAULT_PROVIDER || 'openrouter';
       const messages = Array.isArray(body.messages) ? body.messages.slice(-20) : [];
       const system = String(body.system || '').slice(0, 8000);
+      // server-side guard: block injection / unsafe on the latest user turn
+      const lastUser = [...messages].reverse().find(m => m.role === 'user');
+      const blocked = lastUser && guardReply(String(lastUser.content || ''));
+      if (blocked) return json({ text: blocked }, 200, env);
       try {
         const text = await callUpstream(provider, system, messages, env, body.model);
         return json({ text }, 200, env);

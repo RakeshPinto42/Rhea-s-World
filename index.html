@@ -4,6 +4,12 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Rhea's World — she plays with Power BI</title>
+<meta name="description" content="Rhea — Senior Power BI developer. Live dashboards, DAX, data modeling, a project lab, a 17-chapter handbook, and an AI mock interviewer." />
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Rhea's World — she plays with Power BI" />
+<meta property="og:description" content="Living dashboards, DAX, a project lab, handbook, and an AI mock interviewer." />
+<meta name="twitter:card" content="summary_large_image" />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23f2c14e'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='18' font-weight='700' text-anchor='middle' fill='%231b1408'%3ER%3C/text%3E%3C/svg%3E" />
 <script src="auth.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -44,7 +50,14 @@
   .nav-links a:hover{color:var(--ink)}
   .nav-links a::after{content:"";position:absolute;left:0;bottom:-6px;height:2px;width:0;background:linear-gradient(90deg,var(--gold),var(--cyan));transition:width .3s}
   .nav-links a:hover::after{width:100%}
-  @media(max-width:820px){.nav-links{display:none}}
+  .navtoggle{display:none;background:var(--glass);border:1px solid var(--glass-line);color:var(--ink);border-radius:9px;padding:8px 12px;font-size:1rem;cursor:pointer;line-height:1}
+  @media(max-width:820px){
+    .navtoggle{display:block}
+    .nav-links{display:none;position:absolute;top:100%;right:0;flex-direction:column;gap:0;background:rgba(10,10,20,.96);backdrop-filter:blur(16px);border:1px solid var(--line);border-radius:0 0 14px 14px;padding:10px 6px;min-width:200px}
+    .nav-links.open{display:flex}
+    .nav-links a{padding:11px 16px}
+    .nav-links a::after{display:none}
+  }
 
   header{padding:64px 0 46px;position:relative;display:grid;grid-template-columns:1.02fr .98fr;gap:30px;align-items:center}
   @media(max-width:900px){header{grid-template-columns:1fr;padding-top:42px}}
@@ -166,7 +179,8 @@
 
 <nav>
   <div class="brand"><span class="dot"><i></i><i></i><i></i></span>Rhea&rsquo;s&nbsp;World</div>
-  <div class="nav-links">
+  <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+  <div class="nav-links" id="navLinks">
     <a href="#dash">Dashboard</a>
     <a href="#how">Workflow</a>
     <a href="learn.html" style="color:var(--gold)">Handbook</a>
@@ -419,6 +433,9 @@
 </footer>
 
 <script>
+  const navToggle=document.getElementById('navToggle'),navLinks=document.getElementById('navLinks');
+  navToggle.addEventListener('click',()=>{const o=navLinks.classList.toggle('open');navToggle.setAttribute('aria-expanded',o);});
+  navLinks.addEventListener('click',e=>{if(e.target.tagName==='A'){navLinks.classList.remove('open');navToggle.setAttribute('aria-expanded','false');}});
   const io=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target);}});},{threshold:.18});
   document.querySelectorAll('.reveal,.card').forEach(el=>io.observe(el));
   const art=document.getElementById('heroArt');

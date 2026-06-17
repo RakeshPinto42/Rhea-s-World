@@ -12,12 +12,20 @@
    ===================================================================== */
 (function () {
   // ===== CONFIG =====
-  const WORKER_URL = ""; // e.g. "https://rhea-interview-proxy.xxx.workers.dev" — empty = local mode
+  // Set the Worker URL WITHOUT editing code: add to any page's <head>
+  //   <meta name="rhea-worker" content="https://your-worker.workers.dev">
+  // or set window.RHEA_WORKER_URL before this script. Empty = insecure local mode.
+  const META_WORKER = document.querySelector('meta[name="rhea-worker"]')?.content?.trim();
+  const WORKER_URL = META_WORKER || window.RHEA_WORKER_URL || "";
   window.RHEA_WORKER_URL = WORKER_URL; // shared with interview.html for secure chat
   const ACCOUNTS = {     // used only in local mode (ignored once WORKER_URL is set)
     "rhea":  { pass: "Willis@123RD", role: "admin" },
     "guest": { pass: "Willis@123RD", role: "user"  }
   };
+  if (!WORKER_URL) console.warn(
+    "[Rhea] INSECURE LOCAL MODE: login credentials are visible in auth.js to anyone with devtools. " +
+    "Do not treat this as real security. Deploy worker/ and set the rhea-worker meta tag before publishing."
+  );
   const SKEY = "rhea_site_session";
 
   // hide page content until unlocked (prevents flash of locked content)

@@ -4,6 +4,10 @@
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Rhea &mdash; AI Mock Interviewer</title>
+<meta name="description" content="AI-powered Power BI & data engineering mock interviewer and expert tutor — voice in/out, live scoring, guardrails." />
+<meta property="og:title" content="Rhea — AI Mock Interviewer" />
+<meta property="og:description" content="Live AI mock interviews for Power BI & data engineering, with voice and scoring." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23c8a200'/%3E%3Ctext x='16' y='22' font-family='monospace' font-size='18' font-weight='700' text-anchor='middle' fill='%231b1500'%3ER%3C/text%3E%3C/svg%3E" />
 <script src="auth.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -201,17 +205,17 @@
 
   <!-- COMPOSER -->
   <div class="composer hidden" id="composer">
-    <div class="errbar" id="chatErr"></div>
+    <div class="errbar" id="chatErr" role="alert" aria-live="assertive"></div>
     <div class="crow">
-      <textarea id="input" rows="1" placeholder="Type your answer&hellip; (Enter to send, Shift+Enter for newline)"></textarea>
+      <textarea id="input" rows="1" aria-label="Your message" placeholder="Type your answer&hellip; (Enter to send, Shift+Enter for newline)"></textarea>
       <button class="send" id="sendBtn">Send</button>
-      <button class="send stop" id="stopBtn" style="display:none">&#9632; Stop</button>
+      <button class="send stop" id="stopBtn" style="display:none" aria-label="Stop generating">&#9632; Stop</button>
     </div>
     <div class="toolsrow">
-      <button id="backBtn">&#8592; Back</button>
-      <button id="micBtn">&#127908; Speak answer</button>
-      <button id="ttsBtn">&#128266; Read aloud: off</button>
-      <select id="voiceSel" title="Interviewer voice" style="display:none"></select>
+      <button id="backBtn" aria-label="Back to setup">&#8592; Back</button>
+      <button id="micBtn" aria-label="Speak your answer" aria-pressed="false">&#127908; Speak answer</button>
+      <button id="ttsBtn" aria-label="Toggle read aloud" aria-pressed="false">&#128266; Read aloud: off</button>
+      <select id="voiceSel" title="Interviewer voice" aria-label="Interviewer voice" style="display:none"></select>
       <button id="hintBtn">&#128161; Ask for a hint</button>
       <button id="endBtn">&#127937; End &amp; get scorecard</button>
       <span class="spacer"></span>
@@ -385,6 +389,30 @@ let sysPrompt='';
 let busy=false;
 let chatAbort=null;   // AbortController for the in-flight request (Stop button)
 
+/* ---------- session persistence (survive refresh) ---------- */
+const SESS_KEY='rhea_interview_session';
+function saveSession(){
+  if(!history.length){ localStorage.removeItem(SESS_KEY); return; }
+  try{ localStorage.setItem(SESS_KEY,JSON.stringify({mode,sysPrompt,history})); }catch(e){}
+}
+function clearSession(){ localStorage.removeItem(SESS_KEY); }
+function applyChatUI(){
+  setup.classList.add('collapsed'); composer.classList.remove('hidden');
+  $('endBtn').style.display = mode==='interview' ? '' : 'none';
+  $('hintBtn').textContent = mode==='interview' ? '\u{1F4A1} Ask for a hint' : '\u{1F3B2} Quiz me instead';
+  input.placeholder = mode==='interview'
+    ? 'Type your answer… (Enter to send, Shift+Enter for newline)'
+    : 'Ask any Power BI / data engineering question… (Enter to send)';
+}
+function restoreSession(){
+  let s; try{ s=JSON.parse(localStorage.getItem(SESS_KEY)||'null'); }catch(e){}
+  if(!s||!Array.isArray(s.history)||!s.history.length) return false;
+  mode=s.mode||'tutor'; sysPrompt=s.sysPrompt||''; history=s.history;
+  chat.innerHTML=''; history.forEach(m=>addMsg(m.role,m.content));
+  applyChatUI();
+  return true;
+}
+
 function buildTutorSystem(level,focus){
   return `You are an expert Power BI and Data Engineering interview coach. You give complete, interview-ready answers to any question the candidate asks. Their target level is ${level}; they are especially interested in ${focus}, but answer anything in Power BI, DAX, Power Query/M, data modeling, SQL, data warehousing, ETL/ELT, Spark, Azure/Fabric, and analytics.
 
@@ -463,13 +491,14 @@ function showTyping(){
 function hideTyping(){$('typing')?.remove();}
 
 async function callModel(){
+  const msgs=history.slice(-20);   // cap context sent upstream (cost + latency)
   // secure path: send to the Cloudflare Worker; it injects the key
   if(useProxy && window.RHEA_WORKER_URL){
     const token=window.RHEA_AUTH?.token||'';
     const r=await fetch(window.RHEA_WORKER_URL+'/api/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({system:sysPrompt,messages:history}),signal:chatAbort?.signal
+      body:JSON.stringify({system:sysPrompt,messages:msgs}),signal:chatAbort?.signal
     });
     let j={}; try{j=await r.json();}catch(e){}
     if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
@@ -480,7 +509,7 @@ async function callModel(){
   const key=keyInput.value.trim();
   const chosen=modelInput.value.trim();
   if(chosen) prov.model=chosen;   // honor edited model id
-  return await prov.send(key,sysPrompt,history);
+  return await prov.send(key,sysPrompt,msgs);
 }
 
 async function turn(userText){
@@ -493,6 +522,7 @@ async function turn(userText){
       addMsg('assistant',blocked); speak(blocked);
       history.push({role:'user',content:userText});
       history.push({role:'assistant',content:blocked});
+      saveSession();
       return;
     }
     history.push({role:'user',content:userText});
@@ -515,7 +545,7 @@ async function turn(userText){
       $('chatErr').textContent='Error: '+err.message+'  — check your API key / provider.';
     }
   }finally{
-    busy=false; chatAbort=null; setBusyUI(false); input.focus();
+    busy=false; chatAbort=null; setBusyUI(false); saveSession(); input.focus();
   }
 }
 
@@ -568,13 +598,14 @@ $('startBtn').onclick=async ()=>{
 };
 
 function sendNow(){
+  cancelAutoSend();
   const v=input.value.trim(); if(!v||busy) return;
   input.value=''; input.style.height='auto';
   turn(v);
 }
 $('sendBtn').onclick=sendNow;
 $('stopBtn').onclick=stopRequest;
-input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendNow();}});
+input.addEventListener('keydown',e=>{cancelAutoSend();if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendNow();}});
 input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,160)+'px';});
 
 $('hintBtn').onclick=()=>{
@@ -593,7 +624,7 @@ $('newBtn').onclick=()=>{
   if(busy) stopRequest();
   stopSpeak(); stopMic();
   setup.classList.remove('collapsed'); composer.classList.add('hidden');
-  chat.innerHTML=''; history=[];
+  chat.innerHTML=''; history=[]; clearSession();
 };
 
 /* ===================== CLIENT-SIDE GUARDRAIL ===================== */
@@ -609,9 +640,24 @@ function guardCheck(text){
 
 /* ===================== VOICE: speech-to-text ===================== */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-let recog=null, recording=false;
+let recog=null, recording=false, pendingSend=null;
 const micBtn=$('micBtn');
 if(!SR){ micBtn.style.display='none'; }   // unsupported browser
+
+// after dictation: brief cancelable countdown before sending (guards mis-hears)
+function scheduleAutoSend(){
+  cancelAutoSend();
+  micBtn.classList.add('on'); micBtn.innerHTML='↩ Sending… tap to edit';
+  pendingSend=setTimeout(()=>{ pendingSend=null; micBtn.classList.remove('on');
+    micBtn.innerHTML='\u{1F3A4} Speak answer';
+    if(input.value.trim()&&!busy) sendNow();
+  },2500);
+}
+function cancelAutoSend(){
+  if(!pendingSend) return;
+  clearTimeout(pendingSend); pendingSend=null;
+  micBtn.classList.remove('on'); micBtn.innerHTML='\u{1F3A4} Speak answer';
+}
 function startMic(){
   if(!SR||recording) return;
   recog=new SR(); recog.lang='en-US'; recog.interimResults=true; recog.continuous=false;
@@ -625,16 +671,18 @@ function startMic(){
   };
   recog.onerror=ev=>{ $('chatErr').textContent='Mic: '+ev.error+(ev.error==='not-allowed'?' — allow mic, and note voice input needs https or localhost (not file://).':''); stopMic(); };
   recog.onend=()=>{
-    recording=false; micBtn.classList.remove('rec'); micBtn.innerHTML='\u{1F3A4} Speak answer';
-    // auto-submit the spoken answer once recognition finishes
-    if(gotFinal && input.value.trim() && !busy) sendNow();
+    recording=false; micBtn.classList.remove('rec'); micBtn.setAttribute('aria-pressed','false');
+    micBtn.innerHTML='\u{1F3A4} Speak answer';
+    // spoken answer ready -> start a short countdown so a mis-hear can be edited/cancelled
+    if(gotFinal && input.value.trim() && !busy) scheduleAutoSend();
   };
   try{ recog.start(); recording=true; stopSpeak();
-    micBtn.classList.add('rec'); micBtn.innerHTML='⏹ Listening… tap to stop';
+    micBtn.classList.add('rec'); micBtn.setAttribute('aria-pressed','true');
+    micBtn.innerHTML='⏹ Listening… tap to stop';
   }catch(e){ $('chatErr').textContent='Mic error: '+e.message; }
 }
-function stopMic(){ if(recog&&recording){ try{recog.stop();}catch(e){} } recording=false; micBtn.classList.remove('rec'); micBtn.innerHTML='\u{1F3A4} Speak answer'; }
-micBtn.onclick=()=> recording?stopMic():startMic();
+function stopMic(){ if(recog&&recording){ try{recog.stop();}catch(e){} } recording=false; micBtn.classList.remove('rec'); micBtn.setAttribute('aria-pressed','false'); micBtn.innerHTML='\u{1F3A4} Speak answer'; }
+micBtn.onclick=()=>{ if(pendingSend){ cancelAutoSend(); input.focus(); return; } recording?stopMic():startMic(); };
 
 /* ===================== VOICE: text-to-speech (professional male, soothing) ===================== */
 let ttsOn=false, voices=[], chosenVoice=null;
@@ -683,6 +731,7 @@ if(hasTTS){
 }
 
 ttsBtn.onclick=()=>{ ttsOn=!ttsOn; ttsBtn.classList.toggle('on',ttsOn);
+  ttsBtn.setAttribute('aria-pressed',ttsOn?'true':'false');
   ttsBtn.innerHTML='\u{1F50A} Read aloud: '+(ttsOn?'on':'off');
   voiceSel.style.display=ttsOn?'':'none';
   if(!ttsOn) stopSpeak(); };
@@ -734,6 +783,9 @@ if(signout) signout.addEventListener('click',()=> window.rheaSignOut && window.r
 // react to the shared gate
 document.addEventListener('rhea-auth', e=> applyRole(e.detail));
 if(window.RHEA_AUTH) applyRole(window.RHEA_AUTH);   // already unlocked before this ran
+
+// resume an in-progress session after a refresh
+restoreSession();
 </script>
 </body>
 </html>
