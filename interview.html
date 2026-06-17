@@ -85,6 +85,7 @@
   textarea:focus{border-color:var(--accent)}
   .send{background:var(--accent);border:none;color:#1b1500;font-weight:700;border-radius:12px;padding:12px 20px;cursor:pointer;font-size:.9rem;height:46px}
   .send:disabled{opacity:.45;cursor:not-allowed}
+  .send.stop{background:var(--red);color:#fff}
   .toolsrow{max-width:920px;margin:8px auto 0;display:flex;gap:10px;align-items:center}
   .toolsrow button{background:none;border:1px solid var(--line);color:var(--muted);border-radius:8px;padding:6px 12px;font-size:.78rem;cursor:pointer;font-family:inherit}
   .toolsrow button:hover{color:var(--ink);border-color:var(--accent)}
@@ -204,8 +205,10 @@
     <div class="crow">
       <textarea id="input" rows="1" placeholder="Type your answer&hellip; (Enter to send, Shift+Enter for newline)"></textarea>
       <button class="send" id="sendBtn">Send</button>
+      <button class="send stop" id="stopBtn" style="display:none">&#9632; Stop</button>
     </div>
     <div class="toolsrow">
+      <button id="backBtn">&#8592; Back</button>
       <button id="micBtn">&#127908; Speak answer</button>
       <button id="ttsBtn">&#128266; Read aloud: off</button>
       <select id="voiceSel" title="Interviewer voice" style="display:none"></select>
@@ -240,8 +243,9 @@ const PROVIDERS={
       if(/qwen3|glm|deepseek-r1|reason|think/i.test(this.model)) body.think=false;
       try{
         r=await fetch(this.base+'/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},
-          body:JSON.stringify(body)});
+          body:JSON.stringify(body),signal:chatAbort?.signal});
       }catch(netErr){
+        if(netErr.name==='AbortError') throw netErr;   // user pressed Stop
         throw new Error('Cannot reach Ollama at '+this.base+'. Is it running? And set OLLAMA_ORIGINS=* (CORS) then restart it.');
       }
       let j={}; try{j=await r.json();}catch(e){}
@@ -259,7 +263,7 @@ const PROVIDERS={
       const url=`https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent?key=${encodeURIComponent(key)}`;
       const r=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},
         body:JSON.stringify({systemInstruction:{parts:[{text:system}]},contents,
-          generationConfig:{temperature:0.7,maxOutputTokens:900}})});
+          generationConfig:{temperature:0.7,maxOutputTokens:900}}),signal:chatAbort?.signal});
       const j=await r.json();
       if(!r.ok) throw new Error(j.error?.message||('HTTP '+r.status));
       return j.candidates?.[0]?.content?.parts?.map(p=>p.text).join('')||'(empty response)';
@@ -272,7 +276,7 @@ const PROVIDERS={
       const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',
         headers:{'Content-Type':'application/json','Authorization':'Bearer '+key},
         body:JSON.stringify({model:this.model,temperature:0.7,max_tokens:900,
-          messages:[{role:'system',content:system},...messages]})});
+          messages:[{role:'system',content:system},...messages]}),signal:chatAbort?.signal});
       const j=await r.json();
       if(!r.ok) throw new Error(j.error?.message||('HTTP '+r.status));
       return j.choices?.[0]?.message?.content||'(empty response)';
@@ -296,7 +300,7 @@ const PROVIDERS={
           'X-Title':'Rhea Interview Trainer'
         },
         body:JSON.stringify({model,temperature:0.7,max_tokens:900,
-          messages:[{role:'system',content:system},...messages]})});
+          messages:[{role:'system',content:system},...messages]}),signal:chatAbort?.signal});
       let j={}; try{j=await r.json();}catch(e){}
       const e=j.error||{};
       // model-specific failures we should skip past (vs key/auth errors we must surface)
@@ -379,6 +383,7 @@ refreshHint();
 let history=[];   // {role:'user'|'assistant', content}
 let sysPrompt='';
 let busy=false;
+let chatAbort=null;   // AbortController for the in-flight request (Stop button)
 
 function buildTutorSystem(level,focus){
   return `You are an expert Power BI and Data Engineering interview coach. You give complete, interview-ready answers to any question the candidate asks. Their target level is ${level}; they are especially interested in ${focus}, but answer anything in Power BI, DAX, Power Query/M, data modeling, SQL, data warehousing, ETL/ELT, Spark, Azure/Fabric, and analytics.
@@ -464,7 +469,7 @@ async function callModel(){
     const r=await fetch(window.RHEA_WORKER_URL+'/api/chat',{
       method:'POST',
       headers:{'Content-Type':'application/json','Authorization':'Bearer '+token},
-      body:JSON.stringify({system:sysPrompt,messages:history})
+      body:JSON.stringify({system:sysPrompt,messages:history}),signal:chatAbort?.signal
     });
     let j={}; try{j=await r.json();}catch(e){}
     if(!r.ok) throw new Error(j.error||('HTTP '+r.status));
@@ -492,7 +497,8 @@ async function turn(userText){
     }
     history.push({role:'user',content:userText});
   }
-  busy=true; $('sendBtn').disabled=true; $('chatErr').textContent='';
+  busy=true; chatAbort=new AbortController();
+  setBusyUI(true); $('chatErr').textContent='';
   showTyping();
   try{
     const reply=await callModel();
@@ -502,10 +508,27 @@ async function turn(userText){
     speak(reply);
   }catch(err){
     hideTyping();
-    $('chatErr').textContent='Error: '+err.message+'  — check your API key / provider.';
+    if(err.name==='AbortError'){
+      $('chatErr').textContent='Stopped.';
+      history.pop();   // drop the unanswered user turn so the next send is clean
+    }else{
+      $('chatErr').textContent='Error: '+err.message+'  — check your API key / provider.';
+    }
   }finally{
-    busy=false; $('sendBtn').disabled=false; input.focus();
+    busy=false; chatAbort=null; setBusyUI(false); input.focus();
   }
+}
+
+// toggle Send <-> Stop while a request is in flight
+function setBusyUI(on){
+  $('sendBtn').style.display=on?'none':'';
+  $('stopBtn').style.display=on?'':'none';
+  $('sendBtn').disabled=on;
+}
+function stopRequest(){
+  if(!busy) return;
+  stopSpeak();
+  if(chatAbort) chatAbort.abort();
 }
 
 /* ---------- controls ---------- */
@@ -550,6 +573,7 @@ function sendNow(){
   turn(v);
 }
 $('sendBtn').onclick=sendNow;
+$('stopBtn').onclick=stopRequest;
 input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendNow();}});
 input.addEventListener('input',()=>{input.style.height='auto';input.style.height=Math.min(input.scrollHeight,160)+'px';});
 
@@ -559,7 +583,14 @@ $('hintBtn').onclick=()=>{
                           : 'Quiz me: ask me one interview question and wait for my answer, then tell me how I did.');
 };
 $('endBtn').onclick=()=>{if(!busy)turn('END INTERVIEW');};
+// Back: return to the setup screen, keep the conversation intact (no reset)
+$('backBtn').onclick=()=>{
+  if(busy) stopRequest();
+  stopSpeak(); stopMic();
+  setup.classList.remove('collapsed'); composer.classList.add('hidden');
+};
 $('newBtn').onclick=()=>{
+  if(busy) stopRequest();
   stopSpeak(); stopMic();
   setup.classList.remove('collapsed'); composer.classList.add('hidden');
   chat.innerHTML=''; history=[];
@@ -585,14 +616,19 @@ function startMic(){
   if(!SR||recording) return;
   recog=new SR(); recog.lang='en-US'; recog.interimResults=true; recog.continuous=false;
   let base=input.value?input.value+' ':'';
+  let gotFinal=false;
   recog.onresult=e=>{
     let txt='';
-    for(let i=0;i<e.results.length;i++) txt+=e.results[i][0].transcript;
+    for(let i=0;i<e.results.length;i++){ txt+=e.results[i][0].transcript; if(e.results[i].isFinal) gotFinal=true; }
     input.value=base+txt;
     input.style.height='auto'; input.style.height=Math.min(input.scrollHeight,160)+'px';
   };
   recog.onerror=ev=>{ $('chatErr').textContent='Mic: '+ev.error+(ev.error==='not-allowed'?' — allow mic, and note voice input needs https or localhost (not file://).':''); stopMic(); };
-  recog.onend=()=>{ recording=false; micBtn.classList.remove('rec'); micBtn.innerHTML='\u{1F3A4} Speak answer'; };
+  recog.onend=()=>{
+    recording=false; micBtn.classList.remove('rec'); micBtn.innerHTML='\u{1F3A4} Speak answer';
+    // auto-submit the spoken answer once recognition finishes
+    if(gotFinal && input.value.trim() && !busy) sendNow();
+  };
   try{ recog.start(); recording=true; stopSpeak();
     micBtn.classList.add('rec'); micBtn.innerHTML='⏹ Listening… tap to stop';
   }catch(e){ $('chatErr').textContent='Mic error: '+e.message; }

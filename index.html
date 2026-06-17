@@ -145,6 +145,8 @@
   @media(max-width:760px){.ideas{grid-template-columns:1fr}}
   .idea{display:flex;gap:18px;padding:22px;border-radius:18px;border:1px solid var(--glass-line);background:var(--glass);backdrop-filter:blur(12px);transition:transform .3s,border-color .3s}
   .idea:hover{transform:translateX(6px);border-color:var(--pink)}
+  a.idea{text-decoration:none;color:inherit;cursor:pointer}
+  a.idea h4::after{content:" \2197";color:var(--cyan);font-weight:700}
   .idea .ic{font-size:1.6rem;flex-shrink:0;width:50px;height:50px;border-radius:14px;display:grid;place-items:center;background:linear-gradient(135deg,rgba(242,193,78,.25),rgba(34,224,214,.18));border:1px solid var(--glass-line)}
   .idea h4{font-family:"Sora";font-weight:600;font-size:1.05rem;margin-bottom:6px}
   .idea p{color:var(--muted);font-size:.92rem;line-height:1.55}
@@ -402,9 +404,9 @@
     <div class="sec-head reveal"><span class="sec-num">03 //</span><h2 class="sec-title">What&rsquo;s <em>next</em></h2></div>
     <div class="ideas">
       <div class="idea reveal"><div class="ic">&#128202;</div><div><h4>Embed a live report</h4><p>Power BI &ldquo;Publish to web&rdquo; iframe beside these mock charts &mdash; a real interactive report.</p></div></div>
-      <div class="idea reveal"><div class="ic">&#129514;</div><div><h4>Project lab</h4><p>Eight Kaggle builds at senior level &mdash; Olist, RFM, churn, forecasting, big-data perf.</p></div></div>
-      <div class="idea reveal"><div class="ic">&#128218;</div><div><h4>The Handbook</h4><p>17-chapter self-contained Power BI + data engineering reference. No external links needed.</p></div></div>
-      <div class="idea reveal"><div class="ic">&#129302;</div><div><h4>AI interviewer</h4><p>Live mock interviews &mdash; soothing male voice, guardrails, local Ollama or cloud models.</p></div></div>
+      <a href="projects.html" class="idea reveal"><div class="ic">&#129514;</div><div><h4>Project lab</h4><p>Eight Kaggle builds at senior level &mdash; Olist, RFM, churn, forecasting, big-data perf.</p></div></a>
+      <a href="learn.html" class="idea reveal"><div class="ic">&#128218;</div><div><h4>The Handbook</h4><p>17-chapter self-contained Power BI + data engineering reference. No external links needed.</p></div></a>
+      <a href="interview.html" class="idea reveal"><div class="ic">&#129302;</div><div><h4>AI interviewer</h4><p>Live mock interviews &mdash; soothing male voice, guardrails, local Ollama or cloud models.</p></div></a>
       <div class="idea reveal"><div class="ic">&#9889;</div><div><h4>Scrollytelling charts</h4><p>Redraw the trend as you scroll, narrating the data point by point.</p></div></div>
       <div class="idea reveal"><div class="ic">&#128231;</div><div><h4>Contact / hire-me</h4><p>A simple way for recruiters to reach the data wizard behind it all.</p></div></div>
     </div>
