@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; DAX Handbook</title>
+<meta name="description" content="An end-to-end DAX handbook: evaluation context, CALCULATE, context transition, filter functions, time intelligence, iterators, and patterns." />
+<meta property="og:title" content="Rhea — DAX Handbook" />
+<meta property="og:description" content="DAX from evaluation context to CALCULATE and time intelligence — end to end." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8a200'/%3E%3Cpath d='M16 7C24 7 27 12.5 27 16C27 21 21.5 24.5 17 24.5C13 24.5 10 21.5 10 17.5C10 14.5 12 12.5 14.5 12.5C16.5 12.5 18 14 18 16' fill='none' stroke='%231b1500' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='16.2' r='2.2' fill='%231b1500'/%3E%3C/svg%3E" />
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="site.css" />
+<link rel="stylesheet" href="handbook.css" />
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<header class="site-header">
+  <div class="bar">
+    <a class="logo" href="index.html"><span class="mark">R</span><div>DAX Handbook<small>evaluation context to time intelligence</small></div></a>
+    <span class="spacer"></span>
+    <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="ghost-link" href="index.html">Home</a>
+      <a class="ghost-link active" href="learn.html">Handbook</a>
+      <a class="ghost-link" href="projects.html">Projects</a>
+      <a class="ghost-link" href="study.html">Trainer</a>
+      <a class="ghost-link" href="interview.html">AI Interviewer</a>
+    </nav>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <div class="grp">Foundations</div>
+    <a href="#intro">0 &middot; Overview</a>
+    <a href="#calc">1 &middot; Measures vs columns</a>
+    <a href="#context">2 &middot; Evaluation context</a>
+    <a href="#calculate">3 &middot; CALCULATE</a>
+    <a href="#transition">4 &middot; Context transition</a>
+    <div class="grp">Core functions</div>
+    <a href="#filter">5 &middot; Filter functions</a>
+    <a href="#iter">6 &middot; Iterators (X)</a>
+    <a href="#relations">7 &middot; Relationships in DAX</a>
+    <a href="#variables">8 &middot; Variables</a>
+    <div class="grp">Time &amp; patterns</div>
+    <a href="#time">9 &middot; Time intelligence</a>
+    <a href="#patterns">10 &middot; Patterns &amp; recipes</a>
+    <a href="#perf">11 &middot; Performance</a>
+    <a href="#interview">12 &middot; Interview drills</a>
+  </nav>
+
+  <main class="content">
+  <section id="intro">
+    <p><a class="anchor" href="learn.html">&larr; All handbooks</a></p>
+    <h1>DAX Handbook</h1>
+    <p class="lead">Data Analysis Expressions end to end. DAX is easy to start and hard to master &mdash; the whole game is <b>evaluation context</b> and what <code class="inl">CALCULATE</code> does to it. Get those and everything else falls into place.</p>
+    <div class="pillrow"><span class="pill">filter context</span><span class="pill">row context</span><span class="pill">CALCULATE</span><span class="pill">context transition</span><span class="pill">time intelligence</span></div>
+    <div class="callout tip"><b>The one thing</b>Every DAX bug is an evaluation-context bug. When a measure is wrong, ask: &ldquo;what filter context is this cell in, and what did <code class="inl">CALCULATE</code> change?&rdquo;</div>
+  </section>
+
+  <section id="calc">
+    <h2><span class="ix">01</span> Measures vs calculated columns</h2>
+    <table>
+      <tr><th></th><th>Calculated column</th><th>Measure</th></tr>
+      <tr><td>Computed</td><td>at refresh, row by row</td><td>at query time, per cell</td></tr>
+      <tr><td>Stored</td><td>yes (in the model, costs RAM)</td><td>no</td></tr>
+      <tr><td>Context</td><td>row context</td><td>filter context</td></tr>
+      <tr><td>Use for</td><td>slicing/grouping attributes</td><td>aggregations / KPIs</td></tr>
+    </table>
+    <div class="callout warn"><b>Default to measures</b>If it aggregates (sum, ratio, %), it&rsquo;s a measure. Calculated columns belong only when you need to slice/filter by the value. Do row-level cleanup in Power Query, not calculated columns.</div>
+    <pre>Total Sales = <span class="f">SUMX</span>(Sales, Sales[Qty] * Sales[Price])
+Margin %   = <span class="f">DIVIDE</span>([Profit], [Total Sales])   <span class="c">-- DIVIDE handles /0</span></pre>
+  </section>
+
+  <section id="context">
+    <h2><span class="ix">02</span> Evaluation context</h2>
+    <p>Two contexts. A measure is always evaluated <i>inside</i> some context.</p>
+    <ul>
+      <li><b>Filter context</b> &mdash; the set of filters applied to the model for this cell: slicers, rows/columns of a visual, page filters, and <code class="inl">CALCULATE</code> filters. It restricts which rows are visible <i>before</i> the calc runs.</li>
+      <li><b>Row context</b> &mdash; &ldquo;the current row.&rdquo; Exists in calculated columns and inside iterators (<code class="inl">SUMX</code>, <code class="inl">FILTER</code>). It does <b>not</b> automatically filter the model.</li>
+    </ul>
+    <div class="callout"><b>Key distinction</b>Row context iterates rows; filter context filters the model. A plain <code class="inl">SUM</code> sees only filter context. To turn the current row into a filter, you need <b>context transition</b> (next sections).</div>
+  </section>
+
+  <section id="calculate">
+    <h2><span class="ix">03</span> CALCULATE &mdash; the heart of DAX</h2>
+    <p><code class="inl">CALCULATE</code> evaluates an expression in a <b>modified filter context</b>. It&rsquo;s the only function that can change filter context &mdash; and it&rsquo;s everywhere.</p>
+    <pre><span class="f">CALCULATE</span>( &lt;expression&gt;, &lt;filter1&gt;, &lt;filter2&gt;, ... )
+
+Sales LY     = <span class="f">CALCULATE</span>([Total Sales], <span class="f">SAMEPERIODLASTYEAR</span>(Dates[Date]))
+Sales Bikes  = <span class="f">CALCULATE</span>([Total Sales], Product[Cat] = <span class="s">"Bikes"</span>)
+Pct of Total = <span class="f">DIVIDE</span>([Total Sales], <span class="f">CALCULATE</span>([Total Sales], <span class="f">ALL</span>(Product)))</pre>
+    <ul>
+      <li>Each filter argument <b>replaces</b> any existing filter on that column (it&rsquo;s an override, not an intersect) &mdash; unless you wrap with <code class="inl">KEEPFILTERS</code>.</li>
+      <li>A boolean filter like <code class="inl">Product[Cat]="Bikes"</code> is shorthand for <code class="inl">FILTER(ALL(Product[Cat]), ...)</code>.</li>
+      <li>Filter modifiers: <code class="inl">ALL</code> (remove filters), <code class="inl">ALLEXCEPT</code>, <code class="inl">ALLSELECTED</code>, <code class="inl">REMOVEFILTERS</code>, <code class="inl">KEEPFILTERS</code>, <code class="inl">USERELATIONSHIP</code>.</li>
+    </ul>
+  </section>
+
+  <section id="transition">
+    <h2><span class="ix">04</span> Context transition</h2>
+    <p>When <code class="inl">CALCULATE</code> runs inside a <b>row context</b>, it performs <b>context transition</b>: the current row&rsquo;s values become filter context. This is why a measure referenced inside an iterator &ldquo;just works&rdquo; per row.</p>
+    <pre><span class="c">-- a measure is implicitly wrapped in CALCULATE -&gt; transition happens</span>
+Avg Cust Sales = <span class="f">AVERAGEX</span>( <span class="f">VALUES</span>(Customer[Id]), [Total Sales] )</pre>
+    <p>For each customer id, context transition turns that row into a filter, so <code class="inl">[Total Sales]</code> recomputes for just that customer, then <code class="inl">AVERAGEX</code> averages the results.</p>
+    <div class="callout warn"><b>The classic gotcha</b>Referencing a <i>measure</i> inside a calculated column triggers context transition (the measure is auto-wrapped in CALCULATE). That&rsquo;s usually not what beginners expect &mdash; and is why measures behave differently than raw column sums.</div>
+  </section>
+
+  <section id="filter">
+    <h2><span class="ix">05</span> Filter functions</h2>
+    <ul>
+      <li><code class="inl">FILTER(table, condition)</code> &mdash; returns a filtered table (iterator); use inside CALCULATE for complex conditions.</li>
+      <li><code class="inl">ALL / ALLEXCEPT / ALLSELECTED / REMOVEFILTERS</code> &mdash; clear or preserve filters (totals, % of total, ignoring slicers).</li>
+      <li><code class="inl">VALUES / DISTINCT</code> &mdash; unique values in current context. <code class="inl">HASONEVALUE</code> guards single-selection logic.</li>
+      <li><code class="inl">SELECTEDVALUE(col, alt)</code> &mdash; the one value in context (or fallback). <code class="inl">RELATED / RELATEDTABLE</code> &mdash; traverse relationships.</li>
+      <li><code class="inl">TREATAS</code>, <code class="inl">KEEPFILTERS</code>, <code class="inl">CROSSFILTER</code> for advanced filter control.</li>
+    </ul>
+    <pre>High-Value Sales = <span class="f">CALCULATE</span>([Total Sales],
+    <span class="f">FILTER</span>(Sales, Sales[Qty] * Sales[Price] &gt; <span class="s">1000</span>))</pre>
+  </section>
+
+  <section id="iter">
+    <h2><span class="ix">06</span> Iterators (the X functions)</h2>
+    <p>Iterators evaluate an expression <b>row by row</b> over a table (creating row context), then aggregate.</p>
+    <pre><span class="f">SUMX</span>(Sales, Sales[Qty]*Sales[Price])      <span class="c">-- row-level math then sum</span>
+<span class="f">AVERAGEX</span>(<span class="f">VALUES</span>(Date[Month]), [Total Sales]) <span class="c">-- avg of a measure per month</span>
+<span class="f">RANKX</span>(<span class="f">ALL</span>(Product), [Total Sales])           <span class="c">-- ranking</span>
+<span class="f">MAXX</span>, <span class="f">MINX</span>, <span class="f">COUNTX</span>, <span class="f">CONCATENATEX</span></pre>
+    <p>Use an iterator when the calculation needs a value computed <i>per row</i> before aggregating (e.g. weighted averages, row-level products) &mdash; you can&rsquo;t do <code class="inl">SUM(qty*price)</code> directly because that column doesn&rsquo;t exist.</p>
+  </section>
+
+  <section id="relations">
+    <h2><span class="ix">07</span> Relationships in DAX</h2>
+    <ul>
+      <li>Filters flow from the <b>one</b> side to the <b>many</b> side along active relationships. <code class="inl">RELATED</code> pulls a column from the one-side into a many-side row context.</li>
+      <li>Only one <b>active</b> relationship per pair of tables; activate an inactive one for a calc with <code class="inl">USERELATIONSHIP</code> inside <code class="inl">CALCULATE</code>.</li>
+      <li><code class="inl">CROSSFILTER</code> changes filter direction (e.g. for bridge tables / many-to-many).</li>
+      <li>Bidirectional filtering is powerful but risky (ambiguity, performance) &mdash; prefer single direction + <code class="inl">CROSSFILTER</code> where needed.</li>
+    </ul>
+    <pre>Sales by Ship Date = <span class="f">CALCULATE</span>([Total Sales],
+    <span class="f">USERELATIONSHIP</span>(Sales[ShipDate], Dates[Date]))</pre>
+  </section>
+
+  <section id="variables">
+    <h2><span class="ix">08</span> Variables</h2>
+    <pre>YoY % =
+<span class="k">VAR</span> cur = [Total Sales]
+<span class="k">VAR</span> prev = <span class="f">CALCULATE</span>([Total Sales], <span class="f">SAMEPERIODLASTYEAR</span>(Dates[Date]))
+<span class="k">RETURN</span> <span class="f">DIVIDE</span>(cur - prev, prev)</pre>
+    <ul>
+      <li><code class="inl">VAR</code> evaluates <b>once</b>, in the context where it&rsquo;s defined &mdash; improves readability and performance (no recomputation), and avoids subtle re-evaluation bugs.</li>
+      <li>A variable is a constant within <code class="inl">RETURN</code>; later filter changes don&rsquo;t alter an already-evaluated <code class="inl">VAR</code>.</li>
+      <li>Use them to debug: <code class="inl">RETURN</code> a single VAR to inspect it.</li>
+    </ul>
+  </section>
+
+  <section id="time">
+    <h2><span class="ix">09</span> Time intelligence</h2>
+    <p>Requires a marked, contiguous <b>Date table</b> (one row per day) related to your fact&rsquo;s date.</p>
+    <pre>YTD     = <span class="f">TOTALYTD</span>([Total Sales], Dates[Date])
+MTD     = <span class="f">TOTALMTD</span>([Total Sales], Dates[Date])
+LY      = <span class="f">CALCULATE</span>([Total Sales], <span class="f">SAMEPERIODLASTYEAR</span>(Dates[Date]))
+Prev Mo = <span class="f">CALCULATE</span>([Total Sales], <span class="f">DATEADD</span>(Dates[Date], -<span class="s">1</span>, <span class="k">MONTH</span>))
+Rolling 12M = <span class="f">CALCULATE</span>([Total Sales],
+    <span class="f">DATESINPERIOD</span>(Dates[Date], <span class="f">MAX</span>(Dates[Date]), -<span class="s">12</span>, <span class="k">MONTH</span>))</pre>
+    <ul>
+      <li>Core funcs: <code class="inl">DATESYTD/QTD/MTD</code>, <code class="inl">SAMEPERIODLASTYEAR</code>, <code class="inl">DATEADD</code>, <code class="inl">PARALLELPERIOD</code>, <code class="inl">DATESINPERIOD</code>, <code class="inl">DATESBETWEEN</code>.</li>
+      <li>Fiscal years / 4-4-5 calendars: write custom date logic; built-ins assume standard calendar.</li>
+    </ul>
+  </section>
+
+  <section id="patterns">
+    <h2><span class="ix">10</span> Patterns &amp; recipes</h2>
+    <h3>% of total / parent</h3>
+    <pre>% of Grand Total = <span class="f">DIVIDE</span>([Total Sales], <span class="f">CALCULATE</span>([Total Sales], <span class="f">ALLSELECTED</span>()))</pre>
+    <h3>Cumulative / running total</h3>
+    <pre>Running Total = <span class="f">CALCULATE</span>([Total Sales],
+    <span class="f">FILTER</span>(<span class="f">ALLSELECTED</span>(Dates[Date]), Dates[Date] &lt;= <span class="f">MAX</span>(Dates[Date])))</pre>
+    <h3>Dynamic ranking &amp; top-N</h3>
+    <pre>Rank = <span class="f">RANKX</span>(<span class="f">ALL</span>(Product[Name]), [Total Sales], , <span class="k">DESC</span>, <span class="k">DENSE</span>)</pre>
+    <p>Also: switch-based measure selector (<code class="inl">SWITCH(TRUE(), ...)</code>), virtual relationships with <code class="inl">TREATAS</code>, segmentation/banding, and budget-vs-actual.</p>
+  </section>
+
+  <section id="perf">
+    <h2><span class="ix">11</span> Performance</h2>
+    <ul>
+      <li>DAX runs on two engines: the fast <b>Storage Engine</b> (VertiPaq, cached, multithreaded) and the slower <b>Formula Engine</b>. Push work to SE; minimize FE row-by-row.</li>
+      <li>Prefer simple aggregations and measures over heavy iterators on big tables. Use <code class="inl">VAR</code> to compute once.</li>
+      <li>Avoid calculated columns on huge fact tables (RAM); model a star schema; reduce cardinality.</li>
+      <li>Profile with <b>Performance Analyzer</b> in Desktop and <b>DAX Studio</b> (server timings, query plans).</li>
+    </ul>
+  </section>
+
+  <section id="interview">
+    <h2><span class="ix">12</span> Interview drills</h2>
+    <ul>
+      <li>Row context vs filter context &mdash; define and give an example of each.</li>
+      <li>What does <code class="inl">CALCULATE</code> do; how do filter arguments combine; <code class="inl">KEEPFILTERS</code>?</li>
+      <li>Explain context transition; why a measure inside a calc column behaves oddly.</li>
+      <li><code class="inl">ALL</code> vs <code class="inl">ALLSELECTED</code> vs <code class="inl">REMOVEFILTERS</code>; <code class="inl">SUM</code> vs <code class="inl">SUMX</code>.</li>
+      <li>Write YoY %, % of total, running total, top-N rank.</li>
+      <li>Why prefer <code class="inl">DIVIDE</code> over <code class="inl">/</code>; measure vs calculated column.</li>
+    </ul>
+    <div class="callout tip"><b>Drill</b>Defend each with the <a class="anchor" href="interview.html">AI interviewer</a>; reps in the <a class="anchor" href="study.html">question bank</a>. See also the Power BI chapters in the <a class="anchor" href="learn.html">main handbook</a>.</div>
+  </section>
+  </main>
+</div>
+<button class="backtop" id="backtop" aria-label="Back to top">&uarr;</button>
+<script src="handbook.js"></script>
+</body>
+</html>

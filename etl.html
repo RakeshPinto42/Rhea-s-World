@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; ETL / ELT Handbook</title>
+<meta name="description" content="An end-to-end ETL/ELT handbook: ingestion, CDC, transformation, orchestration, idempotency, data quality, schema evolution, and pipeline design." />
+<meta property="og:title" content="Rhea — ETL / ELT Handbook" />
+<meta property="og:description" content="Pipelines, orchestration, data quality, idempotency, and CDC — end to end." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8a200'/%3E%3Cpath d='M16 7C24 7 27 12.5 27 16C27 21 21.5 24.5 17 24.5C13 24.5 10 21.5 10 17.5C10 14.5 12 12.5 14.5 12.5C16.5 12.5 18 14 18 16' fill='none' stroke='%231b1500' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='16.2' r='2.2' fill='%231b1500'/%3E%3C/svg%3E" />
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="site.css" />
+<link rel="stylesheet" href="handbook.css" />
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<header class="site-header">
+  <div class="bar">
+    <a class="logo" href="index.html"><span class="mark">R</span><div>ETL / ELT Handbook<small>pipelines &middot; orchestration &middot; quality</small></div></a>
+    <span class="spacer"></span>
+    <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="ghost-link" href="index.html">Home</a>
+      <a class="ghost-link active" href="learn.html">Handbook</a>
+      <a class="ghost-link" href="projects.html">Projects</a>
+      <a class="ghost-link" href="study.html">Trainer</a>
+      <a class="ghost-link" href="interview.html">AI Interviewer</a>
+    </nav>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <div class="grp">Foundations</div>
+    <a href="#intro">0 &middot; Overview</a>
+    <a href="#etl-elt">1 &middot; ETL vs ELT</a>
+    <a href="#ingest">2 &middot; Ingestion &amp; CDC</a>
+    <a href="#transform">3 &middot; Transformation</a>
+    <div class="grp">Design</div>
+    <a href="#load">4 &middot; Load patterns &amp; SCD</a>
+    <a href="#idempotent">5 &middot; Idempotency &amp; backfills</a>
+    <a href="#quality">6 &middot; Data quality</a>
+    <a href="#schema">7 &middot; Schema evolution</a>
+    <div class="grp">Operate</div>
+    <a href="#orchestrate">8 &middot; Orchestration</a>
+    <a href="#observe">9 &middot; Observability &amp; ops</a>
+    <a href="#interview">10 &middot; Interview drills</a>
+  </nav>
+
+  <main class="content">
+  <section id="intro">
+    <p><a class="anchor" href="learn.html">&larr; All handbooks</a></p>
+    <h1>ETL / ELT Handbook</h1>
+    <p class="lead">Moving data reliably, end to end &mdash; extract, load, transform; incremental &amp; CDC; idempotent reruns; data quality; orchestration. The engineering discipline behind every dashboard and model.</p>
+    <div class="pillrow"><span class="pill">ELT</span><span class="pill">CDC</span><span class="pill">idempotency</span><span class="pill">SCD</span><span class="pill">orchestration</span><span class="pill">data quality</span></div>
+    <div class="callout tip"><b>North star</b>A good pipeline is <b>idempotent, incremental, observable, and recoverable</b>. If you can&rsquo;t safely rerun yesterday, it isn&rsquo;t done.</div>
+  </section>
+
+  <section id="etl-elt">
+    <h2><span class="ix">01</span> ETL vs ELT</h2>
+    <table>
+      <tr><th></th><th>ETL</th><th>ELT</th></tr>
+      <tr><td>Order</td><td>Extract &rarr; Transform (external engine) &rarr; Load</td><td>Extract &rarr; Load raw &rarr; Transform in the warehouse</td></tr>
+      <tr><td>Transform engine</td><td>Spark / SSIS / Python</td><td>Snowflake / BigQuery / Databricks SQL (+ dbt)</td></tr>
+      <tr><td>Best for</td><td>heavy pre-processing, on-prem</td><td>cloud warehouses, big cheap compute, raw replay</td></tr>
+    </table>
+    <p>Modern cloud default is <b>ELT</b>: land raw data first (replayable), transform with SQL/dbt where the compute is. <b>dbt</b> = SQL transforms as version-controlled, tested, documented models (the T in ELT).</p>
+  </section>
+
+  <section id="ingest">
+    <h2><span class="ix">02</span> Ingestion &amp; CDC</h2>
+    <ul>
+      <li><b>Full load</b> &mdash; copy everything each run. Simple; fine for small/dimension tables; expensive for big facts.</li>
+      <li><b>Incremental</b> &mdash; pull only new/changed rows using a high-water mark (<code class="inl">updated_at &gt; last_run</code> or an increasing id).</li>
+      <li><b>CDC (Change Data Capture)</b> &mdash; capture inserts/updates/deletes from the source&rsquo;s transaction log (Debezium, Fivetran, native log readers). Catches deletes &amp; hard updates the watermark misses.</li>
+      <li><b>Batch vs streaming</b> &mdash; batch (scheduled windows) vs streaming (Kafka/Kinesis + Spark/Flink) for low-latency. Most analytics is micro-batch.</li>
+    </ul>
+    <div class="callout warn"><b>Watermark pitfalls</b>Source clock skew, late-arriving data, and rows updated without bumping <code class="inl">updated_at</code> all break naive incremental loads. Overlap windows slightly and dedupe, or use CDC.</div>
+  </section>
+
+  <section id="transform">
+    <h2><span class="ix">03</span> Transformation</h2>
+    <ul>
+      <li>Cleanse: types, nulls, trims, dedupe, standardize units/encodings/timezones (store UTC).</li>
+      <li>Conform: map source keys to surrogate keys, unify code/lookup values across sources.</li>
+      <li>Model: build dimensions &amp; facts (star schema) or wide marts; derive metrics once, reuse everywhere.</li>
+      <li>Layer it (medallion / staging&rarr;intermediate&rarr;marts in dbt) so each step is testable and re-runnable.</li>
+    </ul>
+  </section>
+
+  <section id="load">
+    <h2><span class="ix">04</span> Load patterns &amp; SCD</h2>
+    <ul>
+      <li><b>Append</b> (immutable events), <b>truncate-reload</b> (small dims), <b>upsert/MERGE</b> (mutable entities), <b>insert-overwrite by partition</b> (idempotent reprocess of a date).</li>
+      <li><b>Slowly Changing Dimensions:</b> <b>Type 1</b> overwrite (no history); <b>Type 2</b> new row + valid-from/valid-to + current flag (full history); <b>Type 3</b> add a previous-value column.</li>
+    </ul>
+    <pre><span class="c">-- idempotent partition overwrite (re-run a day safely)</span>
+<span class="k">DELETE FROM</span> fact <span class="k">WHERE</span> dt = <span class="s">:run_date</span>;
+<span class="k">INSERT INTO</span> fact <span class="k">SELECT</span> ... <span class="k">WHERE</span> dt = <span class="s">:run_date</span>;
+<span class="c">-- or MERGE for Type-2 SCD</span>
+<span class="k">MERGE INTO</span> dim_customer t <span class="k">USING</span> stg s <span class="k">ON</span> t.id=s.id <span class="k">AND</span> t.is_current
+<span class="k">WHEN MATCHED AND</span> t.hash &lt;&gt; s.hash <span class="k">THEN UPDATE SET</span> t.is_current=<span class="k">FALSE</span>, t.valid_to=<span class="s">:now</span>
+<span class="k">WHEN NOT MATCHED THEN INSERT</span> ...;</pre>
+  </section>
+
+  <section id="idempotent">
+    <h2><span class="ix">05</span> Idempotency &amp; backfills</h2>
+    <ul>
+      <li><b>Idempotent</b> = running the same task with the same input twice yields the same result (no dupes). Achieve via insert-overwrite by partition, <code class="inl">MERGE</code> on keys, or dedupe on a natural/business key.</li>
+      <li>Parameterize every run by a <b>logical date</b>; never use &ldquo;now&rdquo; inside transforms &mdash; it breaks reruns &amp; backfills.</li>
+      <li><b>Backfill</b> = replay history by looping the pipeline over past dates. Only possible if tasks are idempotent and raw data is retained.</li>
+      <li>Make extraction at-least-once + load idempotent &rarr; effectively exactly-once.</li>
+    </ul>
+  </section>
+
+  <section id="quality">
+    <h2><span class="ix">06</span> Data quality</h2>
+    <ul>
+      <li>Test dimensions: <b>uniqueness</b> (PK), <b>not-null</b>, <b>referential</b> (FK exists), <b>accepted values/ranges</b>, <b>freshness</b> (max(ts) recent), <b>row-count anomaly</b>.</li>
+      <li>Tools: dbt tests, Great Expectations, pandera, Soda. Run them <i>in</i> the pipeline; fail or quarantine bad rows.</li>
+      <li>Quarantine pattern: route failing rows to a side table, alert, continue with good data.</li>
+      <li>Reconcile against source counts/sums; assert business invariants (revenue &ge; 0, no future dates).</li>
+    </ul>
+  </section>
+
+  <section id="schema">
+    <h2><span class="ix">07</span> Schema evolution &amp; contracts</h2>
+    <ul>
+      <li>Sources change. Handle additive changes (new nullable columns) gracefully; coordinate breaking changes via <b>data contracts</b>.</li>
+      <li>Land raw with schema-on-read (JSON/VARIANT, <code class="inl">mergeSchema</code>) so new fields don&rsquo;t break ingestion; surface them downstream deliberately.</li>
+      <li>Version transformations; document lineage so consumers know what changed and when.</li>
+    </ul>
+  </section>
+
+  <section id="orchestrate">
+    <h2><span class="ix">08</span> Orchestration</h2>
+    <ul>
+      <li><b>DAG</b> of tasks with dependencies, schedules, retries, and SLAs. Tools: <b>Airflow</b>, <b>Dagster</b>, <b>Prefect</b>, Databricks Jobs, ADF.</li>
+      <li>Patterns: sensors/triggers (wait for upstream data), parameterized runs (per date), dynamic task mapping (per partition/table), retries with backoff.</li>
+      <li>Keep tasks small, idempotent, and independently retryable. Externalize config &amp; secrets. Separate orchestration (when/order) from compute (where it runs).</li>
+    </ul>
+    <pre><span class="c"># Airflow-style DAG (sketch)</span>
+extract &gt;&gt; load_raw &gt;&gt; [dq_check, transform] &gt;&gt; publish_marts &gt;&gt; notify</pre>
+  </section>
+
+  <section id="observe">
+    <h2><span class="ix">09</span> Observability &amp; ops</h2>
+    <ul>
+      <li>Log run metadata: rows in/out, duration, status, watermark. Emit metrics &amp; alerts on failure, lateness, and volume anomalies.</li>
+      <li>Track <b>lineage</b> (which model feeds which) for impact analysis and debugging.</li>
+      <li>Define <b>SLAs</b> (data fresh by 7am) and <b>SLOs</b>; page on breach. Cost-monitor warehouse/cluster usage.</li>
+      <li>CI/CD the pipeline code (tests, dbt build on PR); deploy with environments (dev/stage/prod) and zero-copy clones for safe testing.</li>
+    </ul>
+  </section>
+
+  <section id="interview">
+    <h2><span class="ix">10</span> Interview drills</h2>
+    <ul>
+      <li>ETL vs ELT and when each; where does dbt fit.</li>
+      <li>Full vs incremental vs CDC; why watermarks miss deletes.</li>
+      <li>Make a pipeline idempotent; how to backfill safely.</li>
+      <li>Implement SCD Type 2; insert-overwrite by partition.</li>
+      <li>What data-quality tests you&rsquo;d add; quarantine vs fail-fast.</li>
+      <li>Design an end-to-end daily pipeline: ingest &rarr; raw &rarr; transform &rarr; marts, with orchestration, retries, DQ, and alerting.</li>
+    </ul>
+    <div class="callout tip"><b>Drill</b>Defend each with the <a class="anchor" href="interview.html">AI interviewer</a>; reps in the <a class="anchor" href="study.html">question bank</a>. Pairs with the <a class="anchor" href="databricks.html">Databricks</a> &amp; <a class="anchor" href="snowflake.html">Snowflake</a> handbooks.</div>
+  </section>
+  </main>
+</div>
+<button class="backtop" id="backtop" aria-label="Back to top">&uarr;</button>
+<script src="handbook.js"></script>
+</body>
+</html>

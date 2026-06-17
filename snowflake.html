@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; Snowflake Handbook</title>
+<meta name="description" content="An end-to-end Snowflake handbook: multi-cluster shared-data architecture, virtual warehouses, micro-partitions, loading, time travel, cost control, and governance." />
+<meta property="og:title" content="Rhea — Snowflake Handbook" />
+<meta property="og:description" content="Snowflake architecture, warehouses, cost control, and features — end to end." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8a200'/%3E%3Cpath d='M16 7C24 7 27 12.5 27 16C27 21 21.5 24.5 17 24.5C13 24.5 10 21.5 10 17.5C10 14.5 12 12.5 14.5 12.5C16.5 12.5 18 14 18 16' fill='none' stroke='%231b1500' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='16.2' r='2.2' fill='%231b1500'/%3E%3C/svg%3E" />
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="site.css" />
+<link rel="stylesheet" href="handbook.css" />
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<header class="site-header">
+  <div class="bar">
+    <a class="logo" href="index.html"><span class="mark">R</span><div>Snowflake Handbook<small>architecture &middot; warehouses &middot; cost</small></div></a>
+    <span class="spacer"></span>
+    <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="ghost-link" href="index.html">Home</a>
+      <a class="ghost-link active" href="learn.html">Handbook</a>
+      <a class="ghost-link" href="projects.html">Projects</a>
+      <a class="ghost-link" href="study.html">Trainer</a>
+      <a class="ghost-link" href="interview.html">AI Interviewer</a>
+    </nav>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <div class="grp">Foundations</div>
+    <a href="#intro">0 &middot; Overview</a>
+    <a href="#arch">1 &middot; Architecture</a>
+    <a href="#wh">2 &middot; Virtual warehouses</a>
+    <a href="#storage">3 &middot; Micro-partitions</a>
+    <div class="grp">Working with data</div>
+    <a href="#load">4 &middot; Loading data</a>
+    <a href="#semi">5 &middot; Semi-structured (VARIANT)</a>
+    <a href="#features">6 &middot; Time travel, clones, streams</a>
+    <a href="#sharing">7 &middot; Data sharing</a>
+    <div class="grp">Operate</div>
+    <a href="#cost">8 &middot; Cost &amp; performance</a>
+    <a href="#govern">9 &middot; Security &amp; governance</a>
+    <a href="#interview">10 &middot; Interview drills</a>
+  </nav>
+
+  <main class="content">
+  <section id="intro">
+    <p><a class="anchor" href="learn.html">&larr; All handbooks</a></p>
+    <h1>Snowflake Handbook</h1>
+    <p class="lead">Snowflake end to end &mdash; the cloud data platform whose key idea is <b>separation of storage and compute</b>. Understand that and warehouses, scaling, cost, and concurrency all make sense.</p>
+    <div class="pillrow"><span class="pill">multi-cluster</span><span class="pill">virtual warehouses</span><span class="pill">micro-partitions</span><span class="pill">VARIANT</span><span class="pill">time travel</span><span class="pill">cost</span></div>
+    <div class="callout tip"><b>The big idea</b>Storage (cheap, in cloud object store) and compute (virtual warehouses) scale independently. Many warehouses read the same data with no contention &mdash; you pay for compute by the second.</div>
+  </section>
+
+  <section id="arch">
+    <h2><span class="ix">01</span> Multi-cluster shared-data architecture</h2>
+    <p>Three independent layers:</p>
+    <table>
+      <tr><th>Layer</th><th>Role</th></tr>
+      <tr><td><b>Cloud services</b></td><td>Brain: optimizer, metadata, security, transactions, result cache.</td></tr>
+      <tr><td><b>Compute</b></td><td>Virtual warehouses (MPP clusters) that run queries. Independent &amp; resizable.</td></tr>
+      <tr><td><b>Storage</b></td><td>Centralized columnar data in cloud object store (S3/Blob/GCS), compressed micro-partitions.</td></tr>
+    </table>
+    <p>Because all warehouses share one storage layer, ETL, BI, and data science teams run concurrently on isolated compute without copying data or blocking each other.</p>
+  </section>
+
+  <section id="wh">
+    <h2><span class="ix">02</span> Virtual warehouses</h2>
+    <ul>
+      <li>A warehouse is a compute cluster sized <b>XS &rarr; 4XL</b> (each step doubles compute &amp; cost/hour). Bigger = faster for heavy queries, not free.</li>
+      <li><b>Auto-suspend</b> (idle &rarr; stop billing) and <b>auto-resume</b> (query &rarr; start). Set short auto-suspend to save credits.</li>
+      <li><b>Multi-cluster warehouses</b> auto-scale <i>out</i> (add clusters) for concurrency spikes; resizing scales <i>up</i> for query size.</li>
+      <li>Scale <b>up</b> for a single slow/large query; scale <b>out</b> for many concurrent users.</li>
+    </ul>
+    <pre><span class="k">CREATE WAREHOUSE</span> etl_wh <span class="k">WITH</span>
+  warehouse_size=<span class="s">'MEDIUM'</span> auto_suspend=<span class="s">60</span> auto_resume=<span class="k">TRUE</span>
+  min_cluster_count=<span class="s">1</span> max_cluster_count=<span class="s">3</span>;</pre>
+  </section>
+
+  <section id="storage">
+    <h2><span class="ix">03</span> Micro-partitions &amp; clustering</h2>
+    <ul>
+      <li>Tables are auto-split into immutable <b>micro-partitions</b> (~50&ndash;500MB uncompressed), stored columnar &amp; compressed. No manual partitioning needed.</li>
+      <li>Snowflake keeps <b>min/max metadata</b> per partition &rarr; <b>pruning</b>: queries skip partitions that can&rsquo;t match the filter. This is the main performance lever.</li>
+      <li>For very large tables with a common filter column, define a <b>clustering key</b> so related rows co-locate &rarr; better pruning. Costs auto-reclustering credits &mdash; use selectively.</li>
+      <li>No indexes to manage &mdash; pruning + columnar scan replace them.</li>
+    </ul>
+  </section>
+
+  <section id="load">
+    <h2><span class="ix">04</span> Loading data</h2>
+    <pre><span class="c">-- stage -&gt; COPY INTO (bulk batch load)</span>
+<span class="k">CREATE STAGE</span> s1 <span class="k">URL</span>=<span class="s">'s3://bucket/orders/'</span> <span class="k">STORAGE_INTEGRATION</span>=int;
+<span class="k">COPY INTO</span> orders <span class="k">FROM</span> @s1
+  <span class="k">FILE_FORMAT</span>=(<span class="k">TYPE</span>=parquet) <span class="k">MATCH_BY_COLUMN_NAME</span>=case_insensitive;</pre>
+    <ul>
+      <li><b>Stages</b> (internal/external) hold files; <code class="inl">COPY INTO</code> bulk-loads with parallelism scaled to warehouse size.</li>
+      <li><b>Snowpipe</b> = continuous, serverless, near-real-time micro-batch loading (event-triggered).</li>
+      <li>Prefer compressed columnar files (Parquet) sized ~100&ndash;250MB; avoid tiny files.</li>
+      <li>Unload with <code class="inl">COPY INTO @stage FROM table</code>.</li>
+    </ul>
+  </section>
+
+  <section id="semi">
+    <h2><span class="ix">05</span> Semi-structured data (VARIANT)</h2>
+    <pre><span class="k">SELECT</span> v:customer.id::<span class="k">int</span> <span class="k">AS</span> cust,
+       v:items[<span class="s">0</span>].sku::<span class="k">string</span> <span class="k">AS</span> first_sku
+<span class="k">FROM</span> raw_events;                          <span class="c">-- v is a VARIANT column</span>
+
+<span class="k">SELECT</span> f.value:sku::<span class="k">string</span>
+<span class="k">FROM</span> raw_events, <span class="k">LATERAL FLATTEN</span>(input =&gt; v:items) f;  <span class="c">-- explode array</span></pre>
+    <p><b>VARIANT</b> stores JSON/Avro/Parquet natively; query with path notation (<code class="inl">:</code>, <code class="inl">[]</code>) and cast with <code class="inl">::</code>. <code class="inl">FLATTEN</code> explodes nested arrays into rows. Schema-on-read &mdash; load raw, parse in SQL.</p>
+  </section>
+
+  <section id="features">
+    <h2><span class="ix">06</span> Time travel, clones &amp; streams</h2>
+    <ul>
+      <li><b>Time Travel</b> &mdash; query/restore past data up to retention (1 day standard, up to 90 Enterprise): <code class="inl">SELECT ... AT(OFFSET =&gt; -3600)</code>, <code class="inl">UNDROP TABLE</code>.</li>
+      <li><b>Zero-copy cloning</b> &mdash; <code class="inl">CREATE TABLE dev CLONE prod</code> instantly, no storage cost until data diverges. Great for dev/test environments.</li>
+      <li><b>Streams</b> &mdash; track row-level changes (CDC) on a table; <b>Tasks</b> run scheduled SQL/procedures &rarr; build incremental ELT (stream + task + MERGE).</li>
+      <li><b>Fail-safe</b> &mdash; 7-day Snowflake-managed recovery after Time Travel ends.</li>
+    </ul>
+  </section>
+
+  <section id="sharing">
+    <h2><span class="ix">07</span> Data sharing &amp; the marketplace</h2>
+    <ul>
+      <li><b>Secure Data Sharing</b> &mdash; share live tables/views to other accounts with <b>no copy</b> (they read your storage); revoke anytime.</li>
+      <li><b>Reader accounts</b> let non-Snowflake consumers query shared data.</li>
+      <li><b>Marketplace</b> distributes/monetizes datasets. <b>Snowpark</b> runs Python/Java/Scala transforms in-engine; <b>Cortex</b> adds built-in LLM/ML functions.</li>
+    </ul>
+  </section>
+
+  <section id="cost">
+    <h2><span class="ix">08</span> Cost &amp; performance</h2>
+    <ul>
+      <li>You pay for <b>compute credits</b> (per-second, per warehouse, min 60s) + storage. Idle warehouses with no auto-suspend burn money.</li>
+      <li>Cut cost: short auto-suspend, right-size warehouses, separate workloads onto separate warehouses, use the <b>result cache</b> (identical query &lt;24h = free instant result).</li>
+      <li>Speed: maximize <b>pruning</b> (filter on clustered/natural-ordered columns), avoid <code class="inl">SELECT *</code>, materialize hot aggregates, use clustering only on huge tables.</li>
+      <li>Caches: result cache (services layer), local disk cache (warehouse), metadata cache. Monitor with <code class="inl">QUERY_HISTORY</code> &amp; <code class="inl">WAREHOUSE_METERING_HISTORY</code>.</li>
+      <li>Watch <b>spilling</b> to local/remote disk in the query profile &rarr; warehouse too small.</li>
+    </ul>
+  </section>
+
+  <section id="govern">
+    <h2><span class="ix">09</span> Security &amp; governance</h2>
+    <ul>
+      <li><b>RBAC</b>: privileges granted to <b>roles</b>, roles granted to users/roles (hierarchy). <code class="inl">SYSADMIN</code>, <code class="inl">SECURITYADMIN</code>, <code class="inl">ACCOUNTADMIN</code>.</li>
+      <li><b>RLS</b> via row access policies; <b>column masking</b> via masking policies (dynamic, role-aware); <b>tags</b> for classification.</li>
+      <li>Always-on encryption at rest &amp; in transit; network policies; SSO/MFA. <b>Object hierarchy</b>: account &rarr; database &rarr; schema &rarr; table.</li>
+    </ul>
+  </section>
+
+  <section id="interview">
+    <h2><span class="ix">10</span> Interview drills</h2>
+    <ul>
+      <li>Explain separation of storage &amp; compute; scale up vs scale out.</li>
+      <li>What are micro-partitions; how does pruning replace indexes; when to add a clustering key.</li>
+      <li>COPY INTO vs Snowpipe; how VARIANT + FLATTEN work.</li>
+      <li>Time Travel vs Fail-safe; zero-copy clone use cases; streams + tasks for CDC.</li>
+      <li>How to reduce credit spend; what the result cache does.</li>
+      <li>RBAC model; how masking/row policies enforce governance.</li>
+    </ul>
+    <div class="callout tip"><b>Drill</b>Defend each with the <a class="anchor" href="interview.html">AI interviewer</a>; reps in the <a class="anchor" href="study.html">question bank</a>.</div>
+  </section>
+  </main>
+</div>
+<button class="backtop" id="backtop" aria-label="Back to top">&uarr;</button>
+<script src="handbook.js"></script>
+</body>
+</html>

@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; Python Handbook</title>
+<meta name="description" content="An end-to-end Python handbook: core language, data structures, functions, OOP, generators, typing, concurrency, NumPy, pandas, and data-engineering Python." />
+<meta property="og:title" content="Rhea — Python Handbook" />
+<meta property="og:description" content="Python from syntax to pandas and data-engineering patterns — end to end." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8a200'/%3E%3Cpath d='M16 7C24 7 27 12.5 27 16C27 21 21.5 24.5 17 24.5C13 24.5 10 21.5 10 17.5C10 14.5 12 12.5 14.5 12.5C16.5 12.5 18 14 18 16' fill='none' stroke='%231b1500' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='16.2' r='2.2' fill='%231b1500'/%3E%3C/svg%3E" />
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="site.css" />
+<link rel="stylesheet" href="handbook.css" />
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<header class="site-header">
+  <div class="bar">
+    <a class="logo" href="index.html"><span class="mark">R</span><div>Python Handbook<small>core language to pandas &amp; data engineering</small></div></a>
+    <span class="spacer"></span>
+    <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="ghost-link" href="index.html">Home</a>
+      <a class="ghost-link active" href="learn.html">Handbook</a>
+      <a class="ghost-link" href="projects.html">Projects</a>
+      <a class="ghost-link" href="study.html">Trainer</a>
+      <a class="ghost-link" href="interview.html">AI Interviewer</a>
+    </nav>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <div class="grp">Foundations</div>
+    <a href="#intro">0 &middot; Overview</a>
+    <a href="#types">1 &middot; Types &amp; data structures</a>
+    <a href="#flow">2 &middot; Control flow &amp; comprehensions</a>
+    <a href="#funcs">3 &middot; Functions</a>
+    <a href="#oop">4 &middot; OOP &amp; dataclasses</a>
+    <div class="grp">Language depth</div>
+    <a href="#errors">5 &middot; Errors &amp; context managers</a>
+    <a href="#iter">6 &middot; Iterators &amp; generators</a>
+    <a href="#deco">7 &middot; Decorators &amp; closures</a>
+    <a href="#typing">8 &middot; Type hints</a>
+    <a href="#modules">9 &middot; Modules, venv, pip</a>
+    <a href="#concur">10 &middot; Concurrency &amp; the GIL</a>
+    <div class="grp">Data stack</div>
+    <a href="#stdlib">11 &middot; Standard library</a>
+    <a href="#numpy">12 &middot; NumPy</a>
+    <a href="#pandas">13 &middot; pandas core</a>
+    <a href="#pandas2">14 &middot; pandas transform</a>
+    <a href="#de">15 &middot; Data-engineering Python</a>
+    <div class="grp">Craft</div>
+    <a href="#test">16 &middot; Testing &amp; logging</a>
+    <a href="#perf">17 &middot; Performance &amp; idioms</a>
+    <a href="#interview">18 &middot; Interview drills</a>
+  </nav>
+
+  <main class="content">
+  <section id="intro">
+    <p><a class="anchor" href="learn.html">&larr; All handbooks</a></p>
+    <h1>Python Handbook</h1>
+    <p class="lead">Python end to end &mdash; the language core, the things that trip people up (mutability, closures, the GIL), and the data stack (NumPy, pandas) plus the data-engineering toolkit you actually ship with.</p>
+    <div class="pillrow"><span class="pill">data structures</span><span class="pill">generators</span><span class="pill">typing</span><span class="pill">async</span><span class="pill">NumPy</span><span class="pill">pandas</span></div>
+    <div class="callout tip"><b>Version</b>Target Python 3.11+. Use type hints, f-strings, <code class="inl">pathlib</code>, and a virtual env from day one.</div>
+  </section>
+
+  <section id="types">
+    <h2><span class="ix">01</span> Types &amp; data structures</h2>
+    <p>Everything is an object. Variables are <b>names bound to objects</b>, not boxes. Assignment never copies.</p>
+    <pre><span class="k">int</span>, <span class="k">float</span>, <span class="k">complex</span>, <span class="k">bool</span>, <span class="k">str</span>, <span class="k">bytes</span>, <span class="k">None</span>
+x = <span class="s">10</span>; y = x        <span class="c"># both names -> same int object</span></pre>
+    <table>
+      <tr><th>Type</th><th>Mutable?</th><th>Use</th></tr>
+      <tr><td><code>list</code></td><td>yes</td><td>ordered, growable sequence</td></tr>
+      <tr><td><code>tuple</code></td><td>no</td><td>fixed record; hashable &rarr; dict keys</td></tr>
+      <tr><td><code>dict</code></td><td>yes</td><td>hash map, insertion-ordered (3.7+)</td></tr>
+      <tr><td><code>set</code></td><td>yes</td><td>unique members, fast membership</td></tr>
+      <tr><td><code>str</code></td><td>no</td><td>immutable unicode text</td></tr>
+    </table>
+    <pre>nums = [<span class="s">1</span>,<span class="s">2</span>,<span class="s">3</span>]; nums.append(<span class="s">4</span>); nums[<span class="s">-1</span>]       <span class="c"># 4</span>
+d = {<span class="s">"a"</span>:<span class="s">1</span>}; d.get(<span class="s">"b"</span>, <span class="s">0</span>)                    <span class="c"># 0, no KeyError</span>
+s = {<span class="s">1</span>,<span class="s">2</span>} | {<span class="s">2</span>,<span class="s">3</span>}                            <span class="c"># {1,2,3}</span>
+a, *rest = [<span class="s">1</span>,<span class="s">2</span>,<span class="s">3</span>,<span class="s">4</span>]                          <span class="c"># a=1, rest=[2,3,4]</span></pre>
+    <div class="callout warn"><b>Mutable default trap</b><code class="inl">def f(x, acc=[])</code> shares one list across calls. Use <code class="inl">acc=None</code> then <code class="inl">acc = acc or []</code>.</div>
+  </section>
+
+  <section id="flow">
+    <h2><span class="ix">02</span> Control flow &amp; comprehensions</h2>
+    <pre><span class="k">for</span> i, v <span class="k">in</span> <span class="f">enumerate</span>(items):
+    <span class="k">if</span> v &gt; <span class="s">0</span>: ...
+    <span class="k">elif</span> v == <span class="s">0</span>: <span class="k">continue</span>
+    <span class="k">else</span>: <span class="k">break</span>
+
+<span class="k">match</span> cmd:                       <span class="c"># structural pattern matching (3.10+)</span>
+    <span class="k">case</span> {<span class="s">"type"</span>: <span class="s">"sql"</span>, <span class="s">"q"</span>: q}: run(q)
+    <span class="k">case</span> _: pass</pre>
+    <pre><span class="c"># comprehensions — the pythonic transform</span>
+squares = [n*n <span class="k">for</span> n <span class="k">in</span> nums <span class="k">if</span> n%<span class="s">2</span>==<span class="s">0</span>]
+by_id   = {u.id: u <span class="k">for</span> u <span class="k">in</span> users}
+uniq    = {w.lower() <span class="k">for</span> w <span class="k">in</span> words}
+gen     = (n*n <span class="k">for</span> n <span class="k">in</span> nums)      <span class="c"># lazy generator, no list built</span></pre>
+  </section>
+
+  <section id="funcs">
+    <h2><span class="ix">03</span> Functions</h2>
+    <pre><span class="k">def</span> <span class="f">load</span>(path, *parts, sep=<span class="s">","</span>, **opts):
+    <span class="c"># *parts -> tuple of extra positionals; **opts -> dict of extra kwargs</span>
+    <span class="k">return</span> ...
+
+<span class="f">load</span>(<span class="s">"a.csv"</span>, <span class="s">"b.csv"</span>, sep=<span class="s">"|"</span>, encoding=<span class="s">"utf8"</span>)
+total = <span class="k">lambda</span> a, b: a + b            <span class="c"># small anonymous fn</span></pre>
+    <ul>
+      <li>Args bind by position then keyword. Use <code class="inl">*</code> to force keyword-only: <code class="inl">def f(a, *, b)</code>; <code class="inl">/</code> to force positional-only.</li>
+      <li>Functions are first-class: pass them, return them, store in dicts (dispatch tables).</li>
+      <li>Type-hint the signature; it documents and enables tooling.</li>
+    </ul>
+  </section>
+
+  <section id="oop">
+    <h2><span class="ix">04</span> OOP &amp; dataclasses</h2>
+    <pre><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
+
+<span class="k">@dataclass</span>
+<span class="k">class</span> <span class="f">Order</span>:
+    id: <span class="k">int</span>
+    amount: <span class="k">float</span>
+    status: <span class="k">str</span> = <span class="s">"pending"</span>
+    <span class="k">def</span> <span class="f">with_tax</span>(self, rate=<span class="s">0.1</span>) -&gt; <span class="k">float</span>:
+        <span class="k">return</span> self.amount * (<span class="s">1</span>+rate)</pre>
+    <ul>
+      <li><code class="inl">@dataclass</code> auto-generates <code class="inl">__init__</code>, <code class="inl">__repr__</code>, <code class="inl">__eq__</code>. Use <code class="inl">frozen=True</code> for immutable value objects.</li>
+      <li>Dunder methods customize behavior: <code class="inl">__len__</code>, <code class="inl">__iter__</code>, <code class="inl">__getitem__</code>, <code class="inl">__enter__/__exit__</code>, <code class="inl">__call__</code>.</li>
+      <li><code class="inl">@property</code> exposes a method as an attribute; <code class="inl">@classmethod</code>/<code class="inl">@staticmethod</code> for alt constructors/utilities.</li>
+      <li>Prefer <b>composition</b> over deep inheritance. Use <code class="inl">ABC</code>/<code class="inl">Protocol</code> for interfaces.</li>
+    </ul>
+  </section>
+
+  <section id="errors">
+    <h2><span class="ix">05</span> Errors &amp; context managers</h2>
+    <pre><span class="k">try</span>:
+    data = json.loads(raw)
+<span class="k">except</span> json.JSONDecodeError <span class="k">as</span> e:
+    log.warning(<span class="s">"bad json: %s"</span>, e); data = {}
+<span class="k">else</span>:
+    process(data)                  <span class="c"># ran only if no exception</span>
+<span class="k">finally</span>:
+    cleanup()                      <span class="c"># always runs</span>
+
+<span class="k">with</span> <span class="f">open</span>(path) <span class="k">as</span> f:           <span class="c"># context manager: auto-close</span>
+    text = f.read()</pre>
+    <ul>
+      <li>Catch <b>specific</b> exceptions, never bare <code class="inl">except:</code>. Raise with context: <code class="inl">raise ValueError(...) from e</code>.</li>
+      <li>EAFP (&ldquo;easier to ask forgiveness&rdquo;) is pythonic: try the op, handle the exception &mdash; vs LBYL pre-checks.</li>
+      <li>Build your own context manager with <code class="inl">@contextmanager</code> (yield) for setup/teardown (timers, DB sessions, temp dirs).</li>
+    </ul>
+  </section>
+
+  <section id="iter">
+    <h2><span class="ix">06</span> Iterators &amp; generators</h2>
+    <pre><span class="k">def</span> <span class="f">read_batches</span>(rows, n):
+    batch = []
+    <span class="k">for</span> r <span class="k">in</span> rows:
+        batch.append(r)
+        <span class="k">if</span> <span class="f">len</span>(batch) == n:
+            <span class="k">yield</span> batch          <span class="c"># pause &amp; emit; resumes here next call</span>
+            batch = []
+    <span class="k">if</span> batch: <span class="k">yield</span> batch</pre>
+    <ul>
+      <li>Generators are <b>lazy</b> &mdash; they stream values one at a time, so you can process data larger than memory.</li>
+      <li><code class="inl">itertools</code>: <code class="inl">chain, islice, groupby, product, count, accumulate</code>. <code class="inl">yield from</code> delegates to a sub-generator.</li>
+    </ul>
+  </section>
+
+  <section id="deco">
+    <h2><span class="ix">07</span> Decorators &amp; closures</h2>
+    <pre><span class="k">import</span> functools, time
+<span class="k">def</span> <span class="f">timed</span>(fn):
+    <span class="k">@functools.wraps</span>(fn)
+    <span class="k">def</span> <span class="f">wrap</span>(*a, **k):
+        t=time.perf_counter(); r=fn(*a,**k)
+        log.info(<span class="s">"%s %.3fs"</span>, fn.__name__, time.perf_counter()-t)
+        <span class="k">return</span> r
+    <span class="k">return</span> wrap
+
+<span class="k">@timed</span>
+<span class="k">def</span> <span class="f">etl</span>(): ...</pre>
+    <p>A <b>closure</b> captures variables from its enclosing scope. A <b>decorator</b> is a function that wraps another to add behavior (logging, caching via <code class="inl">@functools.lru_cache</code>, retries, auth). Use <code class="inl">@wraps</code> to preserve the wrapped function&rsquo;s metadata.</p>
+  </section>
+
+  <section id="typing">
+    <h2><span class="ix">08</span> Type hints</h2>
+    <pre><span class="k">from</span> typing <span class="k">import</span> Optional, Iterable
+<span class="k">def</span> <span class="f">total</span>(rows: Iterable[<span class="k">dict</span>], key: <span class="k">str</span>) -&gt; <span class="k">float</span>:
+    <span class="k">return</span> <span class="f">sum</span>(r[key] <span class="k">for</span> r <span class="k">in</span> rows)
+
+price: <span class="k">float</span> | <span class="k">None</span> = <span class="k">None</span>   <span class="c"># 3.10+ union syntax</span></pre>
+    <p>Hints are optional and not enforced at runtime, but power editors, refactors, and <b>mypy</b>/<b>pyright</b> static checks. Hint public function signatures and dataclasses; skip obvious locals. <b>Pydantic</b> uses them for validation.</p>
+  </section>
+
+  <section id="modules">
+    <h2><span class="ix">09</span> Modules, venv &amp; pip</h2>
+    <pre><span class="c"># isolate every project</span>
+python -m venv .venv &amp;&amp; <span class="k">source</span> .venv/bin/activate
+pip install pandas numpy
+pip freeze &gt; requirements.txt        <span class="c"># or use uv / poetry / pip-tools</span></pre>
+    <ul>
+      <li>A <b>module</b> is a <code class="inl">.py</code> file; a <b>package</b> is a folder. Import with <code class="inl">from pkg.mod import thing</code>.</li>
+      <li><code class="inl">if __name__ == "__main__":</code> guards script entry so imports don&rsquo;t run it.</li>
+      <li>Never install into system Python &mdash; one virtual env per project; pin versions for reproducible builds.</li>
+    </ul>
+  </section>
+
+  <section id="concur">
+    <h2><span class="ix">10</span> Concurrency &amp; the GIL</h2>
+    <table>
+      <tr><th>Workload</th><th>Use</th><th>Why</th></tr>
+      <tr><td>I/O-bound (APIs, DB, files)</td><td><code>asyncio</code> or threads</td><td>GIL releases on I/O; overlap waits</td></tr>
+      <tr><td>CPU-bound (number crunching)</td><td><code>multiprocessing</code></td><td>separate processes dodge the GIL</td></tr>
+    </table>
+    <pre><span class="k">import</span> asyncio, aiohttp
+<span class="k">async def</span> <span class="f">fetch</span>(s, u):
+    <span class="k">async with</span> s.get(u) <span class="k">as</span> r: <span class="k">return await</span> r.json()
+<span class="k">async def</span> <span class="f">main</span>(urls):
+    <span class="k">async with</span> aiohttp.ClientSession() <span class="k">as</span> s:
+        <span class="k">return await</span> asyncio.gather(*[<span class="f">fetch</span>(s,u) <span class="k">for</span> u <span class="k">in</span> urls])</pre>
+    <p>The <b>GIL</b> (Global Interpreter Lock) lets only one thread run Python bytecode at a time &mdash; so threads don&rsquo;t speed up CPU work. NumPy/pandas release the GIL in C, so they parallelize fine. (3.13 ships an experimental free-threaded build.)</p>
+  </section>
+
+  <section id="stdlib">
+    <h2><span class="ix">11</span> Standard library highlights</h2>
+    <ul>
+      <li><code class="inl">collections</code>: <code class="inl">defaultdict</code>, <code class="inl">Counter</code>, <code class="inl">deque</code>, <code class="inl">namedtuple</code>.</li>
+      <li><code class="inl">itertools</code>, <code class="inl">functools</code> (<code class="inl">reduce</code>, <code class="inl">lru_cache</code>, <code class="inl">partial</code>).</li>
+      <li><code class="inl">pathlib.Path</code> for filesystem; <code class="inl">datetime</code>/<code class="inl">zoneinfo</code> for time; <code class="inl">json</code>, <code class="inl">csv</code>, <code class="inl">re</code>, <code class="inl">logging</code>, <code class="inl">subprocess</code>, <code class="inl">os</code>/<code class="inl">sys</code>.</li>
+    </ul>
+    <pre><span class="k">from</span> collections <span class="k">import</span> Counter
+Counter(<span class="s">"banana"</span>).most_common(<span class="s">2</span>)    <span class="c"># [('a',3),('n',2)]</span>
+<span class="k">from</span> pathlib <span class="k">import</span> Path
+<span class="k">for</span> p <span class="k">in</span> Path(<span class="s">"data"</span>).glob(<span class="s">"*.csv"</span>): ...</pre>
+  </section>
+
+  <section id="numpy">
+    <h2><span class="ix">12</span> NumPy</h2>
+    <pre><span class="k">import</span> numpy <span class="k">as</span> np
+a = np.array([[<span class="s">1</span>,<span class="s">2</span>],[<span class="s">3</span>,<span class="s">4</span>]])
+a.shape, a.dtype                 <span class="c"># (2,2), int64</span>
+a * <span class="s">2</span>                            <span class="c"># vectorized, no loop</span>
+a[a &gt; <span class="s">2</span>]                         <span class="c"># boolean mask</span>
+a.sum(axis=<span class="s">0</span>); a.mean()</pre>
+    <p>NumPy gives a typed, contiguous <b>ndarray</b> with <b>vectorized</b> C operations &mdash; orders of magnitude faster than Python loops. Key ideas: <b>broadcasting</b> (shape-compatible elementwise ops), <b>views vs copies</b> (slices are views), and axis-wise reductions. It&rsquo;s the substrate under pandas, scikit-learn, and PyTorch.</p>
+  </section>
+
+  <section id="pandas">
+    <h2><span class="ix">13</span> pandas core</h2>
+    <pre><span class="k">import</span> pandas <span class="k">as</span> pd
+df = pd.read_csv(<span class="s">"sales.csv"</span>, parse_dates=[<span class="s">"date"</span>])
+df.head(); df.info(); df.describe()
+df[<span class="s">"amount"</span>]                     <span class="c"># Series (a column)</span>
+df[[<span class="s">"date"</span>,<span class="s">"amount"</span>]]            <span class="c"># DataFrame (cols)</span>
+df.loc[df.amount &gt; <span class="s">100</span>, <span class="s">"region"</span>]  <span class="c"># label-based + mask</span>
+df.iloc[<span class="s">0</span>:<span class="s">5</span>]                    <span class="c"># positional</span></pre>
+    <ul>
+      <li><b>Series</b> = 1-D labeled array; <b>DataFrame</b> = 2-D table of Series sharing an index.</li>
+      <li>Select with <code class="inl">.loc</code> (labels) / <code class="inl">.iloc</code> (positions). Filter with boolean masks.</li>
+      <li>Set proper dtypes (<code class="inl">parse_dates</code>, <code class="inl">category</code>) &mdash; memory + speed.</li>
+    </ul>
+  </section>
+
+  <section id="pandas2">
+    <h2><span class="ix">14</span> pandas transform</h2>
+    <pre><span class="c"># group-aggregate (split-apply-combine)</span>
+g = (df.groupby(<span class="s">"region"</span>)
+       .agg(rev=(<span class="s">"amount"</span>,<span class="s">"sum"</span>), n=(<span class="s">"id"</span>,<span class="s">"count"</span>))
+       .reset_index())
+
+<span class="c"># join, reshape, time</span>
+m = df.merge(cust, on=<span class="s">"customer_id"</span>, how=<span class="s">"left"</span>)
+pivot = df.pivot_table(<span class="s">"amount"</span>, <span class="s">"product"</span>, <span class="s">"region"</span>, aggfunc=<span class="s">"sum"</span>)
+df.assign(month=df.date.dt.to_period(<span class="s">"M"</span>))
+df.set_index(<span class="s">"date"</span>).resample(<span class="s">"D"</span>).sum()
+df[<span class="s">"roll7"</span>] = df.amount.rolling(<span class="s">7</span>).mean()</pre>
+    <div class="callout warn"><b>Avoid <code class="inl">apply</code>/<code class="inl">iterrows</code> loops</b>Vectorize with column ops, <code class="inl">groupby</code>, <code class="inl">merge</code>, <code class="inl">map</code>. Row-wise Python is the #1 pandas slowdown. For big data reach for <b>Polars</b> or <b>DuckDB</b>.</div>
+  </section>
+
+  <section id="de">
+    <h2><span class="ix">15</span> Data-engineering Python</h2>
+    <ul>
+      <li><b>Extract:</b> <code class="inl">requests</code>/<code class="inl">httpx</code> for APIs (paginate, retry, backoff), <code class="inl">SQLAlchemy</code> for DBs.</li>
+      <li><b>Files/formats:</b> <code class="inl">pyarrow</code> + <b>Parquet</b> (columnar, compressed) over CSV; <code class="inl">fsspec</code>/<code class="inl">s3fs</code> for cloud storage.</li>
+      <li><b>Transform at scale:</b> Polars (Rust, lazy), DuckDB (SQL on files), PySpark.</li>
+      <li><b>Validate:</b> Pydantic / Great Expectations / pandera for schema + quality checks.</li>
+      <li><b>Orchestrate:</b> Airflow / Dagster / Prefect DAGs; make tasks <b>idempotent</b> and parameterized by run date.</li>
+    </ul>
+    <pre><span class="k">from</span> sqlalchemy <span class="k">import</span> create_engine
+eng = create_engine(<span class="s">"postgresql+psycopg://user:pw@host/db"</span>)
+df = pd.read_sql(<span class="s">"select * from orders where day = %(d)s"</span>, eng, params={<span class="s">"d"</span>: run_date})
+df.to_parquet(<span class="s">f"s3://lake/orders/{run_date}.parquet"</span>)</pre>
+  </section>
+
+  <section id="test">
+    <h2><span class="ix">16</span> Testing &amp; logging</h2>
+    <pre><span class="c"># test_etl.py</span>
+<span class="k">import</span> pytest
+<span class="k">def</span> <span class="f">test_with_tax</span>():
+    <span class="k">assert</span> <span class="f">Order</span>(<span class="s">1</span>, <span class="s">100</span>).with_tax(<span class="s">0.1</span>) == <span class="s">110</span>
+
+<span class="k">@pytest.mark.parametrize</span>(<span class="s">"a,b,exp"</span>, [(<span class="s">1</span>,<span class="s">1</span>,<span class="s">2</span>),(<span class="s">2</span>,<span class="s">3</span>,<span class="s">5</span>)])
+<span class="k">def</span> <span class="f">test_add</span>(a,b,exp): <span class="k">assert</span> a+b == exp</pre>
+    <ul>
+      <li><b>pytest</b>: plain <code class="inl">assert</code>, fixtures for setup, <code class="inl">parametrize</code> for tables of cases, <code class="inl">monkeypatch</code>/<code class="inl">mock</code> for boundaries.</li>
+      <li><b>logging</b> not <code class="inl">print</code>: configure once, log structured messages with levels; never log secrets.</li>
+    </ul>
+  </section>
+
+  <section id="perf">
+    <h2><span class="ix">17</span> Performance &amp; idioms</h2>
+    <ul>
+      <li>Profile before optimizing: <code class="inl">cProfile</code>, <code class="inl">timeit</code>, line profilers.</li>
+      <li>Vectorize (NumPy/pandas); prefer comprehensions/built-ins (<code class="inl">sum</code>, <code class="inl">map</code>) over manual loops; use generators to stream.</li>
+      <li>Cache pure functions (<code class="inl">lru_cache</code>); use <code class="inl">set</code>/<code class="inl">dict</code> for O(1) membership; batch I/O and DB calls.</li>
+      <li>PEP 8 + <b>ruff</b>/<b>black</b> for style; small pure functions; explicit over clever.</li>
+    </ul>
+  </section>
+
+  <section id="interview">
+    <h2><span class="ix">18</span> Interview drills</h2>
+    <ul>
+      <li>list vs tuple vs set vs dict &mdash; mutability, ordering, use.</li>
+      <li>Mutable default argument bug; <code class="inl">is</code> vs <code class="inl">==</code>; shallow vs deep copy.</li>
+      <li>What is the GIL; threads vs processes vs asyncio; when each.</li>
+      <li>Generators vs lists; what <code class="inl">yield</code> does; lazy evaluation.</li>
+      <li>Decorators &mdash; write a timing/retry decorator with <code class="inl">@wraps</code>.</li>
+      <li>pandas: vectorize a row loop; <code class="inl">groupby.agg</code>; merge types; why <code class="inl">apply</code> is slow.</li>
+    </ul>
+    <div class="callout tip"><b>Practice out loud</b>Defend each with the <a class="anchor" href="interview.html">AI interviewer</a>; grind reps in the <a class="anchor" href="study.html">question bank</a>.</div>
+  </section>
+  </main>
+</div>
+<button class="backtop" id="backtop" aria-label="Back to top">&uarr;</button>
+<script src="handbook.js"></script>
+</body>
+</html>

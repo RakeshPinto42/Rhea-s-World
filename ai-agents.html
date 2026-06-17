@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; AI Agentic Handbook</title>
+<meta name="description" content="An end-to-end agentic AI handbook: LLM basics, prompting, tool use, RAG, memory, planning loops, multi-agent systems, evaluation, and guardrails." />
+<meta property="og:title" content="Rhea — AI Agentic Handbook" />
+<meta property="og:description" content="Agents end to end: tools, RAG, memory, planning, multi-agent, evals, guardrails." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8a200'/%3E%3Cpath d='M16 7C24 7 27 12.5 27 16C27 21 21.5 24.5 17 24.5C13 24.5 10 21.5 10 17.5C10 14.5 12 12.5 14.5 12.5C16.5 12.5 18 14 18 16' fill='none' stroke='%231b1500' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='16.2' r='2.2' fill='%231b1500'/%3E%3C/svg%3E" />
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="site.css" />
+<link rel="stylesheet" href="handbook.css" />
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<header class="site-header">
+  <div class="bar">
+    <a class="logo" href="index.html"><span class="mark">R</span><div>AI Agentic Handbook<small>tools &middot; RAG &middot; planning &middot; evals</small></div></a>
+    <span class="spacer"></span>
+    <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="ghost-link" href="index.html">Home</a>
+      <a class="ghost-link active" href="learn.html">Handbook</a>
+      <a class="ghost-link" href="projects.html">Projects</a>
+      <a class="ghost-link" href="study.html">Trainer</a>
+      <a class="ghost-link" href="interview.html">AI Interviewer</a>
+    </nav>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <div class="grp">Foundations</div>
+    <a href="#intro">0 &middot; Overview</a>
+    <a href="#llm">1 &middot; LLM basics</a>
+    <a href="#prompt">2 &middot; Prompting</a>
+    <a href="#agent">3 &middot; What an agent is</a>
+    <div class="grp">Capabilities</div>
+    <a href="#tools">4 &middot; Tool use</a>
+    <a href="#rag">5 &middot; RAG &amp; retrieval</a>
+    <a href="#memory">6 &middot; Memory &amp; context</a>
+    <a href="#planning">7 &middot; Planning &amp; loops</a>
+    <a href="#multi">8 &middot; Multi-agent</a>
+    <div class="grp">Production</div>
+    <a href="#eval">9 &middot; Evaluation</a>
+    <a href="#guard">10 &middot; Guardrails &amp; safety</a>
+    <a href="#ops">11 &middot; Ops &amp; cost</a>
+    <a href="#interview">12 &middot; Interview drills</a>
+  </nav>
+
+  <main class="content">
+  <section id="intro">
+    <p><a class="anchor" href="learn.html">&larr; All handbooks</a></p>
+    <h1>AI Agentic Handbook</h1>
+    <p class="lead">Agentic AI end to end &mdash; turning an LLM from a text generator into a system that <b>reasons, calls tools, retrieves knowledge, remembers, and acts</b> toward a goal. Patterns, pitfalls, evaluation, and guardrails.</p>
+    <div class="pillrow"><span class="pill">tool use</span><span class="pill">RAG</span><span class="pill">memory</span><span class="pill">planning</span><span class="pill">multi-agent</span><span class="pill">evals</span><span class="pill">guardrails</span></div>
+    <div class="callout tip"><b>Definition</b>An <b>agent</b> = LLM + tools + a loop. It observes, decides an action, acts, observes the result, and repeats until the goal is met or a stop condition fires.</div>
+  </section>
+
+  <section id="llm">
+    <h2><span class="ix">01</span> LLM basics</h2>
+    <ul>
+      <li>An LLM predicts the next <b>token</b> given prior tokens. &ldquo;Reasoning&rdquo; emerges from this + scale + post-training (RLHF / preference tuning).</li>
+      <li><b>Context window</b> = max tokens (prompt + output) the model can attend to. Everything the agent &ldquo;knows in the moment&rdquo; must fit here.</li>
+      <li>Sampling: <b>temperature</b> (randomness), <b>top-p</b>. Low temp for tools/structured output, higher for ideation.</li>
+      <li>Models <b>hallucinate</b> (confident wrong answers) and have a training <b>cutoff</b> &mdash; ground them with tools &amp; retrieval.</li>
+    </ul>
+  </section>
+
+  <section id="prompt">
+    <h2><span class="ix">02</span> Prompting</h2>
+    <ul>
+      <li><b>System prompt</b> sets role, rules, format, and tool policy. Be explicit and bounded.</li>
+      <li><b>Few-shot</b> examples teach format/behavior; <b>chain-of-thought</b> (&ldquo;think step by step&rdquo;) improves multi-step reasoning.</li>
+      <li>Demand <b>structured output</b> (JSON schema / function calling) when another system consumes it &mdash; don&rsquo;t parse prose.</li>
+      <li>Prompt-injection is real: untrusted retrieved/tool text can try to override instructions &mdash; never blindly trust it (see Guardrails).</li>
+    </ul>
+  </section>
+
+  <section id="agent">
+    <h2><span class="ix">03</span> What an agent is</h2>
+    <pre><span class="c"># the core agent loop</span>
+state = init(goal)
+<span class="k">while</span> <span class="k">not</span> done(state):
+    thought, action = llm(state)        <span class="c"># decide</span>
+    <span class="k">if</span> action.is_tool:
+        obs = run_tool(action)           <span class="c"># act</span>
+        state = state + action + obs     <span class="c"># observe</span>
+    <span class="k">else</span>:
+        <span class="k">return</span> action.final_answer
+    <span class="k">if</span> steps &gt; MAX: <span class="k">break</span>            <span class="c"># stop condition</span></pre>
+    <p>This is the <b>ReAct</b> pattern (Reason + Act). Levels of autonomy rise from: single call &rarr; chain (fixed steps) &rarr; router &rarr; tool-using agent &rarr; planning agent &rarr; multi-agent. Use the <i>least</i> autonomy that solves the task &mdash; more loops = more cost, latency, and failure modes.</p>
+  </section>
+
+  <section id="tools">
+    <h2><span class="ix">04</span> Tool use (function calling)</h2>
+    <pre>{
+  <span class="s">"name"</span>: <span class="s">"query_sales"</span>,
+  <span class="s">"description"</span>: <span class="s">"Run a read-only SQL query against the sales DB"</span>,
+  <span class="s">"parameters"</span>: { <span class="s">"sql"</span>: {<span class="s">"type"</span>:<span class="s">"string"</span>} }
+}</pre>
+    <ul>
+      <li>You expose tools (functions/APIs) with name + description + JSON schema. The model picks one and emits arguments; <i>your</i> code executes and returns the result.</li>
+      <li>Good tools are <b>narrow, well-described, validated, and side-effect-aware</b>. Validate every argument server-side &mdash; the model can emit anything.</li>
+      <li><b>MCP</b> (Model Context Protocol) standardizes how agents discover &amp; call external tools/data sources.</li>
+      <li>Gate destructive actions behind confirmation; prefer read-only + dry-run; least privilege per tool.</li>
+    </ul>
+  </section>
+
+  <section id="rag">
+    <h2><span class="ix">05</span> RAG &amp; retrieval</h2>
+    <p>Retrieval-Augmented Generation grounds answers in your data instead of model memory.</p>
+    <pre>chunk docs &rarr; embed &rarr; store in vector DB
+query &rarr; embed &rarr; similarity search (top-k) &rarr; rerank
+&rarr; stuff retrieved context into the prompt &rarr; generate (cite sources)</pre>
+    <ul>
+      <li><b>Chunking</b> matters: semantic/structural chunks with overlap; keep metadata for filtering &amp; citations.</li>
+      <li><b>Embeddings</b> map text &rarr; vectors; <b>vector DB</b> (pgvector, Pinecone, FAISS) does ANN search. Add <b>hybrid search</b> (keyword + vector) and a <b>reranker</b> for precision.</li>
+      <li>Cite sources; show retrieved snippets; say &ldquo;I don&rsquo;t know&rdquo; when retrieval is weak. RAG &gt; fine-tuning for fresh/changing facts.</li>
+      <li><b>Agentic RAG</b>: the agent decides <i>when</i> and <i>what</i> to retrieve, can re-query and refine.</li>
+    </ul>
+  </section>
+
+  <section id="memory">
+    <h2><span class="ix">06</span> Memory &amp; context management</h2>
+    <ul>
+      <li><b>Short-term</b> = the conversation in the context window. It&rsquo;s finite &rarr; manage it.</li>
+      <li><b>Summarize / compact</b> older turns; keep a rolling summary + recent verbatim turns.</li>
+      <li><b>Long-term</b> = external store (vector/DB) of facts, preferences, prior outcomes; retrieve relevant bits per turn (this is RAG over memory).</li>
+      <li><b>Scratchpad / state</b>: persist intermediate results (plan, tool outputs) outside the prompt; reference by id to save tokens.</li>
+    </ul>
+    <div class="callout warn"><b>Context rot</b>Stuffing everything into the prompt degrades quality and cost. Curate: only the relevant facts, tools, and recent state belong in context each step.</div>
+  </section>
+
+  <section id="planning">
+    <h2><span class="ix">07</span> Planning &amp; control loops</h2>
+    <ul>
+      <li><b>ReAct</b> &mdash; interleave reasoning and tool calls (default).</li>
+      <li><b>Plan-and-execute</b> &mdash; draft a multi-step plan, then execute (and re-plan on failure). Better for complex tasks.</li>
+      <li><b>Reflection / self-critique</b> &mdash; the agent reviews its own output and retries; pairs with evals.</li>
+      <li>Always set <b>stop conditions</b>: max steps, budget, time, and a confidence/exit check &mdash; agents loop forever without them.</li>
+      <li>Decompose: break the goal into sub-tasks; verify each before proceeding.</li>
+    </ul>
+  </section>
+
+  <section id="multi">
+    <h2><span class="ix">08</span> Multi-agent systems</h2>
+    <ul>
+      <li><b>Orchestrator&ndash;worker</b> (a planner delegates to specialists), <b>pipeline</b> (hand-offs), <b>debate/critic</b> (one proposes, one reviews).</li>
+      <li>Each agent gets a focused role, its own tools, and a narrow prompt &rarr; better than one giant agent.</li>
+      <li>Costs compound (more calls, more latency, coordination bugs). Start single-agent; add agents only when a clear role boundary helps.</li>
+      <li>Frameworks: LangGraph, CrewAI, AutoGen, OpenAI Agents SDK, Claude Agent SDK &mdash; but the patterns matter more than the library.</li>
+    </ul>
+  </section>
+
+  <section id="eval">
+    <h2><span class="ix">09</span> Evaluation</h2>
+    <ul>
+      <li>You can&rsquo;t improve what you don&rsquo;t measure. Build an <b>eval set</b> of real tasks with expected outcomes early.</li>
+      <li>Metrics: task success rate, tool-call accuracy, retrieval precision/recall, faithfulness (grounded vs hallucinated), latency, cost/task.</li>
+      <li>Methods: exact/fuzzy match, rubric-based <b>LLM-as-judge</b> (validate the judge!), human review for high-stakes.</li>
+      <li>Trace every run (inputs, prompts, tool calls, outputs) &mdash; LangSmith / Langfuse / Phoenix. Regression-test on prompt/model changes.</li>
+    </ul>
+  </section>
+
+  <section id="guard">
+    <h2><span class="ix">10</span> Guardrails &amp; safety</h2>
+    <ul>
+      <li><b>Input</b>: validate/scope user input; detect prompt-injection; strip/neutralize instructions embedded in retrieved or tool content.</li>
+      <li><b>Output</b>: schema-validate; content/PII filters; refuse out-of-scope; keep a human in the loop for irreversible actions.</li>
+      <li><b>Tool safety</b>: least privilege, allow-lists, read-only defaults, confirmations for writes/deletes, sandboxing, rate limits.</li>
+      <li>Treat all model output and external text as <b>untrusted</b>. Don&rsquo;t let the model escalate its own permissions.</li>
+    </ul>
+    <div class="callout warn"><b>Prompt injection</b>&ldquo;Ignore previous instructions&rdquo; hidden in a web page or document is an attack. Isolate untrusted content, never auto-execute instructions it contains, and constrain tools.</div>
+  </section>
+
+  <section id="ops">
+    <h2><span class="ix">11</span> Ops &amp; cost</h2>
+    <ul>
+      <li><b>Cost</b> scales with tokens &times; calls. Trim context, cache (prompt caching, retrieval results), pick the smallest model that passes evals, cap loop steps.</li>
+      <li><b>Latency</b>: stream responses, parallelize independent tool calls, use smaller/faster models for routing.</li>
+      <li><b>Reliability</b>: timeouts, retries with backoff, fallbacks, idempotent tools, structured-output validation + repair.</li>
+      <li><b>Observability</b>: log traces, token usage, tool errors; monitor success rate &amp; drift; version prompts.</li>
+    </ul>
+  </section>
+
+  <section id="interview">
+    <h2><span class="ix">12</span> Interview drills</h2>
+    <ul>
+      <li>What makes something an &ldquo;agent&rdquo; vs a single LLM call; describe the ReAct loop.</li>
+      <li>RAG pipeline end to end; why RAG over fine-tuning; how to reduce hallucination.</li>
+      <li>How function calling works; how you&rsquo;d make tools safe.</li>
+      <li>Short-term vs long-term memory; how to handle a full context window.</li>
+      <li>How you&rsquo;d evaluate an agent; what is LLM-as-judge and its risks.</li>
+      <li>What prompt injection is and how to defend; when to add a second agent.</li>
+    </ul>
+    <div class="callout tip"><b>Drill</b>Defend each with the <a class="anchor" href="interview.html">AI interviewer</a> (itself a small agent!); reps in the <a class="anchor" href="study.html">question bank</a>.</div>
+  </section>
+  </main>
+</div>
+<button class="backtop" id="backtop" aria-label="Back to top">&uarr;</button>
+<script src="handbook.js"></script>
+</body>
+</html>

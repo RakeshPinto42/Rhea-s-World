@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; Databricks Handbook</title>
+<meta name="description" content="An end-to-end Databricks handbook: Spark, Delta Lake, the Lakehouse, medallion architecture, jobs, Unity Catalog, and optimization." />
+<meta property="og:title" content="Rhea — Databricks Handbook" />
+<meta property="og:description" content="Spark, Delta Lake, Lakehouse, jobs, Unity Catalog, and tuning — end to end." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8a200'/%3E%3Cpath d='M16 7C24 7 27 12.5 27 16C27 21 21.5 24.5 17 24.5C13 24.5 10 21.5 10 17.5C10 14.5 12 12.5 14.5 12.5C16.5 12.5 18 14 18 16' fill='none' stroke='%231b1500' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='16.2' r='2.2' fill='%231b1500'/%3E%3C/svg%3E" />
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="site.css" />
+<link rel="stylesheet" href="handbook.css" />
+</head>
+<body>
+<div class="progress" id="prog"></div>
+<header class="site-header">
+  <div class="bar">
+    <a class="logo" href="index.html"><span class="mark">R</span><div>Databricks Handbook<small>Spark &middot; Delta &middot; Lakehouse</small></div></a>
+    <span class="spacer"></span>
+    <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="ghost-link" href="index.html">Home</a>
+      <a class="ghost-link active" href="learn.html">Handbook</a>
+      <a class="ghost-link" href="projects.html">Projects</a>
+      <a class="ghost-link" href="study.html">Trainer</a>
+      <a class="ghost-link" href="interview.html">AI Interviewer</a>
+    </nav>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="toc" id="toc">
+    <div class="grp">Foundations</div>
+    <a href="#intro">0 &middot; Overview</a>
+    <a href="#arch">1 &middot; Platform architecture</a>
+    <a href="#spark">2 &middot; Spark fundamentals</a>
+    <a href="#df">3 &middot; DataFrames &amp; Spark SQL</a>
+    <div class="grp">Lakehouse</div>
+    <a href="#delta">4 &middot; Delta Lake</a>
+    <a href="#medallion">5 &middot; Medallion architecture</a>
+    <a href="#streaming">6 &middot; Structured Streaming</a>
+    <a href="#dlt">7 &middot; Delta Live Tables</a>
+    <div class="grp">Run &amp; govern</div>
+    <a href="#jobs">8 &middot; Jobs &amp; clusters</a>
+    <a href="#uc">9 &middot; Unity Catalog</a>
+    <a href="#perf">10 &middot; Optimization</a>
+    <a href="#interview">11 &middot; Interview drills</a>
+  </nav>
+
+  <main class="content">
+  <section id="intro">
+    <p><a class="anchor" href="learn.html">&larr; All handbooks</a></p>
+    <h1>Databricks Handbook</h1>
+    <p class="lead">The Databricks <b>Lakehouse</b> end to end &mdash; Apache Spark for distributed compute, Delta Lake for ACID tables on object storage, the medallion pattern for pipelines, plus jobs, streaming, and Unity Catalog governance.</p>
+    <div class="pillrow"><span class="pill">Spark</span><span class="pill">Delta Lake</span><span class="pill">medallion</span><span class="pill">streaming</span><span class="pill">Unity Catalog</span><span class="pill">tuning</span></div>
+    <div class="callout tip"><b>Mental model</b>Lakehouse = data-lake storage (cheap object store, open Parquet) + data-warehouse reliability (ACID, schema, governance) via Delta Lake.</div>
+  </section>
+
+  <section id="arch">
+    <h2><span class="ix">01</span> Platform architecture</h2>
+    <ul>
+      <li><b>Control plane</b> (Databricks-managed: UI, jobs, notebooks) vs <b>data plane</b> (compute + storage in <i>your</i> cloud account) &mdash; your data stays in your VPC/storage.</li>
+      <li><b>Workspace</b>: notebooks, repos, jobs, SQL editor, dashboards.</li>
+      <li><b>Compute</b>: all-purpose clusters (interactive), job clusters (ephemeral, per-run, cheaper), SQL warehouses (BI), serverless.</li>
+      <li><b>Storage</b>: cloud object store (S3/ADLS/GCS) holding Delta/Parquet; accessed via Unity Catalog volumes &amp; external locations.</li>
+    </ul>
+  </section>
+
+  <section id="spark">
+    <h2><span class="ix">02</span> Spark fundamentals</h2>
+    <p>Spark distributes work across a cluster: a <b>driver</b> plans, <b>executors</b> run tasks on partitions in parallel.</p>
+    <ul>
+      <li><b>RDD &rarr; DataFrame/Dataset</b>: use DataFrames (optimized via Catalyst + Tungsten); RDDs are low-level legacy.</li>
+      <li><b>Transformations are lazy</b> (<code class="inl">select, filter, join, groupBy</code>) &mdash; build a DAG; <b>actions</b> (<code class="inl">count, collect, write, show</code>) trigger execution.</li>
+      <li><b>Partitions</b> are the unit of parallelism. <b>Narrow</b> transforms (map/filter) stay within a partition; <b>wide</b> transforms (join/groupBy) cause a <b>shuffle</b> (network exchange) &mdash; the main cost.</li>
+      <li><b>Catalyst</b> optimizes the logical/physical plan; <b>AQE</b> (Adaptive Query Execution) re-optimizes at runtime (coalesce partitions, skew join handling).</li>
+    </ul>
+  </section>
+
+  <section id="df">
+    <h2><span class="ix">03</span> DataFrames &amp; Spark SQL</h2>
+    <pre><span class="k">from</span> pyspark.sql <span class="k">import</span> functions <span class="k">as</span> F
+df = spark.read.format(<span class="s">"delta"</span>).table(<span class="s">"bronze.orders"</span>)
+out = (df.filter(F.col(<span class="s">"status"</span>) == <span class="s">"paid"</span>)
+         .groupBy(<span class="s">"region"</span>)
+         .agg(F.sum(<span class="s">"amount"</span>).alias(<span class="s">"rev"</span>),
+              F.countDistinct(<span class="s">"customer_id"</span>).alias(<span class="s">"cust"</span>)))
+out.write.mode(<span class="s">"overwrite"</span>).saveAsTable(<span class="s">"gold.region_rev"</span>)</pre>
+    <pre><span class="c">-- same thing in Spark SQL</span>
+<span class="k">SELECT</span> region, <span class="f">sum</span>(amount) rev, <span class="f">count</span>(<span class="k">distinct</span> customer_id) cust
+<span class="k">FROM</span> bronze.orders <span class="k">WHERE</span> status=<span class="s">'paid'</span> <span class="k">GROUP BY</span> region;</pre>
+    <p>DataFrame API and SQL compile to the same plan &mdash; use whichever reads clearer. Window functions, joins, and UDFs all available; prefer built-in functions over Python UDFs (UDFs break Catalyst &amp; serialize row-by-row).</p>
+  </section>
+
+  <section id="delta">
+    <h2><span class="ix">04</span> Delta Lake</h2>
+    <p>Delta = Parquet data files + a transaction log (<code class="inl">_delta_log</code>) giving warehouse features on the lake.</p>
+    <ul>
+      <li><b>ACID transactions</b> &mdash; concurrent reads/writes are safe; no half-written tables.</li>
+      <li><b>Time travel</b> &mdash; query past versions: <code class="inl">SELECT * FROM t VERSION AS OF 12</code> or <code class="inl">TIMESTAMP AS OF</code>.</li>
+      <li><b>Schema enforcement</b> &amp; <b>evolution</b> (<code class="inl">mergeSchema</code>).</li>
+      <li><b>MERGE / upsert</b>, <code class="inl">UPDATE</code>, <code class="inl">DELETE</code> on the lake (impossible in plain Parquet).</li>
+      <li><b>OPTIMIZE</b> (compact small files) + <b>Z-ORDER</b> (co-locate by column) + <b>VACUUM</b> (remove old files).</li>
+    </ul>
+    <pre><span class="k">MERGE INTO</span> silver.customers t
+<span class="k">USING</span> updates s <span class="k">ON</span> t.id = s.id
+<span class="k">WHEN MATCHED THEN UPDATE SET</span> *
+<span class="k">WHEN NOT MATCHED THEN INSERT</span> *;
+
+<span class="k">OPTIMIZE</span> silver.customers <span class="k">ZORDER BY</span> (region);</pre>
+  </section>
+
+  <section id="medallion">
+    <h2><span class="ix">05</span> Medallion architecture</h2>
+    <table>
+      <tr><th>Layer</th><th>Contains</th></tr>
+      <tr><td><b>Bronze</b></td><td>Raw ingested data, append-only, schema-on-read. Full history / replayable.</td></tr>
+      <tr><td><b>Silver</b></td><td>Cleaned, conformed, deduped, joined. Validated business entities.</td></tr>
+      <tr><td><b>Gold</b></td><td>Aggregated, business-level marts / features for BI &amp; ML.</td></tr>
+    </table>
+    <p>Each layer is Delta tables; pipelines promote data bronze&rarr;silver&rarr;gold. Keep bronze immutable so you can reprocess when logic changes.</p>
+  </section>
+
+  <section id="streaming">
+    <h2><span class="ix">06</span> Structured Streaming</h2>
+    <pre>(spark.readStream.format(<span class="s">"cloudFiles"</span>)            <span class="c"># Auto Loader</span>
+      .option(<span class="s">"cloudFiles.format"</span>, <span class="s">"json"</span>)
+      .load(<span class="s">"s3://lake/raw/"</span>)
+   .writeStream.format(<span class="s">"delta"</span>)
+      .option(<span class="s">"checkpointLocation"</span>, <span class="s">"/chk/orders"</span>)
+      .trigger(availableNow=<span class="k">True</span>)
+      .table(<span class="s">"bronze.orders"</span>))</pre>
+    <ul>
+      <li>Same DataFrame API for batch and stream (&ldquo;unbounded table&rdquo; model). <b>Checkpoints</b> give exactly-once + recovery.</li>
+      <li><b>Auto Loader</b> incrementally ingests new files efficiently. <code class="inl">trigger(availableNow=True)</code> = process backlog then stop (cheap micro-batch).</li>
+      <li>Stateful ops (windowed aggregations, joins) need <b>watermarks</b> to bound state.</li>
+    </ul>
+  </section>
+
+  <section id="dlt">
+    <h2><span class="ix">07</span> Delta Live Tables (DLT)</h2>
+    <p>Declarative pipelines: you define tables and their transforms; DLT manages dependencies, orchestration, retries, and data quality.</p>
+    <pre><span class="k">import</span> dlt
+<span class="k">@dlt.table</span>
+<span class="k">def</span> <span class="f">silver_orders</span>():
+    <span class="k">return</span> dlt.read_stream(<span class="s">"bronze_orders"</span>).dropDuplicates([<span class="s">"id"</span>])
+
+<span class="k">@dlt.expect_or_drop</span>(<span class="s">"valid_amt"</span>, <span class="s">"amount &gt;= 0"</span>)   <span class="c"># quality constraint</span>
+<span class="k">@dlt.table</span>
+<span class="k">def</span> <span class="f">gold_clean</span>(): ...</pre>
+    <p><b>Expectations</b> enforce data quality (drop/fail/warn on bad rows). DLT auto-builds the dependency DAG and handles incremental processing.</p>
+  </section>
+
+  <section id="jobs">
+    <h2><span class="ix">08</span> Jobs &amp; clusters</h2>
+    <ul>
+      <li><b>Jobs</b> orchestrate tasks (notebooks, scripts, DLT, dbt) as a DAG with schedules, retries, alerts, parameters.</li>
+      <li>Use <b>job clusters</b> (ephemeral) for scheduled work &mdash; cheaper than keeping an interactive cluster up.</li>
+      <li>Right-size: worker type, autoscaling min/max, spot instances for non-critical, Photon (vectorized C++ engine) for speed.</li>
+      <li>Parameterize by run date; make tasks idempotent so retries are safe.</li>
+    </ul>
+  </section>
+
+  <section id="uc">
+    <h2><span class="ix">09</span> Unity Catalog</h2>
+    <ul>
+      <li>Central governance across workspaces: three-level namespace <code class="inl">catalog.schema.table</code>.</li>
+      <li>Fine-grained <b>access control</b> (GRANT on catalog/schema/table/column), <b>lineage</b>, <b>audit</b>, and a searchable data catalog.</li>
+      <li>Manages <b>external locations</b> &amp; storage credentials, <b>volumes</b> for files, and <b>delta sharing</b> for cross-org sharing.</li>
+      <li>Replaces the legacy Hive metastore; enables row/column-level security via dynamic views.</li>
+    </ul>
+  </section>
+
+  <section id="perf">
+    <h2><span class="ix">10</span> Optimization</h2>
+    <ul>
+      <li><b>Minimize shuffles</b>: filter early, select needed columns, broadcast small dimension tables (<code class="inl">broadcast(df)</code>) to avoid shuffle joins.</li>
+      <li><b>Data skew</b>: salt keys or rely on AQE skew handling; watch for one straggler task.</li>
+      <li><b>Small-file problem</b>: <code class="inl">OPTIMIZE</code> + Auto Optimize; partition by low-cardinality columns only; Z-ORDER high-cardinality filters.</li>
+      <li><b>Cache</b> reused DataFrames; enable <b>Photon</b>; tune partition count (~128&ndash;200MB per partition); avoid Python UDFs.</li>
+      <li>Read the <b>Spark UI</b>: stages, shuffle read/write, skew, spill to disk.</li>
+    </ul>
+  </section>
+
+  <section id="interview">
+    <h2><span class="ix">11</span> Interview drills</h2>
+    <ul>
+      <li>What is a Lakehouse; Delta vs Parquet; how time travel works.</li>
+      <li>Narrow vs wide transforms; what causes a shuffle; lazy vs action.</li>
+      <li>Medallion layers and why bronze stays immutable.</li>
+      <li>How to fix data skew / small files; when to broadcast a join.</li>
+      <li>Structured Streaming exactly-once; role of checkpoints &amp; watermarks.</li>
+      <li>What Unity Catalog governs; job cluster vs all-purpose cluster.</li>
+    </ul>
+    <div class="callout tip"><b>Drill</b>Defend each with the <a class="anchor" href="interview.html">AI interviewer</a>; reps in the <a class="anchor" href="study.html">question bank</a>.</div>
+  </section>
+  </main>
+</div>
+<button class="backtop" id="backtop" aria-label="Back to top">&uarr;</button>
+<script src="handbook.js"></script>
+</body>
+</html>
