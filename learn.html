@@ -18,15 +18,7 @@
   html{scroll-behavior:smooth}
   body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
 
-  header{position:sticky;top:0;z-index:30;background:var(--panel);border-bottom:1px solid var(--line)}
-  .bar{max-width:1240px;margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:14px}
-  .logo{font-weight:700;font-size:1rem;display:flex;align-items:center;gap:10px}
-  .logo .mark{width:26px;height:26px;border-radius:7px;background:var(--accent);display:grid;place-items:center;color:#1b1500;font-weight:700;font-size:.85rem}
-  .logo small{display:block;font-weight:400;font-size:.7rem;color:var(--muted)}
-  .bar .spacer{flex:1}
-  .ghost-link{color:var(--muted);text-decoration:none;font-size:.84rem;font-weight:500}
-  .ghost-link:hover{color:var(--ink)}
-  .toggle{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.8rem;font-weight:500}
+  /* header/nav styles come from site.css */
 
   .layout{max-width:1240px;margin:0 auto;display:grid;grid-template-columns:248px 1fr;gap:0}
   @media(max-width:900px){.layout{grid-template-columns:1fr}.toc{display:none!important}}
@@ -81,14 +73,18 @@
 </head>
 <body>
 <div class="progress" id="prog"></div>
-<header>
+<header class="site-header">
   <div class="bar">
-    <div class="logo"><span class="mark">R</span><div>The Handbook<small>Power BI &amp; Data Engineering &mdash; everything in one place</small></div></div>
+    <a class="logo" href="index.html"><span class="mark">R</span><div>The Handbook<small>Power BI &amp; Data Engineering &mdash; everything in one place</small></div></a>
     <span class="spacer"></span>
-    <a class="ghost-link" href="projects.html">Projects</a>
-    <a class="ghost-link" href="study.html">Question bank</a>
-    <a class="ghost-link" href="interview.html">AI tutor</a>
-    <a class="ghost-link" href="index.html">Rhea&rsquo;s World</a>
+    <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="ghost-link" href="index.html">Home</a>
+      <a class="ghost-link active" href="learn.html">Handbook</a>
+      <a class="ghost-link" href="projects.html">Projects</a>
+      <a class="ghost-link" href="study.html">Trainer</a>
+      <a class="ghost-link" href="interview.html">AI Interviewer</a>
+    </nav>
     <button class="toggle" id="themeBtn">&#9789; Dark</button>
   </div>
 </header>
@@ -631,6 +627,10 @@
   function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('rhea_theme',t);tBtn.innerHTML=t==='dark'?'&#9728; Light':'&#9789; Dark';}
   tBtn.onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
   setTheme(localStorage.getItem('rhea_theme')||'light');
+  /* mobile nav */
+  const navToggle=document.getElementById('navToggle'),navLinks=document.getElementById('navLinks');
+  if(navToggle){navToggle.addEventListener('click',()=>{const o=navLinks.classList.toggle('open');navToggle.setAttribute('aria-expanded',o);});
+    navLinks.addEventListener('click',e=>{if(e.target.tagName==='A'){navLinks.classList.remove('open');navToggle.setAttribute('aria-expanded','false');}});}
 
   // scroll progress + back-to-top
   const prog=document.getElementById('prog'), backtop=document.getElementById('backtop');
