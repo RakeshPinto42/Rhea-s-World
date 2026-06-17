@@ -141,6 +141,18 @@
   @keyframes blush{0%,100%{opacity:.4}50%{opacity:.78}}
   .b-pop{transform-box:fill-box;transform-origin:center;animation:pop 2.6s ease-in-out infinite}
   @keyframes pop{0%,100%{transform:translateY(0) scale(1)}50%{transform:translateY(-6px) scale(1.08)}}
+
+  /* tiny girl perched in the "Rhea's World" brand */
+  .brand-title{font-weight:700;line-height:1}
+  .bg-girl{display:inline-block;position:relative;width:1.55em;height:1.55em;margin:0 2px;overflow:visible;vertical-align:-.5em}
+  .bg-girl svg{position:absolute;left:0;bottom:-.1em;width:1.55em;height:auto;overflow:visible}
+  .gshake{transform-box:fill-box;transform-origin:bottom center;animation:gshake 2.6s ease-in-out infinite}
+  @keyframes gshake{0%,100%{transform:rotate(-2.5deg)}50%{transform:rotate(2.5deg)}}
+  .leg{transform-box:fill-box;transform-origin:top center;animation:legswing .85s ease-in-out infinite}
+  .leg.b{animation-delay:-.42s}
+  @keyframes legswing{0%,100%{transform:rotate(-15deg)}50%{transform:rotate(15deg)}}
+  .bub{transform-box:fill-box;transform-origin:bottom left;animation:bubp 2.6s ease-in-out infinite}
+  @keyframes bubp{0%,100%{opacity:.85;transform:scale(.95)}50%{opacity:1;transform:scale(1.06)}}
   .bio .hi{font-size:clamp(1.5rem,4vw,2.2rem);font-weight:700;letter-spacing:-.01em;margin-bottom:16px}
   .bio p{color:var(--muted);font-size:1.05rem;line-height:1.75;max-width:780px;margin-bottom:16px}
   .bio p b{color:var(--ink);font-weight:600}
@@ -155,7 +167,7 @@
 
 <header class="site-header">
   <div class="bar">
-    <a class="logo" href="index.html"><span class="mark">R</span><div>Rhea&rsquo;s World<small>Power BI portfolio</small></div></a>
+    <a class="logo" href="index.html"><span class="mark">R</span><div><span class="brand-title">Rhea&rsquo;s<span class="bg-girl" aria-hidden="true"><svg viewBox="0 0 40 42" role="img"><g class="gshake"><g class="bub"><ellipse cx="31" cy="13" rx="8" ry="6" fill="var(--panel)" stroke="var(--line)"/><text x="31" y="15.4" text-anchor="middle" font-family="IBM Plex Mono,monospace" font-size="6.5" font-weight="700" fill="var(--accent-2)">DAX</text><circle cx="23" cy="19" r="1.5" fill="var(--panel)" stroke="var(--line)"/><circle cx="20" cy="22" r="1" fill="var(--panel)" stroke="var(--line)"/></g><path class="leg" d="M16 31 v9" stroke="#c98a5b" stroke-width="3.4" stroke-linecap="round" fill="none"/><path class="leg b" d="M21 31 v9" stroke="#c98a5b" stroke-width="3.4" stroke-linecap="round" fill="none"/><path d="M12 24 q6.5 -6 13 0 l1.5 9 q-8 4 -16 0 z" fill="var(--accent)"/><circle cx="18.5" cy="18" r="6.3" fill="#e0a87a"/><path d="M12.2 18 q-1 -8 6.3 -8.4 q7.3 .4 6.3 8.4 q-2.4 -4 -6.3 -4 q-3.9 0 -6.3 4z" fill="#241327"/><circle cx="18.5" cy="10" r="2.3" fill="#241327"/><circle cx="16.5" cy="18" r="1.1" fill="#2a1a18"/><circle cx="20.5" cy="18" r="1.1" fill="#2a1a18"/><path d="M16.7 21 q1.8 1.7 3.6 0" stroke="#3a2018" stroke-width="1" fill="none" stroke-linecap="round"/><rect x="12.5" y="26.5" width="12" height="6.8" rx="1" fill="#2b3242"/><rect x="14" y="28" width="9" height="4.3" rx=".5" fill="#0b0e14"/><rect x="15.4" y="30" width="1.5" height="2.3" fill="var(--accent)"/><rect x="17.8" y="29" width="1.5" height="3.3" fill="var(--accent-2)"/><rect x="20.2" y="28.5" width="1.5" height="3.8" fill="#9a7cff"/></g></svg></span>World</span><small>Power BI portfolio</small></div></a>
     <span class="spacer"></span>
     <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
     <nav class="nav-links" id="navLinks">
