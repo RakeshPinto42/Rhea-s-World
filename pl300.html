@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; PL-300 Mock Exam &amp; Study Plan</title>
+<meta name="description" content="PL-300 (Power BI Data Analyst) exam prep: a practical study plan plus a 25-question, exam-style mock test with instant scoring, per-domain breakdown, and explanations." />
+<meta property="og:title" content="Rhea — PL-300 Mock Exam" />
+<meta property="og:description" content="Practical PL-300 study plan + a real-exam-style mock test with scoring and explanations." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8a200'/%3E%3Cpath d='M16 7C24 7 27 12.5 27 16C27 21 21.5 24.5 17 24.5C13 24.5 10 21.5 10 17.5C10 14.5 12 12.5 14.5 12.5C16.5 12.5 18 14 18 16' fill='none' stroke='%231b1500' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='16.2' r='2.2' fill='%231b1500'/%3E%3C/svg%3E" />
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="site.css" />
+<style>
+  .wrap{max-width:900px;margin:0 auto;padding:30px 22px 100px}
+  h1{font-size:1.95rem;margin-bottom:6px}
+  .lead{color:var(--muted);max-width:760px;margin-bottom:22px}
+  h2{font-size:1.35rem;margin:34px 0 12px;padding-bottom:8px;border-bottom:2px solid var(--line)}
+  h3{font-size:1.05rem;margin:18px 0 8px;color:var(--accent-2)}
+  [data-theme="dark"] h3{color:var(--accent)}
+  p{margin-bottom:12px}ul,ol{margin:0 0 14px 22px}li{margin-bottom:6px}
+  a.anchor{color:var(--accent-2);text-decoration:none}[data-theme="dark"] a.anchor{color:var(--accent)}
+  table{border-collapse:collapse;width:100%;margin:0 0 16px;font-size:.9rem}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{font-size:.72rem;text-transform:uppercase;letter-spacing:.05em;color:var(--faint)}
+  .callout{border-left:3px solid var(--accent);background:var(--panel);border-radius:0 10px 10px 0;padding:13px 16px;margin:0 0 16px;box-shadow:var(--shadow);font-size:.93rem}
+  .callout.tip{border-left-color:var(--green)}.callout b{display:block;margin-bottom:3px}
+  .pillrow{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .pill{font-size:.78rem;padding:5px 12px;border-radius:99px;background:var(--panel);border:1px solid var(--line);color:var(--muted)}
+
+  /* quiz */
+  .examhead{position:sticky;top:57px;z-index:20;background:var(--bg);border-bottom:1px solid var(--line);padding:12px 0;margin-bottom:20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .examhead .timer{font-family:"IBM Plex Mono";font-weight:600;color:var(--accent-2)}[data-theme="dark"] .examhead .timer{color:var(--accent)}
+  .examhead .count{font-size:.85rem;color:var(--muted)}
+  .examhead .spacer{flex:1}
+  .btn{font-family:inherit;font-weight:600;font-size:.9rem;padding:10px 18px;border-radius:10px;border:1px solid transparent;cursor:pointer}
+  .btn-primary{background:var(--accent);color:#1b1500}
+  .btn-ghost{background:transparent;border-color:var(--line);color:var(--ink)}
+  .btn-ghost:hover{border-color:var(--accent-2)}
+  .q{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .q .meta{font-family:"IBM Plex Mono";font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;color:var(--faint);margin-bottom:6px}
+  .q .stem{font-weight:600;margin-bottom:12px}
+  .opt{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px;cursor:pointer;transition:border-color .15s,background .15s}
+  .opt:hover{border-color:var(--accent-2)}
+  .opt input{margin-top:3px}
+  .opt.correct{border-color:var(--green);background:rgba(21,115,71,.08)}
+  .opt.wrong{border-color:var(--red);background:rgba(180,35,24,.08)}
+  .expl{font-size:.88rem;color:var(--muted);margin-top:10px;padding-top:10px;border-top:1px dashed var(--line);display:none}
+  .expl.show{display:block}.expl b{color:var(--ink)}
+  .results{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:var(--shadow);margin-bottom:22px;display:none}
+  .results.show{display:block}
+  .score{font-size:2.6rem;font-weight:700;line-height:1}
+  .verdict{font-weight:700;font-size:1.1rem;margin:6px 0 14px}
+  .pass{color:var(--green)}.fail{color:var(--red)}
+  .bar{height:10px;border-radius:99px;background:var(--bg);overflow:hidden;margin:4px 0 12px;border:1px solid var(--line)}
+  .bar i{display:block;height:100%;background:linear-gradient(90deg,var(--accent),var(--accent-2))}
+  .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  @media(max-width:600px){.dgrid{grid-template-columns:1fr}}
+  .dcell{font-size:.85rem}.dcell .n{font-family:"IBM Plex Mono";color:var(--muted)}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="bar">
+    <a class="logo" href="index.html"><span class="mark">R</span><div>PL-300 Mock Exam<small>Power BI Data Analyst &middot; study plan + test</small></div></a>
+    <span class="spacer"></span>
+    <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="ghost-link" href="index.html">Home</a>
+      <a class="ghost-link active" href="learn.html">Handbook</a>
+      <a class="ghost-link" href="projects.html">Projects</a>
+      <a class="ghost-link" href="study.html">Trainer</a>
+      <a class="ghost-link" href="interview.html">AI Interviewer</a>
+    </nav>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <p><a class="anchor" href="learn.html">&larr; All handbooks</a></p>
+  <h1>PL-300 &mdash; Mock Exam &amp; Study Plan</h1>
+  <p class="lead">Microsoft <b>PL-300: Power BI Data Analyst Associate</b>. A practical, hands-on prep plan plus a 25-question, exam-style mock test that scores like the real thing (700/1000 to pass) and explains every answer.</p>
+  <div class="pillrow"><span class="pill">4 domains</span><span class="pill">25 questions</span><span class="pill">instant scoring</span><span class="pill">explanations</span><span class="pill">retake &amp; shuffle</span></div>
+
+  <h2>The exam at a glance</h2>
+  <table>
+    <tr><th>Item</th><th>Detail</th></tr>
+    <tr><td>Format</td><td>~40&ndash;60 questions, ~100 minutes. MCQ, multi-select, drag-drop, case studies.</td></tr>
+    <tr><td>Pass mark</td><td><b>700 / 1000</b> (scaled, ~70%).</td></tr>
+    <tr><td>Tools tested</td><td>Power BI Desktop + Service, Power Query (M), DAX, modeling, RLS, deployment.</td></tr>
+  </table>
+  <h3>Skills measured (weighting)</h3>
+  <table>
+    <tr><th>Domain</th><th>Weight</th><th>Focus</th></tr>
+    <tr><td><b>Prepare the data</b></td><td>25&ndash;30%</td><td>Get/clean/transform in Power Query, profiling, query folding, parameters.</td></tr>
+    <tr><td><b>Model the data</b></td><td>25&ndash;30%</td><td>Star schema, relationships, DAX measures, time intelligence, RLS roles.</td></tr>
+    <tr><td><b>Visualize &amp; analyze</b></td><td>25&ndash;30%</td><td>Visuals, interactions, bookmarks, drill, AI visuals, formatting, accessibility.</td></tr>
+    <tr><td><b>Deploy &amp; maintain</b></td><td>15&ndash;20%</td><td>Workspaces, apps, datasets, refresh/gateway, sensitivity, sharing.</td></tr>
+  </table>
+
+  <h2>A practical 4-week plan</h2>
+  <ol>
+    <li><b>Week 1 &mdash; Prepare data (hands-on):</b> load CSV/SQL/folder, fix types, unpivot, merge vs append, parameters, query folding. Build the muscle in Power Query, not theory. (See <a class="anchor" href="learn.html#powerquery">Handbook &middot; Power Query</a>.)</li>
+    <li><b>Week 2 &mdash; Model + DAX:</b> build a star schema, mark a date table, write measures (<code class="anchor">SUMX</code>, <code class="anchor">CALCULATE</code>, time intelligence), set up RLS. Drill the <a class="anchor" href="dax.html">DAX handbook</a> until evaluation context clicks.</li>
+    <li><b>Week 3 &mdash; Visualize &amp; analyze:</b> rebuild a real report &mdash; interactions, slicers, bookmarks, drillthrough, tooltips, conditional formatting, accessibility, key influencers / decomposition tree.</li>
+    <li><b>Week 4 &mdash; Deploy + mock exams:</b> publish to a workspace, build an app, set scheduled refresh + gateway, apply sensitivity labels. Then take this mock repeatedly until you score 85%+, reviewing every miss.</li>
+  </ol>
+  <div class="callout tip"><b>Pass faster</b>Build one real end-to-end report (ingest &rarr; model &rarr; DAX &rarr; visuals &rarr; publish &rarr; RLS). PL-300 rewards doers. Then practice out loud with the <a class="anchor" href="interview.html">AI interviewer</a> and grind the <a class="anchor" href="study.html">question bank</a>.</div>
+
+  <h2>Mock exam <span style="font-weight:400;color:var(--muted);font-size:.95rem">&middot; 25 questions</span></h2>
+
+  <div class="examhead">
+    <span class="timer" id="timer">00:00</span>
+    <span class="count" id="count">0 / 25 answered</span>
+    <span class="spacer"></span>
+    <button class="btn btn-ghost" id="shuffleBtn">&#8635; Shuffle / retake</button>
+    <button class="btn btn-primary" id="submitBtn">Submit exam</button>
+  </div>
+
+  <div class="results" id="results"></div>
+  <form id="quiz"></form>
+
+  <div class="examhead" style="position:static;border-top:1px solid var(--line);border-bottom:none">
+    <span class="spacer"></span>
+    <button class="btn btn-primary" id="submitBtn2">Submit exam</button>
+  </div>
+</div>
+
+<script>
+/* ---------- PL-300 question bank (exam-style) ---------- */
+const QUESTIONS = [
+  {d:"Prepare", q:"You import a 50-million-row SQL table but only need 2024 rows. Where should you filter to keep the refresh fast and let the source do the work?",
+   o:["A DAX calculated table with FILTER","A Power Query filter step kept early so it folds to the source","A visual-level filter on each page","A bookmark"],a:1,
+   e:"Filtering early in Power Query lets <b>query folding</b> push the WHERE clause to the SQL source, so far fewer rows are transferred and loaded. DAX/visual filters happen after the data is already imported."},
+
+  {d:"Prepare", q:"Sales data has one column per month (Jan, Feb, Mar...). New months keep getting added. Which transform makes the model future-proof?",
+   o:["Pivot columns","Unpivot the month columns into Attribute/Value","Transpose","Fill down"],a:1,
+   e:"<b>Unpivot</b> turns wide month columns into a tidy long format (Month, Value), so new months need no schema change. Pivot does the opposite."},
+
+  {d:"Prepare", q:"You want to confirm a column's data quality (% empty, distinct values) before modeling. What do you enable?",
+   o:["Column quality / column profile in Power Query","Performance Analyzer","Q&A","Field parameters"],a:0,
+   e:"<b>Column quality, column distribution, and column profile</b> (View tab in Power Query) show valid/error/empty percentages and value distributions. Set profiling to the entire dataset for accuracy."},
+
+  {d:"Prepare", q:"A query stops folding after a certain step. What most likely broke folding?",
+   o:["Renaming a column","Filtering rows","An added custom column using a function the source can't translate","Removing a column"],a:2,
+   e:"Operations the source engine can't translate to native SQL (many custom-function steps, certain merges) break <b>query folding</b>. Keep foldable steps (filter, remove/rename columns, group) first."},
+
+  {d:"Prepare", q:"You need to load 200 identically-shaped CSV files from a folder. Best approach?",
+   o:["Append 200 queries manually","Get Data → From Folder → Combine & Transform","Merge the files","Use DirectQuery"],a:1,
+   e:"<b>From Folder → Combine & Transform</b> builds a sample transformation function applied to every file, so new files are picked up automatically on refresh."},
+
+  {d:"Prepare", q:"What is the purpose of a Power Query parameter in incremental refresh?",
+   o:["To store a measure","RangeStart/RangeEnd parameters define the refresh window","To create a slicer","To set RLS"],a:1,
+   e:"Incremental refresh requires <b>RangeStart</b> and <b>RangeEnd</b> datetime parameters used to filter the table; Power BI then partitions and refreshes only the recent window."},
+
+  {d:"Model", q:"For best performance and simplest DAX, which model shape should you aim for?",
+   o:["Single flat table","Snowflake schema","Star schema (fact + denormalized dimensions)","Many-to-many everywhere"],a:2,
+   e:"A <b>star schema</b> — one fact table related to denormalized dimensions — is fastest in VertiPaq and makes DAX/filter propagation straightforward."},
+
+  {d:"Model", q:"Time-intelligence functions like TOTALYTD return blank/incorrect. The most common cause?",
+   o:["No dedicated, contiguous Date table marked as a date table","Too many measures","Wrong visual","Missing slicer"],a:0,
+   e:"Time intelligence needs a <b>continuous Date dimension</b> (one row per day) related to the fact and <b>Mark as Date Table</b>. Relying on the fact's date column or gaps breaks it."},
+
+  {d:"Model", q:"You must show sales by both Order Date and Ship Date, but only one relationship can be active. How?",
+   o:["Create two date tables","Use USERELATIONSHIP inside CALCULATE for the inactive relationship","Use bidirectional filtering","Duplicate the fact table"],a:1,
+   e:"Keep one active relationship; for the other, write a measure with <b>CALCULATE([Measure], USERELATIONSHIP(Fact[ShipDate], Date[Date]))</b> to activate the inactive relationship just for that calc."},
+
+  {d:"Model", q:"Which calculation should be a measure rather than a calculated column?",
+   o:["A category label used to slice","Total Sales = SUMX(Sales, Qty*Price)","A flag column for filtering","A concatenated key"],a:1,
+   e:"Aggregations evaluated by filter context (sums, ratios, KPIs) belong in <b>measures</b> — computed at query time, no storage. Calculated columns are for attributes you slice/filter by."},
+
+  {d:"Model", q:"You implement RLS so regional managers see only their region. Where do you define the filter and where do you assign people?",
+   o:["DAX filter on a role in Desktop; assign members in the Service","Power Query; assign in Desktop","Visual filter; assign in Excel","Bookmark; assign by email"],a:0,
+   e:"Define <b>roles with a DAX table filter</b> (e.g., [Region]=USERPRINCIPALNAME()-based) in Power BI Desktop, publish, then <b>assign users/groups to roles in the Power BI Service</b>."},
+
+  {d:"Model", q:"DIVIDE([Profit],[Sales]) is preferred over [Profit]/[Sales] because it...",
+   o:["Is faster always","Handles divide-by-zero/blank by returning a safe alternate","Rounds automatically","Creates a column"],a:1,
+   e:"<b>DIVIDE</b> safely returns BLANK (or a specified alternate) on divide-by-zero instead of an error, and is optimized for it."},
+
+  {d:"Model", q:"A measure referencing AVERAGEX(VALUES(Customer[Id]),[Sales]) works per-customer because of...",
+   o:["Row context only","Context transition turning each row into filter context","Bidirectional filtering","A calculated column"],a:1,
+   e:"Inside the iterator, referencing the measure triggers <b>context transition</b> (the measure is wrapped in CALCULATE), turning the current customer row into filter context so [Sales] recomputes per customer."},
+
+  {d:"Visualize", q:"You want changing one slicer to NOT affect a specific chart. What do you configure?",
+   o:["Bookmarks","Edit interactions (set the visual to None for that slicer)","Drillthrough","Sync slicers"],a:1,
+   e:"Use <b>Format → Edit interactions</b> and set the target visual's interaction to <b>None</b> so the slicer/visual no longer filters it."},
+
+  {d:"Visualize", q:"Users should click a product and jump to a detailed page filtered to that product. Which feature?",
+   o:["Tooltip page","Drillthrough","Bookmark","Sync slicer"],a:1,
+   e:"<b>Drillthrough</b> sends the user to a target page filtered by the value (e.g., product) they right-click/drill from."},
+
+  {d:"Visualize", q:"Which visual best explains what factors drive a metric up or down?",
+   o:["Key influencers","Pie chart","Card","Matrix"],a:0,
+   e:"The <b>Key influencers</b> AI visual analyzes which factors most affect a selected metric. Decomposition tree is for ad-hoc drill-down."},
+
+  {d:"Visualize", q:"You need to capture a specific filter/visibility state and let users return to it with a button. Use...",
+   o:["Bookmarks (+ optionally a Selection pane and a button)","Drillthrough","A calculated table","RLS"],a:0,
+   e:"<b>Bookmarks</b> capture page state (filters, visibility, sort). Combine with the Selection pane and buttons to build navigation/toggles."},
+
+  {d:"Visualize", q:"To compare a measure against a target with one number plus progress to goal, the best visual is...",
+   o:["KPI / gauge","Scatter","Treemap","Funnel"],a:0,
+   e:"A <b>KPI</b> (or gauge) visual shows a value against a target/goal with status — purpose-built for goal tracking."},
+
+  {d:"Visualize", q:"For accessibility, which is a recommended practice?",
+   o:["Use color alone to convey status","Add alt text, ensure tab order, and don't rely on color alone","Disable keyboard navigation","Hide titles"],a:1,
+   e:"Provide <b>alt text</b>, set a logical <b>tab order</b>, ensure sufficient contrast, and never rely on color alone — Power BI exposes these in the visual's accessibility settings."},
+
+  {d:"Visualize", q:"You want one slicer to filter visuals across multiple pages. What do you use?",
+   o:["Sync slicers","Edit interactions","Drillthrough","Field parameters"],a:0,
+   e:"<b>Sync slicers</b> (View → Sync slicers pane) lets a slicer apply across selected pages."},
+
+  {d:"Deploy", q:"A published report must refresh from an on-prem SQL Server every morning. What's required?",
+   o:["Nothing, cloud refresh works on-prem","An on-premises data gateway + scheduled refresh","DirectQuery only","Republish daily"],a:1,
+   e:"The Service reaches on-prem sources through an <b>on-premises data gateway</b>; configure the dataset's credentials and <b>scheduled refresh</b>."},
+
+  {d:"Deploy", q:"What's the correct way to distribute a polished, read-only set of reports to 500 business users?",
+   o:["Share each report individually","Publish the workspace as an App and grant the audience","Email PBIX files","Give everyone Admin on the workspace"],a:1,
+   e:"Publish a Power BI <b>App</b> from the workspace to a defined audience — governed, packaged distribution. Workspace roles (Admin/Member/Contributor/Viewer) are for the build team."},
+
+  {d:"Deploy", q:"Several reports should reuse one governed dataset instead of each importing its own copy. Use...",
+   o:["A shared/published semantic model with live connection","Separate imports per report","Excel files","Bookmarks"],a:0,
+   e:"Publish the <b>semantic model (dataset)</b> once and build reports with a <b>live connection</b> to it — one source of truth, consistent measures, less refresh load."},
+
+  {d:"Deploy", q:"What does applying a sensitivity label (e.g., Confidential) to a dataset do?",
+   o:["Speeds refresh","Classifies and can enforce protection/encryption that persists on export","Creates RLS","Adds a slicer"],a:1,
+   e:"<b>Sensitivity labels</b> (Microsoft Purview Information Protection) classify content and can enforce encryption/usage rights that persist even when data is exported."},
+
+  {d:"Deploy", q:"Which workspace role can publish and edit content but cannot add/remove other users or change workspace settings?",
+   o:["Viewer","Contributor / Member","Admin","Owner"],a:1,
+   e:"<b>Member/Contributor</b> can publish and edit content; only <b>Admin</b> manages access and settings. Viewer is read-only."}
+];
+
+/* ---------- engine ---------- */
+const $=id=>document.getElementById(id);
+const PASS=70, byd={};
+let order=[], t0=null, timerId=null, submitted=false;
+
+function shuffle(a){a=[...a];for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]];}return a;}
+function fmt(s){const m=(s/60|0).toString().padStart(2,'0'),x=(s%60).toString().padStart(2,'0');return m+':'+x;}
+function startTimer(){t0=Date.now();clearInterval(timerId);timerId=setInterval(()=>{$('timer').textContent=fmt((Date.now()-t0)/1000|0);},1000);}
+
+function render(){
+  submitted=false; $('results').classList.remove('show'); $('results').innerHTML='';
+  order=shuffle(QUESTIONS.map((q,i)=>i));
+  const f=$('quiz'); f.innerHTML='';
+  order.forEach((qi,n)=>{
+    const q=QUESTIONS[qi];
+    const div=document.createElement('div'); div.className='q'; div.id='q'+n;
+    div.innerHTML=`<div class="meta">Q${n+1} &middot; ${q.d}</div><div class="stem">${q.q}</div>`+
+      q.o.map((opt,oi)=>`<label class="opt" data-q="${n}" data-o="${oi}"><input type="radio" name="q${n}" value="${oi}"><span>${opt}</span></label>`).join('')+
+      `<div class="expl" id="e${n}"></div>`;
+    f.appendChild(div);
+  });
+  f.querySelectorAll('input').forEach(r=>r.addEventListener('change',updateCount));
+  updateCount(); startTimer();
+  scrollTo({top:0,behavior:'smooth'});
+}
+function updateCount(){
+  const ans=order.filter((_,n)=>$('quiz').querySelector(`input[name="q${n}"]:checked`)).length;
+  $('count').textContent=`${ans} / ${order.length} answered`;
+}
+function grade(){
+  if(submitted) return;
+  submitted=true; clearInterval(timerId);
+  let correct=0; const dom={};
+  order.forEach((qi,n)=>{
+    const q=QUESTIONS[qi];
+    const picked=$('quiz').querySelector(`input[name="q${n}"]:checked`);
+    const pv=picked?+picked.value:-1;
+    dom[q.d]=dom[q.d]||{c:0,t:0}; dom[q.d].t++;
+    const labels=$('quiz').querySelectorAll(`.opt[data-q="${n}"]`);
+    labels.forEach(l=>{const oi=+l.dataset.o;
+      if(oi===q.a) l.classList.add('correct');
+      if(oi===pv && pv!==q.a) l.classList.add('wrong');
+    });
+    if(pv===q.a){correct++; dom[q.d].c++;}
+    const e=$('e'+n); e.classList.add('show');
+    e.innerHTML=`<b>${pv===q.a?'Correct.':'Answer: '+q.o[q.a]}</b> ${q.e}`;
+  });
+  const total=order.length, pct=Math.round(correct/total*100), scaled=Math.round(correct/total*1000);
+  const pass=pct>=PASS;
+  const r=$('results'); r.classList.add('show');
+  r.innerHTML=
+    `<div class="score">${pct}%</div>`+
+    `<div class="verdict ${pass?'pass':'fail'}">${pass?'PASS':'BELOW PASS'} &middot; scaled ~${scaled}/1000 (pass = 700) &middot; ${correct}/${total} correct &middot; time ${fmt((Date.now()-t0)/1000|0)}</div>`+
+    `<div class="bar"><i style="width:${pct}%"></i></div>`+
+    `<h3>By domain</h3><div class="dgrid">`+
+    Object.entries(dom).map(([d,v])=>{const p=Math.round(v.c/v.t*100);
+      return `<div class="dcell"><b>${d}</b> <span class="n">${v.c}/${v.t} (${p}%)</span><div class="bar"><i style="width:${p}%"></i></div></div>`;}).join('')+
+    `</div><p style="margin-top:14px">Review each explanation below. Aim for 85%+ before booking. Then drill weak domains in the <a class="anchor" href="learn.html">Handbook</a> and out loud with the <a class="anchor" href="interview.html">AI interviewer</a>.</p>`;
+  $('count').textContent=`${total} / ${total} answered`;
+  scrollTo({top:r.offsetTop-70,behavior:'smooth'});
+}
+
+$('submitBtn').onclick=grade; $('submitBtn2').onclick=grade;
+$('shuffleBtn').onclick=render;
+
+/* theme + nav (same as the rest of the site) */
+const tBtn=$('themeBtn');
+function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('rhea_theme',t);tBtn.innerHTML=t==='dark'?'&#9728; Light':'&#9789; Dark';}
+tBtn.onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+setTheme(localStorage.getItem('rhea_theme')||'light');
+const navToggle=$('navToggle'),navLinks=$('navLinks');
+navToggle.addEventListener('click',()=>{const o=navLinks.classList.toggle('open');navToggle.setAttribute('aria-expanded',o);});
+navLinks.addEventListener('click',e=>{if(e.target.tagName==='A'){navLinks.classList.remove('open');navToggle.setAttribute('aria-expanded','false');}});
+
+render();
+</script>
+</body>
+</html>
