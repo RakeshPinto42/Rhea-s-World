@@ -4,7 +4,7 @@ compatibility_date = "2024-11-01"
 
 # Non-secret config (safe to commit). Secrets are set separately — see README.
 [vars]
-ALLOWED_ORIGIN   = "*"                         # set to your site origin in prod, e.g. https://rhea.pages.dev
+ALLOWED_ORIGIN   = "https://rhea-s-world.pages.dev"   # site origin; blocks other sites from calling the Worker
 DEFAULT_PROVIDER = "openrouter"                # openrouter | gemini | groq
 OPENROUTER_MODEL = "openai/gpt-oss-20b:free"
 GEMINI_MODEL     = "gemini-2.0-flash"

@@ -33,7 +33,9 @@ body{background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1
 .site-header{position:sticky;top:0;z-index:40;background:var(--panel);border-bottom:1px solid var(--line)}
 .site-header .bar{max-width:var(--maxw);margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:14px;position:relative}
 .logo{font-weight:700;font-size:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
-.logo .mark{width:26px;height:26px;border-radius:7px;background:var(--accent);display:grid;place-items:center;color:#1b1500;font-weight:700;font-size:.85rem;flex-shrink:0}
+/* brand mark: a Moana-style swirl/wave that doubles as a data spiral, on the Power BI gold badge */
+.logo .mark{width:30px;height:30px;border-radius:9px;flex-shrink:0;font-size:0;color:transparent;
+  background:var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 4C18 4 20.5 8.5 20.5 12C20.5 16 16.5 18.5 13 18.5C10 18.5 7.8 16.3 7.8 13.3C7.8 11 9.4 9.6 11.2 9.6C12.8 9.6 14 10.8 14 12.4' fill='none' stroke='%231b1500' stroke-width='2.4' stroke-linecap='round'/%3E%3Ccircle cx='14' cy='12.5' r='1.7' fill='%231b1500'/%3E%3C/svg%3E") center/72% no-repeat}
 .logo small{display:block;font-weight:400;font-size:.7rem;color:var(--muted)}
 .bar .spacer{flex:1}
 .nav-links{display:flex;align-items:center;gap:4px}
