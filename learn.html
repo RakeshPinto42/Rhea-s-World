@@ -12,18 +12,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="site.css" />
 <style>
-  :root{
-    --bg:#f4f5f7;--panel:#fff;--ink:#1b2230;--muted:#5d6677;--faint:#8a93a3;
-    --line:#e3e7ee;--accent:#c8a200;--accent-2:#0a6c74;--green:#157347;--red:#b42318;--amber:#9a6b00;
-    --code-bg:#1c2230;--code-ink:#e8edf5;--shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px -8px rgba(20,30,50,.18);
-  }
-  [data-theme="dark"]{
-    --bg:#0f1218;--panel:#161b24;--ink:#e8edf5;--muted:#9aa4b4;--faint:#6b7484;
-    --line:#252c38;--accent:#e3bf3a;--accent-2:#3fb6bf;--code-bg:#0b0e14;--code-ink:#e8edf5;
-    --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -10px rgba(0,0,0,.6);
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
+  /* palette + base now come from site.css (single source of truth) */
   html{scroll-behavior:smooth}
   body{background:var(--bg);color:var(--ink);font-family:"IBM Plex Sans",sans-serif;line-height:1.65;-webkit-font-smoothing:antialiased}
 

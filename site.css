@@ -1,0 +1,71 @@
+/* =====================================================================
+   Rhea's World — shared design system
+   Single source of truth for tokens, typography, nav, buttons, footer.
+   Link this BEFORE any page-specific <style> so pages can still override.
+   ===================================================================== */
+
+:root{
+  /* palette (light) */
+  --bg:#f4f5f7; --panel:#ffffff; --ink:#1b2230; --muted:#5d6677; --faint:#8a93a3;
+  --line:#e3e7ee; --accent:#c8a200; --accent-2:#0a6c74; --violet:#6d4bd8;
+  --green:#157347; --red:#b42318; --amber:#9a6b00;
+  --code-bg:#1c2230; --code-ink:#e8edf5;
+  --shadow:0 1px 2px rgba(20,30,50,.06),0 6px 18px -8px rgba(20,30,50,.18);
+  /* type + layout */
+  --font:"IBM Plex Sans",system-ui,-apple-system,sans-serif;
+  --mono:"IBM Plex Mono",ui-monospace,monospace;
+  --maxw:1240px;
+}
+[data-theme="dark"]{
+  --bg:#0f1218; --panel:#161b24; --ink:#e8edf5; --muted:#9aa4b4; --faint:#6b7484;
+  --line:#252c38; --accent:#e3bf3a; --accent-2:#3fb6bf; --violet:#9a7cff;
+  --code-bg:#0b0e14; --code-ink:#e8edf5;
+  --shadow:0 1px 2px rgba(0,0,0,.4),0 8px 24px -10px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);line-height:1.6;-webkit-font-smoothing:antialiased}
+.mono{font-family:var(--mono)}
+::selection{background:var(--accent);color:#1b1500}
+
+/* ---------- shared header / nav ---------- */
+.site-header{position:sticky;top:0;z-index:40;background:var(--panel);border-bottom:1px solid var(--line)}
+.site-header .bar{max-width:var(--maxw);margin:0 auto;padding:13px 22px;display:flex;align-items:center;gap:14px;position:relative}
+.logo{font-weight:700;font-size:1rem;display:flex;align-items:center;gap:10px;text-decoration:none;color:var(--ink)}
+.logo .mark{width:26px;height:26px;border-radius:7px;background:var(--accent);display:grid;place-items:center;color:#1b1500;font-weight:700;font-size:.85rem;flex-shrink:0}
+.logo small{display:block;font-weight:400;font-size:.7rem;color:var(--muted)}
+.bar .spacer{flex:1}
+.nav-links{display:flex;align-items:center;gap:4px}
+.ghost-link{color:var(--muted);text-decoration:none;font-size:.84rem;font-weight:500;padding:7px 11px;border-radius:8px;transition:color .2s,background .2s}
+.ghost-link:hover{color:var(--ink);background:var(--bg)}
+.ghost-link.active{color:var(--accent-2);font-weight:600}
+[data-theme="dark"] .ghost-link.active{color:var(--accent)}
+.toggle,.iconbtn{background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:7px 12px;cursor:pointer;font-size:.8rem;font-weight:500;font-family:inherit}
+.toggle:hover,.iconbtn:hover{border-color:var(--accent)}
+.navtoggle{display:none;background:var(--bg);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:8px 12px;font-size:1.05rem;line-height:1;cursor:pointer}
+@media(max-width:820px){
+  .navtoggle{display:block}
+  .nav-links{display:none;position:absolute;top:100%;right:14px;flex-direction:column;align-items:stretch;gap:2px;
+    background:var(--panel);border:1px solid var(--line);border-radius:0 0 14px 14px;padding:8px;min-width:210px;box-shadow:var(--shadow)}
+  .nav-links.open{display:flex}
+}
+
+/* ---------- shared buttons ---------- */
+.btn{font-family:inherit;font-size:.92rem;font-weight:600;padding:12px 22px;border-radius:11px;border:1px solid transparent;
+  text-decoration:none;cursor:pointer;display:inline-flex;align-items:center;gap:8px;transition:transform .2s,box-shadow .2s,border-color .2s}
+.btn-primary{background:var(--accent);color:#1b1500;box-shadow:0 8px 24px -10px var(--accent)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 12px 30px -10px var(--accent)}
+.btn-ghost{background:transparent;color:var(--ink);border-color:var(--line)}
+.btn-ghost:hover{transform:translateY(-2px);border-color:var(--accent-2);color:var(--accent-2)}
+
+/* ---------- shared footer ---------- */
+.site-foot{padding:48px 22px;border-top:1px solid var(--line);text-align:center;margin-top:40px}
+.site-foot .big{font-weight:700;font-size:clamp(1.3rem,4vw,2rem);margin-bottom:12px;letter-spacing:-.01em}
+.site-foot .big b{color:var(--accent-2)}
+[data-theme="dark"] .site-foot .big b{color:var(--accent)}
+.site-foot p{font-family:var(--mono);font-size:.74rem;color:var(--muted);letter-spacing:.06em}
+
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
