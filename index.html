@@ -188,6 +188,21 @@
   [data-theme="dark"] .bio .accent{color:var(--accent)}
   .bio .close{font-style:italic;color:var(--ink);border-left:3px solid var(--accent);padding-left:16px;margin:6px 0 0;font-size:1.08rem}
 
+  /* live Power BI embed slot */
+  .embed-wrap{position:relative;border-radius:16px;overflow:hidden;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow);aspect-ratio:16/9}
+  .embed-wrap iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .embed-empty{display:grid;place-items:center;text-align:center;height:100%;padding:30px;color:var(--muted)}
+  .embed-empty .ic{font-size:2.4rem;margin-bottom:14px}
+  .embed-empty b{color:var(--ink)}
+  .embed-empty code{font-family:var(--mono);background:var(--bg);border:1px solid var(--line);padding:2px 7px;border-radius:6px;color:var(--ink);font-size:.82rem}
+  .embed-empty p{max-width:460px;margin:0 auto;line-height:1.6}
+  .pbi-admin{display:none;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:16px;padding:12px 14px;border:1px dashed var(--accent);border-radius:12px;background:var(--panel)}
+  .pbi-admin .tag{font-family:var(--mono);font-size:.64rem;text-transform:uppercase;letter-spacing:.1em;color:#1b1500;background:var(--accent);padding:3px 9px;border-radius:99px;font-weight:600}
+  .pbi-admin input{flex:1;min-width:240px;font-family:var(--mono);font-size:.84rem;padding:9px 11px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink);outline:none}
+  .pbi-admin input:focus{border-color:var(--accent-2)}
+  .pbi-admin .btn{padding:9px 16px;font-size:.84rem}
+  .pbi-admin #pbiMsg{font-size:.74rem;color:var(--muted);flex-basis:100%}
+
   @media(prefers-reduced-motion:reduce){.reveal{opacity:1;transform:none}.in .donut{--p:48}}
 </style>
 </head>
@@ -469,8 +484,28 @@
     </div>
   </section>
 
+  <section id="live">
+    <div class="sec-head reveal"><span class="sec-num">03 //</span><h2 class="sec-title">A <em>live</em> report</h2></div>
+    <div class="pbi-admin" id="pbiAdmin">
+      <span class="tag">Admin</span>
+      <input id="pbiInput" type="url" placeholder="https://app.powerbi.com/view?r=&hellip;" />
+      <button id="pbiSave" class="btn btn-primary">Save</button>
+      <button id="pbiClear" class="btn btn-ghost">Clear</button>
+      <span id="pbiMsg" class="mono"></span>
+    </div>
+    <div class="embed-wrap reveal" id="pbiEmbed">
+      <div class="embed-empty">
+        <div>
+          <div class="ic">&#128202;</div>
+          <p><b>Live Power BI report appears here.</b></p>
+          <p style="margin-top:10px">Rhea drops in a <b>Power&nbsp;BI</b> report &mdash; every visitor sees it live, while the underlying link stays hidden behind the proxy.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section id="how">
-    <div class="sec-head reveal"><span class="sec-num">03 //</span><h2 class="sec-title">How she <em>works</em></h2></div>
+    <div class="sec-head reveal"><span class="sec-num">04 //</span><h2 class="sec-title">How she <em>works</em></h2></div>
     <div class="steps">
       <div class="step reveal"><div class="n">01</div><h4>Ingest the chaos</h4><p>CSV, SQL, an API, a sketchy Excel drop &mdash; Power Query cleans the mess.</p></div>
       <div class="step reveal"><div class="n">02</div><h4>Model &amp; measure</h4><p>Star schema, relationships, then DAX measures until every total reconciles to truth.</p></div>
@@ -479,7 +514,7 @@
   </section>
 
   <section id="ideas">
-    <div class="sec-head reveal"><span class="sec-num">04 //</span><h2 class="sec-title">What&rsquo;s <em>next</em></h2></div>
+    <div class="sec-head reveal"><span class="sec-num">05 //</span><h2 class="sec-title">What&rsquo;s <em>next</em></h2></div>
     <div class="ideas">
       <div class="idea reveal"><div class="ic">&#128202;</div><div><h4>Embed a live report</h4><p>Power BI &ldquo;Publish to web&rdquo; iframe beside these mock charts &mdash; a real interactive report.</p></div></div>
       <a href="projects.html" class="idea reveal"><div class="ic">&#129514;</div><div><h4>Project lab</h4><p>Eight Kaggle builds at senior level &mdash; Olist, RFM, churn, forecasting, big-data perf.</p></div></a>
@@ -497,6 +532,90 @@
 </footer>
 
 <script>
+  /* ===== live Power BI embed =====
+     Every visitor SEES the report, but the link rhea pastes stays hidden:
+       • Worker deployed -> iframe points at the Worker proxy (/api/report/go),
+         which 302-redirects server-side to the real link. The link never
+         appears in page source, JS, or any public JSON. (Network tab still
+         shows the powerbi.com request — unavoidable for browser embeds.)
+       • Local mode (no Worker) -> the link can't be hidden; iframe embeds it
+         directly and the URL is visible in the DOM. Deploy the Worker to hide. */
+  const PBI_EMBED_URL = "";
+  (function(){
+    const slot=document.getElementById('pbiEmbed');
+    const bar=document.getElementById('pbiAdmin');
+    if(!slot)return;
+    const PLACEHOLDER=slot.innerHTML;
+    const RKEY='rhea_pbi_url';
+    const W=window.RHEA_WORKER_URL;
+    const isPbi=u=>{try{return new URL(u).hostname.endsWith('powerbi.com');}catch(e){return false;}};
+
+    function frame(src){
+      const f=document.createElement('iframe');
+      f.src=src;f.title='Rhea — live Power BI report';
+      f.loading='lazy';f.allowFullscreen=true;f.referrerPolicy='no-referrer';
+      slot.innerHTML='';slot.appendChild(f);
+    }
+    const placeholder=()=>{slot.innerHTML=PLACEHOLDER;};
+
+    // PUBLIC view — what every visitor gets. Link stays hidden behind the proxy.
+    async function renderPublic(){
+      if(W){
+        try{const r=await fetch(W+'/api/report/exists');
+          if(r.ok&&(await r.json()).exists){frame(W+'/api/report/go');return;}}catch(e){}
+        placeholder();return;
+      }
+      const u=localStorage.getItem(RKEY)||PBI_EMBED_URL; // local mode: link visible
+      if(u&&isPbi(u))frame(u);else placeholder();
+    }
+
+    // ADMIN — fetch the real link only for rhea's own input prefill.
+    async function adminUrl(){
+      const t=window.RHEA_AUTH&&window.RHEA_AUTH.token;
+      if(W&&t){try{const r=await fetch(W+'/api/report',{headers:{'Authorization':'Bearer '+t}});
+        if(r.ok)return (await r.json()).url||'';}catch(e){}}
+      return localStorage.getItem(RKEY)||PBI_EMBED_URL;
+    }
+    async function saveUrl(url){
+      const t=window.RHEA_AUTH&&window.RHEA_AUTH.token;
+      if(W&&t){
+        const r=await fetch(W+'/api/report',{method:'POST',
+          headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},
+          body:JSON.stringify({url})});
+        if(!r.ok){const j=await r.json().catch(()=>({}));throw new Error(j.error||'Save failed');}
+        return 'Saved — visitors see the report; the link stays hidden.';
+      }
+      if(url)localStorage.setItem(RKEY,url);else localStorage.removeItem(RKEY);
+      return 'Saved on this device only (local mode — link is visible; deploy the Worker to hide it).';
+    }
+
+    renderPublic();
+
+    function applyAuth(){
+      const a=window.RHEA_AUTH,admin=a&&a.role==='admin';
+      if(bar)bar.style.display=admin?'flex':'none';
+      if(admin&&bar)adminUrl().then(u=>{if(u)bar.querySelector('#pbiInput').value=u;});
+    }
+    document.addEventListener('rhea-auth',applyAuth);
+    applyAuth();
+
+    if(bar){
+      const inp=bar.querySelector('#pbiInput'),msg=bar.querySelector('#pbiMsg');
+      bar.querySelector('#pbiSave').addEventListener('click',async()=>{
+        const v=inp.value.trim();
+        if(v&&!isPbi(v)){msg.textContent='Must be an app.powerbi.com link.';return;}
+        msg.textContent='Saving…';
+        try{msg.textContent=await saveUrl(v);renderPublic();}
+        catch(e){msg.textContent=e.message;}
+      });
+      bar.querySelector('#pbiClear').addEventListener('click',async()=>{
+        inp.value='';msg.textContent='Saving…';
+        try{msg.textContent=await saveUrl('');renderPublic();}
+        catch(e){msg.textContent=e.message;}
+      });
+    }
+  })();
+
   /* theme (shared key with the rest of the site) */
   const tBtn=document.getElementById('themeBtn');
   function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('rhea_theme',t);tBtn.innerHTML=t==='dark'?'&#9728; Light':'&#9789; Dark';}

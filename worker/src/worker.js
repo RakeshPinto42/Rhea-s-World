@@ -7,6 +7,10 @@
  * Endpoints:
  *   POST /api/login  { username, password }            -> { token, role }
  *   POST /api/chat   { system, messages, provider?, model? }  (Bearer token)  -> { text }
+ *   GET  /api/report/exists                              -> { exists } (public)
+ *   GET  /api/report/go                                  -> 302 to link (public, link hidden in page)
+ *   GET  /api/report           (admin Bearer token)      -> { url }    (prefill rhea's input)
+ *   POST /api/report { url }   (admin Bearer token)      -> { ok, url } (KV-backed)
  *
  * Secrets/vars (set via wrangler — see README):
  *   AUTH_SECRET       random string used to sign session tokens
@@ -76,7 +80,7 @@ async function verify(token, secret) {
 function cors(env) {
   return {
     'Access-Control-Allow-Origin': env.ALLOWED_ORIGIN || '*',
-    'Access-Control-Allow-Methods': 'POST, OPTIONS',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type, Authorization',
     'Access-Control-Max-Age': '86400',
     'Vary': 'Origin'
@@ -129,6 +133,45 @@ export default {
         return json({ text }, 200, env);
       } catch (e) {
         return json({ error: String(e.message || e) }, 502, env);
+      }
+    }
+
+    // ---------- REPORT EMBED ----------
+    // Visitors see the report but NEVER the link:
+    //   GET  /api/report/exists  (public)  -> { exists }   no URL leaked
+    //   GET  /api/report/go      (public)  -> 302 redirect to the real link
+    //   GET  /api/report         (admin)   -> { url }       for rhea's input prefill
+    //   POST /api/report         (admin)   -> store the link in KV
+
+    if (url.pathname === '/api/report/exists' && req.method === 'GET') {
+      const u = env.REPORTS ? (await env.REPORTS.get('pbi_url')) : '';
+      return json({ exists: !!u }, 200, env);
+    }
+
+    if (url.pathname === '/api/report/go' && req.method === 'GET') {
+      const u = env.REPORTS ? (await env.REPORTS.get('pbi_url')) : '';
+      if (!u) return new Response('No report set.', { status: 404 });
+      // server-side redirect — the link is in the Location header, not the page DOM
+      return new Response(null, { status: 302, headers: { Location: u, 'Cache-Control': 'no-store' } });
+    }
+
+    if (url.pathname === '/api/report') {
+      const token = (req.headers.get('Authorization') || '').replace(/^Bearer\s+/i, '');
+      const sess = await verify(token, env.AUTH_SECRET);
+      if (!sess || sess.role !== 'admin') return json({ error: 'Admin only.' }, 403, env);
+
+      if (req.method === 'GET') {
+        const u = env.REPORTS ? (await env.REPORTS.get('pbi_url')) : '';
+        return json({ url: u || '' }, 200, env);
+      }
+      if (req.method === 'POST') {
+        if (!env.REPORTS) return json({ error: 'REPORTS KV namespace not configured.' }, 500, env);
+        const { url: link } = await req.json().catch(() => ({}));
+        const val = String(link || '').trim();
+        if (val && !/^https:\/\/[^/]*\.powerbi\.com\//i.test(val))
+          return json({ error: 'Must be an https app.powerbi.com link.' }, 400, env);
+        await env.REPORTS.put('pbi_url', val);
+        return json({ ok: true, url: val }, 200, env);
       }
     }
 

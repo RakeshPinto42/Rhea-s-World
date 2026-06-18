@@ -10,6 +10,13 @@ OPENROUTER_MODEL = "openai/gpt-oss-20b:free"
 GEMINI_MODEL     = "gemini-2.0-flash"
 GROQ_MODEL       = "llama-3.3-70b-versatile"
 
+# KV store for the admin-set Power BI report link (shared with all viewers).
+# Create it once:  wrangler kv namespace create REPORTS
+# then paste the printed id below.
+[[kv_namespaces]]
+binding = "REPORTS"
+id      = "REPLACE_WITH_KV_NAMESPACE_ID"
+
 # Secrets (DO NOT put here — set with `wrangler secret put`):
 #   AUTH_SECRET      random signing key
 #   USERS_JSON       {"rhea":{"hash":"<sha256>","role":"admin"},"guest":{"hash":"<sha256>","role":"user"}}
