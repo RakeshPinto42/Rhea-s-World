@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; Video Academy</title>
+<meta name="description" content="A curated, Udemy-style video academy — Python, Agentic AI, data warehousing, Databricks, Snowflake, Spark, Airflow & dbt. Full courses, tracked progress." />
+<meta property="og:title" content="Rhea — Video Academy" />
+<meta property="og:description" content="Curated full-course videos for Python, Agentic AI, and modern data engineering." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8a200'/%3E%3Cpath d='M16 7C24 7 27 12.5 27 16C27 21 21.5 24.5 17 24.5C13 24.5 10 21.5 10 17.5C10 14.5 12 12.5 14.5 12.5C16.5 12.5 18 14 18 16' fill='none' stroke='%231b1500' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='16.2' r='2.2' fill='%231b1500'/%3E%3C/svg%3E" />
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="site.css" />
+<style>
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:0 22px}
+
+  /* hero */
+  .vh{padding:54px 0 30px}
+  .vh .kick{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-2)}
+  [data-theme="dark"] .vh .kick{color:var(--accent)}
+  .vh h1{font-weight:700;font-size:clamp(2rem,5.4vw,3.4rem);letter-spacing:-.02em;margin:10px 0 12px;line-height:1.06}
+  .vh h1 em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .vh p{color:var(--muted);max-width:680px;font-size:1.05rem;line-height:1.7}
+  .vh .note{margin-top:14px;font-size:.86rem;color:var(--faint)}
+
+  /* controls */
+  .controls{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:8px 0 30px}
+  .search{flex:1;min-width:220px;display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:10px 14px}
+  .search input{border:0;background:transparent;color:var(--ink);font-family:inherit;font-size:.95rem;width:100%;outline:none}
+  .search svg{flex-shrink:0;color:var(--faint)}
+  .pills{display:flex;gap:8px;flex-wrap:wrap}
+  .pill{font-family:var(--mono);font-size:.74rem;padding:8px 14px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer;transition:.2s;white-space:nowrap}
+  .pill:hover{border-color:var(--accent-2);color:var(--ink)}
+  .pill.on{background:var(--accent);border-color:var(--accent);color:#1b1500;font-weight:600}
+
+  /* catalog grid */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:22px;padding-bottom:40px}
+  .course{background:var(--panel);border:1px solid var(--line);border-radius:16px;overflow:hidden;box-shadow:var(--shadow);cursor:pointer;display:flex;flex-direction:column;transition:transform .25s,border-color .25s}
+  .course:hover{transform:translateY(-6px);border-color:var(--accent-2)}
+  .thumb{position:relative;aspect-ratio:16/9;background:#0b0e14;overflow:hidden}
+  .thumb img{width:100%;height:100%;object-fit:cover;display:block;opacity:.92;transition:.3s}
+  .course:hover .thumb img{opacity:1;transform:scale(1.04)}
+  .thumb .ic{position:absolute;top:10px;left:10px;width:38px;height:38px;border-radius:10px;display:grid;place-items:center;font-size:1.2rem;background:rgba(8,10,16,.72);backdrop-filter:blur(4px);border:1px solid rgba(255,255,255,.12)}
+  .thumb .play{position:absolute;inset:0;display:grid;place-items:center;opacity:0;transition:.25s;background:rgba(8,10,16,.35)}
+  .course:hover .thumb .play{opacity:1}
+  .thumb .play span{width:56px;height:56px;border-radius:50%;background:var(--accent);color:#1b1500;display:grid;place-items:center;font-size:1.4rem;padding-left:4px}
+  .course .body{padding:16px 18px 18px;display:flex;flex-direction:column;gap:8px;flex:1}
+  .course .tag{font-family:var(--mono);font-size:.62rem;text-transform:uppercase;letter-spacing:.09em;color:var(--accent-2)}
+  [data-theme="dark"] .course .tag{color:var(--accent)}
+  .course h3{font-weight:600;font-size:1.08rem;line-height:1.3}
+  .course .desc{color:var(--muted);font-size:.88rem;line-height:1.5;flex:1}
+  .course .meta{display:flex;align-items:center;gap:14px;font-family:var(--mono);font-size:.7rem;color:var(--faint);margin-top:4px}
+  .pbar{height:6px;border-radius:99px;background:var(--bg);overflow:hidden;margin-top:6px}
+  .pbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent-2));transition:width .5s}
+  .empty{grid-column:1/-1;text-align:center;color:var(--muted);padding:50px 0;font-family:var(--mono);font-size:.9rem}
+
+  /* course view */
+  .view{display:none;padding-bottom:60px}
+  .view.on{display:block}
+  .back{display:inline-flex;align-items:center;gap:8px;background:none;border:0;color:var(--accent-2);font-family:var(--mono);font-size:.82rem;cursor:pointer;padding:8px 0;margin:18px 0 6px}
+  [data-theme="dark"] .back{color:var(--accent)}
+  .back:hover{text-decoration:underline}
+  .view-head h2{font-weight:700;font-size:clamp(1.4rem,3.6vw,2.1rem);letter-spacing:-.01em;margin-bottom:6px}
+  .view-head .sub{color:var(--muted);font-size:.95rem;margin-bottom:8px}
+  .view-prog{display:flex;align-items:center;gap:12px;font-family:var(--mono);font-size:.74rem;color:var(--muted);margin-bottom:22px}
+  .view-prog .pbar{flex:1;margin:0;max-width:320px;height:8px}
+
+  .player-layout{display:grid;grid-template-columns:1fr 340px;gap:22px;align-items:start}
+  @media(max-width:900px){.player-layout{grid-template-columns:1fr}}
+  .stage{position:relative;aspect-ratio:16/9;border-radius:14px;overflow:hidden;border:1px solid var(--line);background:#000;box-shadow:var(--shadow)}
+  .stage iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+  .now{margin-top:12px}
+  .now h4{font-weight:600;font-size:1.05rem}
+  .now p{color:var(--muted);font-size:.85rem;font-family:var(--mono);margin-top:2px}
+  .now a.yt{color:var(--accent-2);font-size:.8rem;text-decoration:none}
+  .now a.yt:hover{text-decoration:underline}
+  [data-theme="dark"] .now a.yt{color:var(--accent)}
+
+  .playlist{border:1px solid var(--line);border-radius:14px;background:var(--panel);box-shadow:var(--shadow);overflow:hidden;max-height:560px;overflow-y:auto}
+  .playlist .ph{padding:13px 16px;border-bottom:1px solid var(--line);font-family:var(--mono);font-size:.7rem;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);position:sticky;top:0;background:var(--panel);z-index:1}
+  .pl-cta{display:block;width:100%;text-align:left;border:0;border-bottom:1px solid var(--line);cursor:pointer;padding:14px 16px;background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 22%,transparent),transparent);font-family:inherit}
+  .pl-cta b{display:block;font-size:.9rem;color:var(--ink);font-weight:600}
+  .pl-cta span{font-family:var(--mono);font-size:.68rem;color:var(--muted)}
+  .pl-cta.on b{color:var(--accent-2)}
+  [data-theme="dark"] .pl-cta.on b{color:var(--accent)}
+  .pl-foot{padding:12px 16px;border-top:1px solid var(--line);font-size:.74rem}
+  .pl-foot a{color:var(--accent-2);text-decoration:none}
+  [data-theme="dark"] .pl-foot a{color:var(--accent)}
+  .pl-foot a:hover{text-decoration:underline}
+  .badge-pl{color:var(--accent-2)}
+  [data-theme="dark"] .badge-pl{color:var(--accent)}
+  .lesson{display:flex;gap:12px;padding:13px 16px;border-bottom:1px solid var(--line);cursor:pointer;transition:background .2s;align-items:flex-start}
+  .lesson:last-child{border-bottom:0}
+  .lesson:hover{background:var(--bg)}
+  .lesson.active{background:linear-gradient(90deg,color-mix(in srgb,var(--accent) 16%,transparent),transparent)}
+  .lesson.active .lt{color:var(--ink);font-weight:600}
+  .chk{flex-shrink:0;width:22px;height:22px;border-radius:6px;border:1.5px solid var(--line);display:grid;place-items:center;font-size:.8rem;color:transparent;margin-top:1px;transition:.15s}
+  .lesson.done .chk{background:var(--green);border-color:var(--green);color:#fff}
+  .lesson .lx{flex:1;min-width:0}
+  .lesson .lt{font-size:.9rem;line-height:1.35;color:var(--muted)}
+  .lesson .lm{font-family:var(--mono);font-size:.68rem;color:var(--faint);margin-top:3px}
+  .lesson.done .lt{color:var(--faint)}
+
+  /* learning paths */
+  .paths-sec{padding:6px 0 26px}
+  .paths-h{font-weight:700;font-size:clamp(1.3rem,3vw,1.7rem);letter-spacing:-.01em}
+  .paths-h em{font-style:normal;background:linear-gradient(90deg,var(--accent),var(--violet));-webkit-background-clip:text;background-clip:text;color:transparent}
+  .paths-sub{color:var(--muted);font-size:.95rem;margin:6px 0 20px;max-width:680px}
+  .paths{display:grid;grid-template-columns:repeat(auto-fill,minmax(310px,1fr));gap:20px}
+  .path{background:var(--panel);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:20px 20px 8px;display:flex;flex-direction:column}
+  .path-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:14px}
+  .path-ic{width:42px;height:42px;flex-shrink:0;border-radius:11px;display:grid;place-items:center;font-size:1.35rem;background:var(--bg);border:1px solid var(--line)}
+  .path-top h3{font-weight:700;font-size:1.08rem}
+  .path-top p{color:var(--muted);font-size:.84rem;line-height:1.45;margin-top:2px}
+  .path-pct{margin-left:auto;font-family:var(--mono);font-size:.74rem;font-weight:600;color:var(--accent-2);white-space:nowrap}
+  [data-theme="dark"] .path-pct{color:var(--accent)}
+  .path-steps{list-style:none;margin:0;padding:0;position:relative}
+  .pstep{display:flex;align-items:center;gap:12px;padding:9px 0;cursor:pointer;position:relative}
+  .pstep:not(:last-child)::before{content:"";position:absolute;left:14px;top:30px;bottom:-9px;width:2px;background:var(--line)}
+  .pstep.done:not(:last-child)::before{background:var(--green)}
+  .pstep .sn{position:relative;z-index:1;flex-shrink:0;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-family:var(--mono);font-size:.82rem;font-weight:600;background:var(--bg);border:2px solid var(--line);color:var(--muted);transition:.2s}
+  .pstep:hover .sn{border-color:var(--accent-2)}
+  .pstep.done .sn{background:var(--green);border-color:var(--green);color:#fff}
+  .pstep .si{flex:1;min-width:0}
+  .pstep .si b{display:block;font-weight:600;font-size:.92rem;line-height:1.25}
+  .pstep .si em{font-style:normal;font-family:var(--mono);font-size:.68rem;color:var(--faint)}
+  .pstep .go{color:var(--faint);font-size:.85rem;transition:.2s}
+  .pstep:hover .go{color:var(--accent-2)}
+  .pstep:hover .si b{color:var(--accent-2)}
+  [data-theme="dark"] .pstep:hover .si b,[data-theme="dark"] .pstep:hover .go{color:var(--accent)}
+
+  @media(prefers-reduced-motion:reduce){.course,.thumb img{transition:none}}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="bar">
+    <a class="logo" href="index.html"><span class="mark">R</span><div>Video Academy<small>Curated full courses &mdash; learn the rest of the stack</small></div></a>
+    <span class="spacer"></span>
+    <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="ghost-link" href="index.html">Home</a>
+      <a class="ghost-link" href="learn.html">Handbook</a>
+      <a class="ghost-link active" href="videos.html">Videos</a>
+      <a class="ghost-link" href="projects.html">Projects</a>
+      <a class="ghost-link" href="study.html">Trainer</a>
+      <a class="ghost-link" href="interview.html">AI Interviewer</a>
+      <a class="ghost-link" href="pl300.html">PL-300</a>
+    </nav>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<div id="fileWarn" style="display:none;background:#9a6b00;color:#fff;text-align:center;padding:10px 16px;font-size:.86rem">
+  &#9888;&#65039; Opened as a local file &mdash; YouTube embeds will show <b>Error&nbsp;153</b>. Serve over http instead:
+  <code style="background:rgba(0,0,0,.25);padding:2px 7px;border-radius:5px;font-family:monospace">python -m http.server 8000</code> &rarr; open <b>http://localhost:8000/videos.html</b>
+</div>
+
+<div class="wrap">
+  <!-- CATALOG -->
+  <div id="catalog">
+    <section class="vh">
+      <div class="kick">// Video Academy</div>
+      <h1>Learn the rest of the <em>stack</em></h1>
+      <p>Rhea owns SQL &amp; Power BI. These are hand-picked full courses for everything around them &mdash; Python &amp; data analysis, Generative AI, Agentic AI, ML &amp; deep learning, data warehousing, the lakehouse (Databricks), the cloud warehouse (Snowflake), big-data Spark, pipeline tools (Airflow, dbt) and Azure data engineering (DP-203). Watch in place, tick off lessons, track progress.</p>
+      <p class="note">Each course has a few hand-picked highlights <b>plus a full ordered playlist</b> (100+ videos, basic&rarr;advanced, autoplay-next) from leading creators &mdash; freeCodeCamp, Krish Naik, Data with Baraa, Corey Schafer, CampusX and more. Progress is saved in your browser only.</p>
+    </section>
+
+    <section class="paths-sec">
+      <h2 class="paths-h">Curated <em>learning paths</em></h2>
+      <p class="paths-sub">Don&rsquo;t know where to start? Follow a path top to bottom &mdash; each course builds on the one before it. The AI path takes you from Python all the way to building agents.</p>
+      <div class="paths" id="paths"></div>
+    </section>
+
+    <div class="controls">
+      <h2 class="paths-h" style="width:100%;margin-bottom:-6px">All <em>courses</em></h2>
+      <label class="search">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input id="q" type="search" placeholder="Search courses & lessons…" autocomplete="off" />
+      </label>
+      <div class="pills" id="pills"></div>
+    </div>
+
+    <div class="grid" id="grid"></div>
+  </div>
+
+  <!-- COURSE VIEW -->
+  <div class="view" id="view">
+    <button class="back" id="back">&larr; All courses</button>
+    <div class="view-head">
+      <h2 id="vTitle"></h2>
+      <div class="sub" id="vSub"></div>
+      <div class="view-prog">
+        <div class="pbar"><i id="vBar"></i></div>
+        <span id="vPct">0% complete</span>
+      </div>
+    </div>
+    <div class="player-layout">
+      <div>
+        <div class="stage" id="stage"></div>
+        <div class="now">
+          <h4 id="nowTitle"></h4>
+          <p id="nowBy"></p>
+          <a class="yt" id="nowYt" target="_blank" rel="noopener">Open on YouTube &#8599;</a>
+        </div>
+      </div>
+      <div class="playlist" id="playlist"></div>
+    </div>
+  </div>
+</div>
+
+<footer class="site-foot">
+  <div class="big">Keep learning &mdash; <b>one lesson at a time</b>.</div>
+  <p>RHEA&rsquo;S WORLD &middot; VIDEO ACADEMY &middot; 2026</p>
+</footer>
+
+<script>
+  /* theme + nav (shared with the rest of the site) */
+  const tBtn=document.getElementById('themeBtn');
+  function setTheme(t){document.documentElement.setAttribute('data-theme',t);localStorage.setItem('rhea_theme',t);tBtn.innerHTML=t==='dark'?'&#9728; Light':'&#9789; Dark';}
+  tBtn.onclick=()=>setTheme(document.documentElement.getAttribute('data-theme')==='dark'?'light':'dark');
+  setTheme(localStorage.getItem('rhea_theme')||'light');
+  const navToggle=document.getElementById('navToggle'),navLinks=document.getElementById('navLinks');
+  navToggle.addEventListener('click',()=>{const o=navLinks.classList.toggle('open');navToggle.setAttribute('aria-expanded',o);});
+  navLinks.addEventListener('click',e=>{if(e.target.tagName==='A'){navLinks.classList.remove('open');navToggle.setAttribute('aria-expanded','false');}});
+
+  /* =================== course data ===================
+     Each lesson: v = YouTube id, t = title, by = creator, len = duration.
+     Curated full courses for the stack Rhea doesn't already know. */
+  const TRACKS=[
+    {id:'python',tag:'Programming',icon:'\u{1F40D}',title:'Python — Zero to Advanced',
+     desc:'The language from scratch through advanced features — OOP, decorators, generators, typing, async & testing.',
+     lessons:[
+       {v:'rfscVS0vtbw',t:'1. Python Full Course for Beginners — start here',by:'freeCodeCamp / Mike Dane',len:'4h 27m'},
+       {v:'eWRfhZUzrAc',t:'2. Python for Beginners — Full Course',by:'freeCodeCamp',len:'2h 30m'},
+       {v:'ix9cRaBkVe0',t:'3. Python Full Course (2024) — go deeper',by:'Bro Code',len:'12h'},
+       {v:'jCzT9XFZ5bw',t:'4. OOP — Classes, Properties, Getters & Setters',by:'Corey Schafer',len:'18m'},
+       {v:'FsAPt_9Bf3U',t:'5. Decorators — alter function behavior',by:'Corey Schafer',len:'25m'},
+       {v:'Zt2P4yf8Nks',t:'6. Generators & Iterators',by:'YouTube',len:'15m'},
+       {v:'RwH2UzC2rIo',t:'7. Type Hints — basics to advanced generics',by:'YouTube',len:'30m'},
+       {v:'zh7Qpkto6n0',t:'8. Dataclasses & Pydantic — typed data models',by:'YouTube',len:'22m'},
+       {v:'Qb9s3UiMSTA',t:'9. Async / AsyncIO — full tutorial',by:'Tech With Tim',len:'50m'},
+       {v:'cHYq1MRoyI0',t:'10. Testing with pytest — how to test Python',by:'freeCodeCamp',len:'1h'},
+       {v:'rM-jDeSgOQw',t:'11. Capstone — 13-hour comprehensive build',by:'Code With Josh',len:'13h'}
+     ]},
+    {id:'dapython',tag:'Data Analysis',icon:'\u{1F4C8}',title:'Data Analysis with Python — Pandas & NumPy',
+     desc:'The bridge from the language to analytics: pandas, NumPy, Matplotlib & Seaborn on real data.',
+     lessons:[
+       {v:'r-uOLxNrNk8',t:'1. Data Analysis with Python — NumPy, Pandas, Matplotlib, Seaborn',by:'freeCodeCamp',len:'4h 22m'},
+       {v:'LHBE6Q9XlzI',t:'2. Python for Data Science — Pandas, NumPy, Matplotlib',by:'freeCodeCamp',len:'2h'},
+       {v:'gtjxAH8uaP0',t:'3. Pandas by Example — go deeper on pandas',by:'freeCodeCamp',len:'2h 40m'},
+       {v:'OOLlVlleaN4',t:'4. Data Visualization with Matplotlib & Seaborn',by:'YouTube',len:'1h 30m'},
+       {v:'WzTtNMBjcps',t:'5. Exploratory Data Analysis (EDA) — hands-on',by:'YouTube',len:'1h'},
+       {v:'CMEWVn1uZpQ',t:'6. Capstone — Learn Python for Data Science',by:'freeCodeCamp',len:'2h+'}
+     ]},
+    {id:'agentic',tag:'AI',icon:'\u{1F916}',title:'Agentic AI — LangChain & LangGraph',
+     desc:'Build real AI agents: tools, RAG, memory, planning, multi-agent graphs, guardrails and evals.',
+     lessons:[
+       {v:'jGg_1h0qzaM',t:'1. LangGraph Complete Course — build your first agents',by:'freeCodeCamp',len:'2h 30m'},
+       {v:'1w5cCXlh7JQ',t:'2. Build Advanced AI Agent Systems with LangGraph',by:'LangGraph Tutorial',len:'1h+'},
+       {v:'dIb-DujRNEo',t:'3. Agentic AI with LangGraph & MCP — Crash Course',by:'Krish Naik',len:'2h+'},
+       {v:'I90xJlzAUW0',t:'4. CrewAI — multiple agents working together',by:'YouTube',len:'40m'},
+       {v:'LSk5KaEGVk4',t:'5. Agentic AI Engineering Workshop — MCP, CrewAI, OpenAI SDK',by:'YouTube',len:'4h'},
+       {v:'rV3HJ4LEZ7k',t:'6. Complete Agentic AI Course — 10-hour deep dive',by:'Krish Naik',len:'10h'}
+     ]},
+    {id:'genai',tag:'Generative AI',icon:'\u{2728}',title:'Generative AI & LLMs — Krish Naik',
+     desc:'Build with large language models: prompting, RAG, LangChain apps, and the 2026 LLM roadmap.',
+     lessons:[
+       {v:'nCglvjJkU8A',t:'1. Roadmap to Learn Generative AI (LLMs) — orient first',by:'Krish Naik',len:'30m'},
+       {v:'7qqGnuRrWxg',t:'2. Generative AI Crash Course with LangChain',by:'Krish Naik',len:'3h'},
+       {v:'sVcwVQRHIc8',t:'3. Learn RAG from Scratch — by a LangChain engineer',by:'freeCodeCamp',len:'2h 30m'},
+       {v:'mHxLXzYjQRE',t:'4. Production RAG with LangChain & Vector DBs — full course',by:'YouTube',len:'3h+'},
+       {v:'m12M904RNRA',t:'5. Live AI Crash Course — DS, GenAI & Agentic (extensive)',by:'Krish Naik',len:'Series'}
+     ]},
+    {id:'ml',tag:'Machine Learning',icon:'\u{1F9E0}',title:'ML & Deep Learning — Krish Naik',
+     desc:'Classical machine learning then deep learning, in depth — the modeling foundation under AI.',
+     lessons:[
+       {v:'JxgmHe2NyeY',t:'1. Complete Machine Learning in 6 Hours — foundation',by:'Krish Naik',len:'6h'},
+       {v:'e-NyZ9Wq9mA',t:'2. Linear Regression with scikit-learn — first model',by:'YouTube',len:'30m'},
+       {v:'Pbadcqnyzi0',t:'3. Decision Trees in Python (scikit-learn) — hands-on',by:'YouTube',len:'25m'},
+       {v:'d2kxUVwWWwU',t:'4. Deep Learning In-Depth in 5 Hours',by:'Krish Naik',len:'5h'},
+       {v:'uaRKRE8oDZ4',t:'5. AI Learning Path 2026 — what to learn next',by:'Krish Naik',len:'40m'}
+     ]},
+    {id:'dwh',tag:'Data Warehousing',icon:'\u{1F3DB}\u{FE0F}',title:'Data Warehousing & Dimensional Modeling',
+     desc:'Kimball modeling, star schemas, SCDs, ETL and end-to-end warehouse builds.',
+     lessons:[
+       {v:'dsKnn89gcSE',t:'1. Dimensional Modeling in 10 min — Kimball star schema',by:'YouTube',len:'10m'},
+       {v:'gRE3E7VUzRU',t:'2. Star Schema (Kimball Approach) — full walkthrough',by:'YouTube',len:'30m'},
+       {v:'5D4U22XTaB4',t:'3. Slowly Changing Dimensions (SCD) in depth',by:'YouTube',len:'25m'},
+       {v:'HKcEyHF1U00',t:'4. Data Warehouse — The Ultimate Guide (2025)',by:'Data with Baraa',len:'4h+'},
+       {v:'9GVqKuTVANE',t:'5. SQL Data Warehouse from Scratch — hands-on project',by:'Data with Baraa',len:'5h+'},
+       {v:'CbVgVLT9qHQ',t:'6. Azure Data Warehouse — cloud build',by:'YouTube',len:'3h+'}
+     ]},
+    {id:'databricks',tag:'Lakehouse',icon:'\u{1F525}',title:'Databricks & the Lakehouse',
+     desc:'Spark on Databricks, Delta Lake, Unity Catalog, jobs and end-to-end lakehouse projects.',
+     lessons:[
+       {v:'Mi-s0xZZzLc',t:'1. Lakehouse Architecture — Delta Lake + Unity Catalog',by:'YouTube',len:'25m'},
+       {v:'CoqZTt528ew',t:'2. Learn Databricks in Under 2 Hours — foundation',by:'YouTube',len:'2h'},
+       {v:'O18afGTGoIU',t:'3. Delta Lake on Databricks — Zero to Pro (4h)',by:'YouTube',len:'4h'},
+       {v:'GJa4YH4j-ic',t:'4. Unity Catalog for Data Engineering — governance',by:'YouTube',len:'3h'},
+       {v:'7pee6_Sq3VY',t:'5. Databricks Zero to Hero — Azure Masterclass',by:'YouTube',len:'4h'},
+       {v:'761SQ9Hxbic',t:'6. End-to-End Project — Databricks Free Edition',by:'YouTube',len:'2h+'}
+     ]},
+    {id:'snowflake',tag:'Cloud Warehouse',icon:'\u{2744}\u{FE0F}',title:'Snowflake',
+     desc:'Architecture, virtual warehouses, cost control, governance and SnowSQL hands-on.',
+     lessons:[
+       {v:'nV1n06MAYM0',t:'1. Snowflake for Beginners — Full Course (50 min)',by:'YouTube',len:'50m'},
+       {v:'mP3QbYURT9k',t:'2. Learn Snowflake in 2 Hours — step by step',by:'YouTube',len:'2h'},
+       {v:'z6sbY-c6gAQ',t:'3. Snowflake Optimization — architecture & billing deep dive',by:'SELECT',len:'1h'},
+       {v:'X0UeRxSkY3Q',t:'4. What is Snowpark — programmability',by:'YouTube',len:'20m'},
+       {v:'udcFnIvXFnE',t:'5. Snowpark for Python — hands-on',by:'YouTube',len:'40m'},
+       {v:'5rkHJQVBO54',t:'6. Snowflake for Data Engineering — full course',by:'MindMajix',len:'3h+'}
+     ]},
+    {id:'spark',tag:'Big Data',icon:'\u{26A1}',title:'Apache Spark / PySpark',
+     desc:'Distributed data processing in PySpark — DataFrames, transformations, optimization, Spark UI.',
+     lessons:[
+       {v:'_C8kWso4ne4',t:'1. PySpark Tutorial — start here',by:'freeCodeCamp',len:'1h 45m'},
+       {v:'94w6hPk7nkM',t:'2. PySpark Full Course — Zero to Pro',by:'YouTube',len:'3h+'},
+       {v:'aZive4BAH5w',t:'3. Spark internals — Shuffle, RDDs, Partitions',by:'YouTube',len:'40m'},
+       {v:'q1LtBU_ca20',t:'4. Shuffle Partition Optimization — 10x faster',by:'YouTube',len:'25m'},
+       {v:'daXEp4HmS-E',t:'5. Spark Core Deep Dive — proper optimization (Databricks)',by:'Databricks',len:'1h'},
+       {v:'laP5dL0By84',t:'6. PySpark for Data Engineers 2026 — basics to advanced',by:'YouTube',len:'4h+'}
+     ]},
+    {id:'airflow',tag:'Orchestration',icon:'\u{1F300}',title:'Apache Airflow',
+     desc:'Author, schedule and monitor pipelines with DAGs — the standard data-orchestration tool.',
+     lessons:[
+       {v:'5peQThvQmQk',t:'1. Learn Apache Airflow in 10 Minutes — what & why',by:'YouTube',len:'10m'},
+       {v:'iYQVhVYtO50',t:'2. Apache Airflow Full Course (5h) — foundation',by:'YouTube',len:'5h'},
+       {v:'IumQX-mm20Y',t:'3. Python Operator & XCom — pass data between tasks',by:'YouTube',len:'20m'},
+       {v:'mXaP2ag1CHo',t:'4. Sensors — wait for external conditions',by:'YouTube',len:'18m'},
+       {v:'ntG6VYCB2CI',t:'5. Hooks vs Operators — connect to systems',by:'YouTube',len:'20m'},
+       {v:'y5rYZLBZ_Fw',t:'6. Airflow for Data Engineers — applied',by:'YouTube',len:'1h 30m'}
+     ]},
+    {id:'dbt',tag:'Transformation',icon:'\u{1F527}',title:'dbt — Analytics Engineering',
+     desc:'Transform data in the warehouse with SQL + software engineering: models, tests, docs, CI/CD.',
+     lessons:[
+       {v:'toSAAgLUHuk',t:'1. dbt Crash Course (dbt Core) — foundation',by:'YouTube',len:'1h+'},
+       {v:'rnwAHdWRdA0',t:'2. dbt Macros — reusable SQL',by:'YouTube',len:'20m'},
+       {v:'QDcUpHj_mWw',t:'3. Incremental Models — updates, appends, merge',by:'YouTube',len:'25m'},
+       {v:'SQykSast_YQ',t:'4. Snapshots — SCD Type 2 in dbt',by:'YouTube',len:'20m'},
+       {v:'B8uwFmVt4sU',t:'5. dbt — The Ultimate Guide (with CI/CD)',by:'YouTube',len:'5h'},
+       {v:'imhz3BscgP8',t:'6. Project — dbt with Snowflake hands-on',by:'YouTube',len:'3h+'}
+     ]},
+    {id:'sqlanalytics',tag:'SQL & Analytics',icon:'\u{1F4CA}',title:'SQL & Analytics — Data with Baraa',
+     desc:'Beyond the basics: a 30-hour SQL deep dive, window functions, Excel and analytics foundations.',
+     lessons:[
+       {v:'SSKVgrwhzus',t:'1. SQL Full Course (30h) — Zero to Hero',by:'Data with Baraa',len:'30h'},
+       {v:'k37GzJCUwyU',t:'2. Complete Advanced SQL (5h) — joins, windows, recursive CTEs',by:'YouTube',len:'5h'},
+       {v:'Wvg4PjbMTO8',t:'3. The Ultimate SQL Window Functions Course',by:'Data with Baraa',len:'3h+'},
+       {v:'zg9GNdX-Q9g',t:'4. CTEs & query performance — advanced SQL',by:'YouTube',len:'30m'},
+       {v:'pCJ15nGFgVg',t:'5. Excel for Data Analytics — full course',by:'Data with Baraa',len:'3h+'},
+       {v:'i-YfWyrd2yw',t:'6. Data Analytics & Visualization 101',by:'Data with Baraa',len:'4h+'}
+     ]},
+    {id:'azurede',tag:'Azure / DP-203',icon:'\u{2601}\u{FE0F}',title:'Azure Data Engineering — DP-203',
+     desc:'Cloud data engineering on Azure aligned to the DP-203 cert — the next step after PL-300.',
+     lessons:[
+       {v:'gpz6YTnSSGY',t:'1. ADF vs Synapse vs Databricks — when to use what',by:'YouTube',len:'20m'},
+       {v:'-NJ74TvzKN8',t:'2. Azure Data Engineer Certification (DP-203) — full',by:'Edureka',len:'3h+'},
+       {v:'LY6O7sfeF1E',t:'3. Azure Synapse — intro to Azure Data Lake',by:'YouTube',len:'30m'},
+       {v:'Samj4b_ZSrY',t:'4. ETL in Azure Data Lakes with Data Flows',by:'YouTube',len:'40m'},
+       {v:'98wtNqQxAPs',t:'5. Designing an Azure Data Solution (DP-203)',by:'YouTube',len:'2h+'},
+       {v:'q3W1Nti0YN8',t:'6. Pass DP-203 in 7 Days — exam guide',by:'YouTube',len:'1h+'}
+     ]}
+  ];
+
+  /* curated, ordered learning paths — each step is a track id, in sequence */
+  const PATHS=[
+    {id:'ai',icon:'\u{1F916}',title:'AI Engineer Path',
+     desc:'Zero to building AI agents. Follow it in order — Python first, agents last.',
+     steps:['python','dapython','ml','genai','agentic']},
+    {id:'de',icon:'\u{1F6E0}\u{FE0F}',title:'Data Engineer Path',
+     desc:'From Python to a full cloud data platform: warehouse, lakehouse, pipelines.',
+     steps:['python','sqlanalytics','dwh','spark','databricks','airflow','dbt','azurede']},
+    {id:'analytics',icon:'\u{1F4CA}',title:'Analytics Engineer Path',
+     desc:'Sharpen analytics on top of the SQL & BI Rhea already knows.',
+     steps:['sqlanalytics','dapython','dwh','dbt']}
+  ];
+
+  /* full ordered creator playlists per section — 50-200 videos each, basic->advanced.
+     Verified playlist ids; played in sequence with autoplay-next. */
+  const PLAYLISTS={
+    python:      {id:'PL-osiE80TeTskrapNbzXhwoFUiLCjGgY7', by:'Corey Schafer'},
+    dapython:    {id:'PLWKjhJtqVAblvI1i46ScbKV2jH1gdL7VQ', by:'freeCodeCamp'},
+    agentic:     {id:'PLKnIA16_RmvYsvB8qkUQuJmJNuiCUJFPL', by:'CampusX'},
+    genai:       {id:'PLA1lVIthbM1D5I6r5uY2K89X1KD2w5LNh', by:'Krish Naik'},
+    ml:          {id:'PLZoTAELRMXVPBTrWtJkn3wWQxZkmTXGwe', by:'Krish Naik'},
+    dwh:         {id:'PL6UwySlcwEYKxi-fQHLkVYDZrJcBawZA9', by:'YouTube'},
+    databricks:  {id:'PL2IsFZBGM_IGiAvVZWAEKX8gg1ItnxEEb', by:'Databricks Zero to Hero'},
+    snowflake:   {id:'PLc2EZr8W2QIBqETApuLNGGB8X_WL47AKb', by:'Data with Baraa'},
+    spark:       {id:'PLY6Q87jZ2FZ4JoTwxBpAWqvOnbEETb9F1', by:'YouTube'},
+    airflow:     {id:'PLwFJcsJ61oujAqYpMp1kdUBcPG0sE0QMT', by:'YouTube'},
+    dbt:         {id:'PLc2EZr8W2QIBegSYp4dEIMrfLj_cCJgYA', by:'Data with Baraa'},
+    azurede:     {id:'PLp4MAoTwZIfc4bq4MIN398o6OiL65vvrC', by:'YouTube'},
+    sqlanalytics:{id:'PLNcg_FV9n7qZY_2eAtUzEUulNjTJREhQe', by:'Data with Baraa'}
+  };
+
+  const DONE_KEY='rhea_vid_done';
+  const done=JSON.parse(localStorage.getItem(DONE_KEY)||'{}');
+  const saveDone=()=>localStorage.setItem(DONE_KEY,JSON.stringify(done));
+  const thumb=v=>'https://i.ytimg.com/vi/'+v+'/hqdefault.jpg';
+  const coursePct=t=>Math.round(t.lessons.filter(l=>done[l.v]).length/t.lessons.length*100);
+
+  /* ---------- catalog ---------- */
+  const grid=document.getElementById('grid');
+  const pillBox=document.getElementById('pills');
+  const qInput=document.getElementById('q');
+  let activeCat='all',query='';
+
+  pillBox.innerHTML=[{id:'all',label:'All courses'}].concat(TRACKS.map(t=>({id:t.id,label:t.title.split(' — ')[0].split(' / ')[0]})))
+    .map(c=>`<button class="pill${c.id==='all'?' on':''}" data-cat="${c.id}">${c.label}</button>`).join('');
+  pillBox.addEventListener('click',e=>{
+    const b=e.target.closest('.pill'); if(!b)return;
+    activeCat=b.dataset.cat;
+    [...pillBox.children].forEach(p=>p.classList.toggle('on',p===b));
+    renderCatalog();
+  });
+  qInput.addEventListener('input',()=>{query=qInput.value.trim().toLowerCase();renderCatalog();});
+
+  function matches(t){
+    if(activeCat!=='all'&&t.id!==activeCat)return false;
+    if(!query)return true;
+    if((t.title+' '+t.desc+' '+t.tag).toLowerCase().includes(query))return true;
+    return t.lessons.some(l=>(l.t+' '+l.by).toLowerCase().includes(query));
+  }
+  function renderCatalog(){
+    const list=TRACKS.filter(matches);
+    if(!list.length){grid.innerHTML='<div class="empty">No courses match that search.</div>';return;}
+    grid.innerHTML=list.map(t=>{
+      const pct=coursePct(t);
+      const hrs=t.lessons.length;
+      return `<article class="course" data-id="${t.id}">
+        <div class="thumb">
+          <img loading="lazy" src="${thumb(t.lessons[0].v)}" alt="">
+          <div class="ic">${t.icon}</div>
+          <div class="play"><span>&#9654;</span></div>
+        </div>
+        <div class="body">
+          <div class="tag">${t.tag}</div>
+          <h3>${t.title}</h3>
+          <div class="desc">${t.desc}</div>
+          <div class="meta"><span>&#127909; ${hrs} lessons</span>${PLAYLISTS[t.id]?'<span class="badge-pl">&#9654; full playlist</span>':''}${pct>0?`<span>&#10003; ${pct}%</span>`:''}</div>
+          <div class="pbar"><i style="width:${pct}%"></i></div>
+        </div>
+      </article>`;
+    }).join('');
+  }
+  grid.addEventListener('click',e=>{
+    const c=e.target.closest('.course'); if(!c)return;
+    openCourse(c.dataset.id);
+  });
+
+  /* ---------- learning paths ---------- */
+  const pathsBox=document.getElementById('paths');
+  function pathPct(p){
+    let total=0,d=0;
+    p.steps.forEach(id=>{const t=TRACKS.find(x=>x.id===id);if(!t)return;total+=t.lessons.length;d+=t.lessons.filter(l=>done[l.v]).length;});
+    return total?Math.round(d/total*100):0;
+  }
+  function renderPaths(){
+    pathsBox.innerHTML=PATHS.map(p=>{
+      const steps=p.steps.map((id,i)=>{
+        const t=TRACKS.find(x=>x.id===id); if(!t)return'';
+        const pct=coursePct(t);
+        return `<li class="pstep${pct===100?' done':''}" data-id="${id}">
+          <span class="sn">${pct===100?'✓':i+1}</span>
+          <div class="si"><b>${t.title.split(' — ')[0]}</b><em>${t.lessons.length} lessons${pct>0?' · '+pct+'%':''}</em></div>
+          <span class="go">&#9654;</span>
+        </li>`;
+      }).join('');
+      return `<article class="path">
+        <div class="path-top"><span class="path-ic">${p.icon}</span>
+          <div><h3>${p.title}</h3><p>${p.desc}</p></div>
+          <span class="path-pct">${pathPct(p)}%</span>
+        </div>
+        <ol class="path-steps">${steps}</ol>
+      </article>`;
+    }).join('');
+  }
+  pathsBox.addEventListener('click',e=>{
+    const s=e.target.closest('.pstep'); if(!s)return;
+    openCourse(s.dataset.id);
+  });
+
+  /* ---------- course view ---------- */
+  const catalog=document.getElementById('catalog');
+  const view=document.getElementById('view');
+  const stage=document.getElementById('stage');
+  const playlist=document.getElementById('playlist');
+  let current=null,playing=null,plMode=false;
+
+  document.getElementById('back').onclick=()=>{
+    stage.innerHTML='';                 // stop playback
+    view.classList.remove('on');
+    catalog.style.display='';
+    renderCatalog();                    // refresh progress bars
+    renderPaths();
+    history.replaceState(null,'','videos.html');
+    scrollTo({top:0,behavior:'smooth'});
+  };
+
+  function openCourse(id){
+    current=TRACKS.find(t=>t.id===id); if(!current)return;
+    catalog.style.display='none';
+    view.classList.add('on');
+    document.getElementById('vTitle').textContent=current.title;
+    document.getElementById('vSub').textContent=current.desc;
+    history.replaceState(null,'','videos.html#'+id);
+    renderPlaylist();
+    // resume at first unfinished lesson, else first
+    const start=current.lessons.find(l=>!done[l.v])||current.lessons[0];
+    play(start.v);
+    scrollTo({top:0,behavior:'smooth'});
+  }
+
+  function updateProgress(){
+    const pct=coursePct(current);
+    document.getElementById('vBar').style.width=pct+'%';
+    document.getElementById('vPct').textContent=pct+'% complete';
+  }
+  function renderPlaylist(){
+    const pl=PLAYLISTS[current.id];
+    const cta=pl?`<button class="pl-cta${plMode?' on':''}" data-pl="${pl.id}">
+        <b>&#9654; Play full playlist &mdash; basic to advanced</b>
+        <span>${pl.by} &middot; 100+ videos, in order, autoplay-next</span>
+      </button>`:'';
+    const foot=pl?`<div class="pl-foot"><a href="https://www.youtube.com/playlist?list=${pl.id}" target="_blank" rel="noopener">Open full playlist on YouTube &#8599;</a></div>`:'';
+    playlist.innerHTML=cta+'<div class="ph">Hand-picked highlights &middot; '+current.lessons.length+'</div>'+current.lessons.map((l,i)=>`
+      <div class="lesson${(!plMode&&l.v===playing)?' active':''}${done[l.v]?' done':''}" data-v="${l.v}">
+        <div class="chk" data-chk="${l.v}" title="Mark complete">&#10003;</div>
+        <div class="lx">
+          <div class="lt">${i+1}. ${l.t}</div>
+          <div class="lm">${l.by} &middot; ${l.len}</div>
+        </div>
+      </div>`).join('')+foot;
+    updateProgress();
+  }
+  playlist.addEventListener('click',e=>{
+    const plBtn=e.target.closest('[data-pl]');
+    if(plBtn){playPlaylist(plBtn.dataset.pl);return;}
+    const chk=e.target.closest('[data-chk]');
+    if(chk){const v=chk.dataset.chk;done[v]?delete done[v]:done[v]=1;saveDone();renderPlaylist();return;}
+    const row=e.target.closest('.lesson');
+    if(row)play(row.dataset.v);
+  });
+
+  function play(v){
+    plMode=false;playing=v;
+    const l=current.lessons.find(x=>x.v===v);
+    stage.innerHTML=`<iframe src="https://www.youtube-nocookie.com/embed/${v}?rel=0&modestbranding=1"
+      title="${l.t.replace(/"/g,'')}" loading="lazy" allowfullscreen
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
+    document.getElementById('nowTitle').textContent=l.t;
+    document.getElementById('nowBy').textContent=l.by+' · '+l.len;
+    document.getElementById('nowYt').href='https://www.youtube.com/watch?v='+v;
+    renderPlaylist();
+  }
+
+  function playPlaylist(plid){
+    plMode=true;playing=null;
+    stage.innerHTML=`<iframe src="https://www.youtube.com/embed/videoseries?list=${plid}&rel=0&modestbranding=1"
+      title="Full playlist" loading="lazy" allowfullscreen
+      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"></iframe>`;
+    const meta=PLAYLISTS[current.id];
+    document.getElementById('nowTitle').textContent=current.title.split(' — ')[0]+' — full course playlist';
+    document.getElementById('nowBy').textContent=meta.by+' · plays start to finish, in order';
+    document.getElementById('nowYt').href='https://www.youtube.com/playlist?list='+plid;
+    renderPlaylist();
+  }
+
+  /* file:// can't satisfy YouTube's origin check (Error 153) — warn */
+  if(location.protocol==='file:')document.getElementById('fileWarn').style.display='block';
+
+  /* ---------- boot (support deep link #trackid) ---------- */
+  renderPaths();
+  renderCatalog();
+  const deep=location.hash.slice(1);
+  if(deep&&TRACKS.some(t=>t.id===deep))openCourse(deep);
+</script>
+</body>
+</html>
