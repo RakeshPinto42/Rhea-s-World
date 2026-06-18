@@ -14,9 +14,8 @@ A Power BI & data-engineering portfolio + interview-prep suite. Static site, no 
 | `worker/` | Cloudflare Worker — secure auth + LLM proxy (optional) |
 
 ## Access
-The whole site is gated by `auth.js`. Default accounts (change these in `auth.js`):
-- admin → `rhea` / `admin@123`
-- user → `guest` / `powerbi2026`
+The whole site is gated by `auth.js`. Accounts live in `ACCOUNTS` inside `auth.js`
+(local mode only). Treat any password committed here as **public** — see warning below.
 
 > ⚠️ **Client-side gate = deterrent, not real security.** On a public repo the
 > creds are visible in source. For real protection, deploy the Cloudflare Worker

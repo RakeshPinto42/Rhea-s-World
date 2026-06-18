@@ -204,6 +204,7 @@
       <a class="ghost-link" href="projects.html">Projects</a>
       <a class="ghost-link" href="study.html">Trainer</a>
       <a class="ghost-link" href="interview.html">AI Interviewer</a>
+      <a class="ghost-link" href="pl300.html">PL-300</a>
     </nav>
     <button class="toggle" id="themeBtn">&#9789; Dark</button>
   </div>
@@ -514,10 +515,11 @@
   /* hero parallax */
   const art=document.getElementById('heroArt');
   if(art && !matchMedia('(prefers-reduced-motion:reduce)').matches){
+    let raf=0,mx=0,my=0;
     addEventListener('mousemove',e=>{
-      const x=Math.max(-1,Math.min(1,e.clientX/innerWidth-.5));
-      const y=Math.max(-1,Math.min(1,e.clientY/innerHeight-.5));
-      art.style.transform=`translate(${x*-12}px,${y*-9}px)`;
+      mx=Math.max(-1,Math.min(1,e.clientX/innerWidth-.5));
+      my=Math.max(-1,Math.min(1,e.clientY/innerHeight-.5));
+      if(!raf)raf=requestAnimationFrame(()=>{art.style.transform=`translate(${mx*-12}px,${my*-9}px)`;raf=0;});
     });
   }
 </script>
