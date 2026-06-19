@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Rhea &mdash; Code Compiler</title>
+<meta name="description" content="In-browser Python, SQL and Power BI (DAX) compiler with graded exercises from scratch to advanced. Runs entirely client-side via Pyodide and SQLite WASM." />
+<meta property="og:title" content="Rhea — Code Compiler" />
+<meta property="og:description" content="Run Python, SQL and DAX in the browser and learn with graded exercises." />
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23c8a200'/%3E%3Cpath d='M16 7C24 7 27 12.5 27 16C27 21 21.5 24.5 17 24.5C13 24.5 10 21.5 10 17.5C10 14.5 12 12.5 14.5 12.5C16.5 12.5 18 14 18 16' fill='none' stroke='%231b1500' stroke-width='3' stroke-linecap='round'/%3E%3Ccircle cx='18' cy='16.2' r='2.2' fill='%231b1500'/%3E%3C/svg%3E" />
+<script src="auth.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="site.css" />
+<style>
+  .wrap{max-width:var(--maxw);margin:0 auto;padding:22px}
+  .ch{margin:6px 0 16px}
+  .ch .kick{font-family:var(--mono);font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-2)}
+  [data-theme="dark"] .ch .kick{color:var(--accent)}
+  .ch h1{font-size:clamp(1.5rem,4vw,2.1rem);letter-spacing:-.02em;margin:4px 0 6px}
+  .ch p.lead{color:var(--muted);max-width:70ch}
+
+  /* language tabs */
+  .langtabs{display:flex;gap:6px;border-bottom:1px solid var(--line);margin:18px 0 0;flex-wrap:wrap}
+  .langtab{font-family:inherit;font-size:.9rem;font-weight:600;color:var(--muted);background:none;border:none;
+    padding:11px 16px;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;display:flex;gap:8px;align-items:center}
+  .langtab:hover{color:var(--ink)}
+  .langtab.on{color:var(--accent-2);border-bottom-color:var(--accent-2)}
+  [data-theme="dark"] .langtab.on{color:var(--accent);border-bottom-color:var(--accent)}
+  .langtab .pc{font-family:var(--mono);font-size:.68rem;background:var(--bg);border:1px solid var(--line);border-radius:20px;padding:1px 8px;color:var(--muted)}
+
+  /* two-pane layout */
+  .panes{display:grid;grid-template-columns:280px 1fr;gap:18px;margin-top:18px;align-items:start}
+  @media(max-width:920px){.panes{grid-template-columns:1fr}}
+
+  /* exercise sidebar */
+  .exlist{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:10px;box-shadow:var(--shadow);position:sticky;top:74px}
+  @media(max-width:920px){.exlist{position:static}}
+  .exgrp{font-family:var(--mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--faint);padding:12px 8px 5px}
+  .exitem{display:flex;align-items:center;gap:9px;width:100%;text-align:left;background:none;border:none;color:var(--ink);
+    font-family:inherit;font-size:.85rem;padding:8px 9px;border-radius:9px;cursor:pointer;line-height:1.3}
+  .exitem:hover{background:var(--bg)}
+  .exitem.on{background:var(--bg);color:var(--accent-2);font-weight:600}
+  [data-theme="dark"] .exitem.on{color:var(--accent)}
+  .exitem .dot{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);flex-shrink:0;display:grid;place-items:center;font-size:.6rem;color:#fff}
+  .exitem.done .dot{background:var(--green);border-color:var(--green)}
+  .exprog{font-family:var(--mono);font-size:.68rem;color:var(--muted);padding:10px 9px 4px;border-top:1px solid var(--line);margin-top:8px}
+
+  /* workspace */
+  .ws{display:flex;flex-direction:column;gap:14px;min-width:0}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow)}
+  .card .hd{padding:13px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .card .hd h2{font-size:1.02rem;margin:0}
+  .lvl{font-family:var(--mono);font-size:.64rem;letter-spacing:.08em;text-transform:uppercase;padding:2px 8px;border-radius:20px;border:1px solid var(--line);color:var(--muted)}
+  .lvl.beg{color:var(--green);border-color:var(--green)}
+  .lvl.int{color:var(--amber);border-color:var(--amber)}
+  .lvl.adv{color:var(--violet);border-color:var(--violet)}
+  .card .bd{padding:16px}
+  .prompt{color:var(--ink);font-size:.92rem;line-height:1.65}
+  .prompt code{font-family:var(--mono);font-size:.85em;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px}
+  .prompt ul{margin:8px 0 0 20px}
+  .prompt b{color:var(--accent-2)}
+  [data-theme="dark"] .prompt b{color:var(--accent)}
+
+  .schema{font-family:var(--mono);font-size:.76rem;color:var(--muted);background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:10px 12px;margin-top:12px;white-space:pre-wrap;line-height:1.5}
+
+  .editor{width:100%;min-height:230px;resize:vertical;font-family:var(--mono);font-size:.86rem;line-height:1.55;
+    background:var(--code-bg);color:var(--code-ink);border:1px solid var(--line);border-radius:0 0 14px 14px;padding:14px 16px;
+    tab-size:4;white-space:pre;overflow:auto;outline:none;border-top:none}
+  .editor:focus{border-color:var(--accent-2)}
+  .edhd{padding:10px 16px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;font-family:var(--mono);font-size:.72rem;color:var(--muted)}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .toolbar .grow{flex:1}
+  .sbtn{font-family:inherit;font-size:.83rem;font-weight:600;padding:9px 16px;border-radius:10px;border:1px solid var(--line);
+    background:var(--bg);color:var(--ink);cursor:pointer;display:inline-flex;align-items:center;gap:7px}
+  .sbtn:hover{border-color:var(--accent-2)}
+  .sbtn.run{background:var(--accent);color:#1b1500;border-color:transparent}
+  .sbtn.run:hover{filter:brightness(1.05)}
+  .sbtn.check{background:var(--accent-2);color:#fff;border-color:transparent}
+  .sbtn:disabled{opacity:.5;cursor:not-allowed}
+
+  .out{font-family:var(--mono);font-size:.82rem;line-height:1.5;background:var(--code-bg);color:var(--code-ink);
+    border-radius:11px;padding:13px 15px;white-space:pre-wrap;overflow:auto;max-height:340px;min-height:46px}
+  .out:empty::before{content:"\2014 output appears here \2014";color:var(--faint)}
+  .out .er{color:#ff9a8a}
+  .out .ok{color:#7ee2a8}
+  .tip{margin-top:11px;font-size:.84rem;line-height:1.55;padding:11px 13px;border-radius:10px;
+    background:rgba(154,107,0,.12);border:1px solid var(--amber);color:var(--ink)}
+  .tip b{color:var(--amber)} .tip code{font-family:var(--mono);font-size:.85em;background:var(--bg);border:1px solid var(--line);border-radius:5px;padding:0 4px}
+  .verdict{display:flex;align-items:center;gap:9px;font-weight:600;font-size:.9rem;padding:11px 14px;border-radius:11px;margin-bottom:10px}
+  .verdict.pass{background:rgba(21,115,71,.12);color:var(--green);border:1px solid var(--green)}
+  .verdict.fail{background:rgba(180,35,24,.1);color:var(--red);border:1px solid var(--red)}
+
+  /* result table for SQL/DAX */
+  .rtbl{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:.8rem}
+  .rtbl th,.rtbl td{border:1px solid var(--line);padding:6px 10px;text-align:left}
+  .rtbl th{background:var(--bg);color:var(--accent-2);font-weight:600}
+  [data-theme="dark"] .rtbl th{color:var(--accent)}
+  .tblwrap{overflow:auto;max-height:340px;border-radius:11px;border:1px solid var(--line)}
+  .tblwrap.ok{border-color:var(--green);box-shadow:0 0 0 1px var(--green)}
+  .tblwrap.bad{border-color:var(--red);box-shadow:0 0 0 1px var(--red)}
+
+  details.sol{margin-top:12px;border:1px dashed var(--line);border-radius:11px;padding:0}
+  details.sol summary{cursor:pointer;padding:11px 14px;font-weight:600;font-size:.85rem;color:var(--muted)}
+  details.sol[open] summary{border-bottom:1px solid var(--line)}
+  details.sol pre{font-family:var(--mono);font-size:.82rem;background:var(--code-bg);color:var(--code-ink);padding:13px 15px;overflow:auto;border-radius:0 0 10px 10px;white-space:pre-wrap}
+
+  .loadbar{font-family:var(--mono);font-size:.76rem;color:var(--muted);display:flex;align-items:center;gap:9px}
+  .spin{width:13px;height:13px;border:2px solid var(--line);border-top-color:var(--accent-2);border-radius:50%;animation:sp .7s linear infinite}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){.spin{animation:none}}
+</style>
+</head>
+<body>
+<header class="site-header">
+  <div class="bar">
+    <a class="logo" href="index.html"><span class="mark">R</span><div>Code Compiler<small>Python &middot; SQL &middot; Power BI &mdash; run &amp; learn</small></div></a>
+    <span class="spacer"></span>
+    <button class="navtoggle" id="navToggle" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">&#9776;</button>
+    <nav class="nav-links" id="navLinks">
+      <a class="ghost-link" href="index.html">Home</a>
+      <a class="ghost-link" href="learn.html">Handbook</a>
+      <a class="ghost-link" href="videos.html">Videos</a>
+      <a class="ghost-link active" href="compiler.html">Compiler</a>
+      <a class="ghost-link" href="projects.html">Projects</a>
+      <a class="ghost-link" href="study.html">Trainer</a>
+      <a class="ghost-link" href="interview.html">AI Interviewer</a>
+    </nav>
+    <button class="toggle" id="themeBtn">&#9789; Dark</button>
+  </div>
+</header>
+
+<main class="wrap">
+  <div class="ch">
+    <div class="kick">Run &amp; learn in the browser</div>
+    <h1>Code Compiler</h1>
+    <p class="lead">Write and run <b>Python</b>, <b>SQL</b> and <b>Power BI / DAX</b> right here &mdash; nothing installs, everything runs client-side. Pick an exercise, write your answer, hit <b>Run</b> to see output, then <b>Check</b> to grade it against expected output and hidden tests. Progress is saved on this device.</p>
+  </div>
+
+  <div class="langtabs" id="langtabs"></div>
+
+  <div class="panes">
+    <aside class="exlist" id="exlist"></aside>
+    <section class="ws">
+      <div class="card">
+        <div class="hd">
+          <h2 id="exTitle">&hellip;</h2>
+          <span class="lvl" id="exLvl"></span>
+          <span class="grow" style="flex:1"></span>
+        </div>
+        <div class="bd">
+          <div class="prompt" id="exPrompt"></div>
+          <div class="schema" id="exSchema" hidden></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="edhd">
+          <span id="edLabel">editor</span>
+          <span class="grow" style="flex:1"></span>
+          <span class="loadbar" id="engineStatus"></span>
+        </div>
+        <textarea class="editor" id="editor" spellcheck="false" autocapitalize="off" autocomplete="off" autocorrect="off"></textarea>
+      </div>
+
+      <div class="toolbar">
+        <button class="sbtn run" id="runBtn">&#9658; Run</button>
+        <button class="sbtn check" id="checkBtn">&#10003; Check answer</button>
+        <span class="grow"></span>
+        <button class="sbtn" id="resetBtn">&#8634; Reset</button>
+      </div>
+
+      <div class="card">
+        <div class="hd"><h2 style="font-size:.9rem">Output</h2></div>
+        <div class="bd">
+          <div id="verdict"></div>
+          <div class="out" id="output"></div>
+          <details class="sol" id="solBox">
+            <summary>Show solution</summary>
+            <pre id="solCode"></pre>
+          </details>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="site-foot">
+  <div class="big">Built for <b>Rhea</b> &mdash; from scratch to advanced.</div>
+  <p>Python via Pyodide &middot; SQL &amp; DAX-sim via SQLite WASM &middot; all client-side</p>
+</footer>
+
+<script src="exercises.js"></script>
+<script src="compiler.js"></script>
+</body>
+</html>
