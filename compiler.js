@@ -51,6 +51,7 @@
   const editor = $("editor"), edLabel = $("edLabel"), engineStatus = $("engineStatus");
   const runBtn = $("runBtn"), checkBtn = $("checkBtn"), resetBtn = $("resetBtn");
   const output = $("output"), verdict = $("verdict"), solBox = $("solBox"), solCode = $("solCode");
+  const solSummary = solBox.querySelector("summary");
 
   const LANGS = [
     { key: "python",  label: "Python",   ext: "main.py" },
@@ -94,36 +95,53 @@
       const d = list.filter(e => isDone(l.key, e.id)).length;
       const b = document.createElement("button");
       b.className = "langtab" + (l.key === curLang ? " on" : "");
-      b.innerHTML = `${l.label} <span class="pc">${d}/${list.length}</span>`;
+      const gradeable = list.filter(e => !e.concept);
+      const gd = gradeable.filter(e => isDone(l.key, e.id)).length;
+      b.innerHTML = `${l.label} <span class="pc">${gd}/${gradeable.length}</span>`;
       b.onclick = () => selectLang(l.key);
       langtabsEl.appendChild(b);
     });
   }
 
   /* ---------------- render: exercise sidebar ---------------- */
+  function makeItem(ex) {
+    const btn = document.createElement("button");
+    const d = isDone(curLang, ex.id);
+    btn.className = "exitem" + (d ? " done" : "") + (curEx && curEx.id === ex.id ? " on" : "");
+    const star = ex.important ? '<span class="star">&#9733;</span>' : "";
+    const dot = ex.concept ? '<span class="dot concept">?</span>' : `<span class="dot">${d ? "&#10003;" : ""}</span>`;
+    btn.innerHTML = `${dot}<span>${star}${ex.title}</span>`;
+    btn.onclick = () => selectExercise(ex);
+    return btn;
+  }
   function renderSidebar() {
     const list = RHEA_EXERCISES[curLang] || [];
     exlistEl.innerHTML = "";
+    // pinned ★ Interview group (important exercises), ordered by level
+    const important = list.filter(e => e.important);
+    if (important.length) {
+      const g = document.createElement("div");
+      g.className = "exgrp star-grp";
+      g.innerHTML = "&#9733; Interview &mdash; important";
+      exlistEl.appendChild(g);
+      ["beg", "int", "adv"].forEach(lv =>
+        important.filter(e => e.level === lv).forEach(ex => exlistEl.appendChild(makeItem(ex))));
+    }
+    // remaining, grouped by level
     ["beg", "int", "adv"].forEach(lv => {
-      const items = list.filter(e => e.level === lv);
+      const items = list.filter(e => e.level === lv && !e.important);
       if (!items.length) return;
       const g = document.createElement("div");
       g.className = "exgrp";
       g.textContent = LVL[lv][1];
       exlistEl.appendChild(g);
-      items.forEach(ex => {
-        const btn = document.createElement("button");
-        const d = isDone(curLang, ex.id);
-        btn.className = "exitem" + (d ? " done" : "") + (curEx && curEx.id === ex.id ? " on" : "");
-        btn.innerHTML = `<span class="dot">${d ? "&#10003;" : ""}</span><span>${ex.title}</span>`;
-        btn.onclick = () => selectExercise(ex);
-        exlistEl.appendChild(btn);
-      });
+      items.forEach(ex => exlistEl.appendChild(makeItem(ex)));
     });
-    const total = list.length, d = list.filter(e => isDone(curLang, e.id)).length;
+    const gradeable = list.filter(e => !e.concept);
+    const d = gradeable.filter(e => isDone(curLang, e.id)).length;
     const p = document.createElement("div");
     p.className = "exprog";
-    p.textContent = `Progress: ${d} / ${total} solved`;
+    p.textContent = `Progress: ${d} / ${gradeable.length} solved`;
     exlistEl.appendChild(p);
   }
 
@@ -141,7 +159,7 @@
   function selectExercise(ex) {
     curEx = ex;
     renderSidebar();
-    exTitle.innerHTML = ex.title;
+    exTitle.innerHTML = (ex.important ? '<span class="star">&#9733;</span> ' : "") + ex.title;
     exLvl.className = "lvl " + ex.level;
     exLvl.textContent = LVL[ex.level][1];
     exPrompt.innerHTML = ex.prompt;
@@ -151,11 +169,29 @@
       exSchema.hidden = false;
       exSchema.textContent = SCHEMA_TEXT[curLang];
     }
+
+    const concept = !!ex.concept;
+    runBtn.style.display = concept ? "none" : "";
+    checkBtn.style.display = concept ? "none" : "";
+    solSummary.textContent = concept ? "Reveal model answer" : "Show solution";
+    if (concept) {
+      solCode.innerHTML = ex.answer;
+      editor.placeholder = "Scratch space — write your answer, then reveal the model answer below.";
+    } else {
+      solCode.textContent = ex.solution;
+      editor.placeholder = "";
+    }
+
     const draft = localStorage.getItem(draftKey(curLang, ex.id));
     editor.value = draft != null ? draft : ex.starter;
-    solCode.textContent = ex.solution;
     solBox.open = false;
     clearOutput();
+    if (concept) {
+      const n = document.createElement("div");
+      n.className = "tip";
+      n.innerHTML = "&#128172; Conceptual interview question — no code to run. Answer it out loud or in the editor, then reveal the model answer below.";
+      output.appendChild(n);
+    }
   }
 
   function clearOutput() {
@@ -314,6 +350,7 @@ _RESULT = json.dumps({"out": _out.getvalue(), "err": _err})
 
   /* =================== Run / Check / Reset =================== */
   async function doRun() {
+    if (curEx && curEx.concept) return;
     clearOutput();
     runBtn.disabled = checkBtn.disabled = true;
     try {
@@ -335,6 +372,7 @@ _RESULT = json.dumps({"out": _out.getvalue(), "err": _err})
   }
 
   async function doCheck() {
+    if (curEx && curEx.concept) return;
     clearOutput();
     runBtn.disabled = checkBtn.disabled = true;
     try {

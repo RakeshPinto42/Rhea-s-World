@@ -20,6 +20,7 @@ for (const lang of ["python", "sql", "powerbi"]) {
   for (const ex of list) {
     if (ids.has(ex.id)) { console.log(`DUPLICATE ID: ${ex.id}`); fails++; }
     ids.add(ex.id);
+    if (ex.concept) { if (!ex.answer) { console.log(`CONCEPT MISSING ANSWER ${ex.id}`); fails++; } continue; }
     try {
       if (lang === "python") {
         const chk = ex.check || {};

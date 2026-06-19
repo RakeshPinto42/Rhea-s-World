@@ -488,5 +488,217 @@ q('pbi-a34','adv','AOV by Year',`Return year <code>yr</code> and average order v
 q('pbi-a35','adv','Profit Rank',`Return product <code>name</code>, profit <code>qty*(unit_price-cost)</code> as <code>profit</code>, and rank <code>rnk</code> (highest = 1), ordered by rnk, name.`,`SELECT name, profit, RANK() OVER (ORDER BY profit DESC) AS rnk FROM (SELECT p.name, SUM(s.qty*(p.unit_price-p.cost)) AS profit FROM sales s JOIN products p ON p.id=s.product_id GROUP BY p.name) ORDER BY rnk, name;`,`SELECT name, profit, RANK() OVER (ORDER BY profit DESC) AS rnk FROM (SELECT p.name, SUM(s.qty*(p.unit_price-p.cost)) AS profit FROM sales s JOIN products p ON p.id=s.product_id GROUP BY p.name) ORDER BY rnk, name;`,true),
 );
 
+/* =====================================================================
+   INTERVIEW QUESTIONS (marked important; pinned in a ★ group)
+   Sourced from the "Interview drills" sections of the handbooks.
+   Runnable drills are graded; conceptual ones are "reveal answer" cards.
+   ===================================================================== */
+
+/* concept card helper: no grading, just a model answer to reveal */
+function cc(id, level, title, prompt, answer) {
+  return { id, level, title, prompt, answer, concept: true, important: true, starter: "", solution: "" };
+}
+
+/* ---- Python interview drills ---- */
+P.push(
+{id:'py-iv-default',level:'int',title:'Mutable default arg bug',important:true,
+ prompt:`Classic interview trap. Fix the mutable-default bug: write <code>append_to(item, lst=None)</code> that appends <code>item</code> and returns the list — but a <b>fresh</b> list on each call when none is passed.`,
+ starter:`def append_to(item, lst=None):\n    pass\n`,
+ solution:`def append_to(item, lst=None):\n    if lst is None:\n        lst = []\n    lst.append(item)\n    return lst`,
+ check:{tests:`a = append_to(1)\nb = append_to(2)\nassert a == [1] and b == [2]\nc = append_to(9, [0])\nassert c == [0, 9]`}},
+{id:'py-iv-retry',level:'adv',title:'Retry decorator',important:true,
+ prompt:`Common ask. Write a decorator <code>retry(times)</code> that re-runs the function on any exception, up to <code>times</code> attempts; returns the first success, else re-raises the last exception.`,
+ starter:`def retry(times):\n    pass\n`,
+ solution:`def retry(times):\n    def deco(fn):\n        def wrap(*a, **k):\n            last = None\n            for _ in range(times):\n                try:\n                    return fn(*a, **k)\n                except Exception as e:\n                    last = e\n            raise last\n        return wrap\n    return deco`,
+ check:{tests:`calls = []\n@retry(3)\ndef f():\n    calls.append(1)\n    if len(calls) < 3:\n        raise ValueError("boom")\n    return "ok"\nassert f() == "ok"\nassert len(calls) == 3`}},
+{id:'py-iv-deepcopy',level:'int',title:'Deep vs shallow copy',important:true,
+ prompt:`Write <code>deep_copy(m)</code> returning a copy of a nested list so that mutating the copy never affects the original. (Why a shallow <code>list()</code> fails is the interview point.)`,
+ starter:`def deep_copy(m):\n    pass\n`,
+ solution:`import copy\ndef deep_copy(m):\n    return copy.deepcopy(m)`,
+ check:{tests:`m = [[1, 2], [3, 4]]\nc = deep_copy(m)\nc[0][0] = 99\nassert m[0][0] == 1`}},
+cc('py-iv-gil','adv','The GIL; threads vs processes vs asyncio',
+  `<b>What is the GIL? When do you use threads, processes, or asyncio?</b>`,
+  `The <b>GIL</b> (Global Interpreter Lock) lets only one thread run Python bytecode at a time in CPython, so threads give no CPU parallelism.<br>&bull; <b>threading</b> — I/O-bound work; threads release the GIL while waiting on network/disk.<br>&bull; <b>multiprocessing</b> — CPU-bound work; separate processes each with their own GIL = true parallelism.<br>&bull; <b>asyncio</b> — one thread, cooperative concurrency for many I/O tasks without thread overhead.`),
+cc('py-iv-collections','beg','list vs tuple vs set vs dict',
+  `<b>Compare list, tuple, set, dict — mutability, ordering, use.</b>`,
+  `&bull; <b>list</b> — ordered, mutable, allows duplicates.<br>&bull; <b>tuple</b> — ordered, immutable, hashable (usable as dict key).<br>&bull; <b>set</b> — unordered, unique elements, O(1) membership tests.<br>&bull; <b>dict</b> — key&rarr;value, insertion-ordered (3.7+), O(1) lookup.`),
+cc('py-iv-iseq','beg','is vs ==',
+  `<b>Difference between <code>is</code> and <code>==</code>?</b>`,
+  `<code>==</code> compares <b>values</b> (calls <code>__eq__</code>). <code>is</code> compares <b>identity</b> (same object in memory). Use <code>is</code> only for singletons like <code>None</code>. Small-int/str interning can make <code>is</code> appear to work by accident — don't rely on it.`),
+cc('py-iv-genlist','int','Generators vs lists',
+  `<b>Generators vs lists; what does <code>yield</code> do?</b>`,
+  `A list builds every element in memory at once. A <b>generator</b> yields lazily, one item at a time — O(1) memory, single forward pass. <code>yield</code> suspends the function and resumes on the next <code>next()</code>. Use generators for large or streaming data and pipelines.`),
+cc('py-iv-wraps','int','Decorators & @wraps',
+  `<b>What is a decorator and why use <code>functools.wraps</code>?</b>`,
+  `A decorator wraps a function to add behaviour (logging, timing, caching) without changing its body. <code>@functools.wraps(fn)</code> on the inner wrapper copies the original <code>__name__</code>, <code>__doc__</code> and signature, so introspection and tracebacks still point at the real function.`),
+cc('py-iv-pandas','int','pandas: vectorize vs apply',
+  `<b>Why is <code>apply</code>/row-loops slow; how do you vectorize?</b>`,
+  `Row loops and <code>.apply</code> run Python per row. Prefer <b>vectorized</b> column operations (NumPy under the hood) which run in C. Use <code>groupby().agg()</code> for aggregations and <code>merge</code> for joins (know inner/left/outer). (pandas isn't preloaded in this compiler — conceptual only.)`),
+);
+
+/* ---- SQL interview drills ---- */
+S.push(
+{id:'sql-iv-dups',level:'int',title:'Find duplicate values',important:true,
+ prompt:`Interview classic. Find values that repeat: return each hire <code>yr</code> shared by more than one employee and its count <code>n</code>, ordered by year. (<code>GROUP BY ... HAVING COUNT(*) &gt; 1</code>.)`,
+ starter:`SELECT strftime('%Y',hire_date) AS yr, COUNT(*) AS n\nFROM employees\nGROUP BY yr\nHAVING ...;`,
+ solution:`SELECT strftime('%Y',hire_date) AS yr, COUNT(*) AS n FROM employees GROUP BY yr HAVING COUNT(*) > 1 ORDER BY yr;`,
+ check:{sql:`SELECT strftime('%Y',hire_date) AS yr, COUNT(*) AS n FROM employees GROUP BY yr HAVING COUNT(*) > 1 ORDER BY yr;`, ordered:true}},
+{id:'sql-iv-movavg',level:'adv',title:'Moving average (window frame)',important:true,
+ prompt:`Window-frame drill. Order employees by <code>id</code>; return <code>id, salary</code> and a trailing 3-row moving average <code>ma3</code>.`,
+ starter:`SELECT id, salary,\n  AVG(salary) OVER (ORDER BY id ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS ma3\nFROM employees ORDER BY id;`,
+ solution:`SELECT id, salary, AVG(salary) OVER (ORDER BY id ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS ma3 FROM employees ORDER BY id;`,
+ check:{sql:`SELECT id, salary, AVG(salary) OVER (ORDER BY id ROWS BETWEEN 2 PRECEDING AND CURRENT ROW) AS ma3 FROM employees ORDER BY id;`, ordered:true}},
+{id:'sql-iv-pivot',level:'adv',title:'Pivot rows to columns',important:true,
+ prompt:`Pivot with conditional aggregation. Return hire counts per year as columns <code>y2020, y2021, y2022, y2023</code> in a single row.`,
+ starter:`SELECT\n  SUM(CASE WHEN strftime('%Y',hire_date)='2020' THEN 1 ELSE 0 END) AS y2020,\n  ...\nFROM employees;`,
+ solution:`SELECT\n  SUM(CASE WHEN strftime('%Y',hire_date)='2020' THEN 1 ELSE 0 END) AS y2020,\n  SUM(CASE WHEN strftime('%Y',hire_date)='2021' THEN 1 ELSE 0 END) AS y2021,\n  SUM(CASE WHEN strftime('%Y',hire_date)='2022' THEN 1 ELSE 0 END) AS y2022,\n  SUM(CASE WHEN strftime('%Y',hire_date)='2023' THEN 1 ELSE 0 END) AS y2023\nFROM employees;`,
+ check:{sql:`SELECT SUM(CASE WHEN strftime('%Y',hire_date)='2020' THEN 1 ELSE 0 END) AS y2020, SUM(CASE WHEN strftime('%Y',hire_date)='2021' THEN 1 ELSE 0 END) AS y2021, SUM(CASE WHEN strftime('%Y',hire_date)='2022' THEN 1 ELSE 0 END) AS y2022, SUM(CASE WHEN strftime('%Y',hire_date)='2023' THEN 1 ELSE 0 END) AS y2023 FROM employees;`, ordered:false}},
+cc('sql-iv-wherehaving','beg','WHERE vs HAVING',
+  `<b>Explain WHERE vs HAVING.</b>`,
+  `<b>WHERE</b> filters individual rows <i>before</i> grouping/aggregation. <b>HAVING</b> filters <i>groups after</i> aggregation, so it can reference aggregates like <code>COUNT(*)</code>. You cannot put an aggregate in <code>WHERE</code>.`),
+cc('sql-iv-ranks','int','RANK vs DENSE_RANK vs ROW_NUMBER',
+  `<b>Difference between ROW_NUMBER, RANK and DENSE_RANK?</b>`,
+  `All are window functions over an <code>ORDER BY</code>.<br>&bull; <b>ROW_NUMBER</b> — unique 1..n, ties broken arbitrarily.<br>&bull; <b>RANK</b> — ties share a rank, then <i>gaps</i> (1,1,3).<br>&bull; <b>DENSE_RANK</b> — ties share a rank, <i>no gaps</i> (1,1,2). Pick by how you want ties handled.`),
+cc('sql-iv-union','beg','UNION vs UNION ALL',
+  `<b>UNION vs UNION ALL?</b>`,
+  `<b>UNION</b> removes duplicate rows (extra sort/dedupe cost). <b>UNION ALL</b> keeps everything and is faster. Use <code>UNION ALL</code> when duplicates are impossible or wanted.`),
+cc('sql-iv-sargable','adv','Sargable queries & indexes',
+  `<b>What makes a query non-sargable? What does an index do?</b>`,
+  `<b>Sargable</b> = able to use an index to seek. Wrapping a column in a function (<code>WHERE strftime('%Y',d)='2023'</code>) or a leading-wildcard <code>LIKE '%x'</code> defeats the index — rewrite as a range (<code>d &gt;= '2023-01-01' AND d &lt; '2024-01-01'</code>). An index speeds lookups, joins and sorts at the cost of slower writes and storage.`),
+);
+
+/* ---- Power BI / DAX interview drills ---- */
+B.push(
+{id:'pbi-iv-yoy',level:'adv',title:'YoY % growth',important:true,
+ prompt:`Time-intelligence interview ask. Return year <code>yr</code>, total sales <code>total</code>, and year-over-year growth <code>yoy</code> = (total &minus; prior year) / prior year via <code>LAG</code>, ordered by year. (DAX: <code>DIVIDE([Sales]-CALCULATE([Sales],SAMEPERIODLASTYEAR(...)), ...)</code>.)`,
+ starter:`SELECT yr, total,\n  (total - LAG(total) OVER (ORDER BY yr)) * 1.0 / LAG(total) OVER (ORDER BY yr) AS yoy\nFROM (SELECT strftime('%Y',order_date) AS yr, SUM(amount) AS total FROM sales GROUP BY yr)\nORDER BY yr;`,
+ solution:`SELECT yr, total, (total - LAG(total) OVER (ORDER BY yr)) * 1.0 / LAG(total) OVER (ORDER BY yr) AS yoy FROM (SELECT strftime('%Y',order_date) AS yr, SUM(amount) AS total FROM sales GROUP BY yr) ORDER BY yr;`,
+ check:{sql:`SELECT yr, total, (total - LAG(total) OVER (ORDER BY yr)) * 1.0 / LAG(total) OVER (ORDER BY yr) AS yoy FROM (SELECT strftime('%Y',order_date) AS yr, SUM(amount) AS total FROM sales GROUP BY yr) ORDER BY yr;`, ordered:true}},
+cc('pbi-iv-context','int','Row context vs filter context',
+  `<b>Row context vs filter context — define each with an example.</b>`,
+  `<b>Row context</b> = "the current row", present in calculated columns and iterators like <code>SUMX</code> (you can read this row's values). <b>Filter context</b> = the set of filters applied by visuals, slicers, rows/columns and <code>CALCULATE</code>. Measures evaluate in filter context; they have no row context unless an iterator creates one.`),
+cc('pbi-iv-calculate','int','CALCULATE',
+  `<b>What does CALCULATE do; how do filter arguments combine?</b>`,
+  `<code>CALCULATE(expr, filter1, filter2, ...)</code> evaluates <code>expr</code> in a <b>modified filter context</b>. Each filter argument <i>replaces</i> any existing filter on that column (unless wrapped in <code>KEEPFILTERS</code>). CALCULATE also performs <b>context transition</b>: any row context becomes filter context. It's the most important DAX function.`),
+cc('pbi-iv-all','adv','ALL vs ALLSELECTED vs REMOVEFILTERS',
+  `<b>ALL vs ALLSELECTED vs REMOVEFILTERS?</b>`,
+  `&bull; <b>ALL</b> — ignores all filters on a table/column (the classic denominator for % of total).<br>&bull; <b>ALLSELECTED</b> — ignores filters from <i>inside</i> the visual but respects outer slicer/page selection.<br>&bull; <b>REMOVEFILTERS</b> — same effect as ALL but read-only and clearer in intent (clears filters, doesn't return a table to iterate).`),
+cc('pbi-iv-sumx','int','SUM vs SUMX',
+  `<b>SUM vs SUMX?</b>`,
+  `<b>SUM</b> aggregates a single column. <b>SUMX</b> is an iterator: it walks a table row by row (row context), evaluates an expression per row, then sums the results — e.g. <code>SUMX(sales, sales[qty]*RELATED(products[unit_price]))</code> for revenue when there's no precomputed column.`),
+cc('pbi-iv-divide','beg','DIVIDE vs / ; measure vs column',
+  `<b>Why DIVIDE over <code>/</code>? Measure vs calculated column?</b>`,
+  `<code>DIVIDE(a,b,alt)</code> safely handles divide-by-zero, returning BLANK (or <code>alt</code>) instead of an error/infinity. <b>Measure</b> = evaluated on the fly in the current filter context at query time (no storage). <b>Calculated column</b> = computed row-by-row at refresh and stored in the model (uses memory).`),
+cc('pbi-iv-transition','adv','Context transition',
+  `<b>Explain context transition.</b>`,
+  `When a measure (or <code>CALCULATE</code>) is evaluated inside a <b>row context</b> (e.g. a calculated column or a <code>SUMX</code> iteration), that row's column values are turned into an equivalent <b>filter context</b>. This is why a measure referenced in a calculated column "just works" per row — and why it can surprise you when the granularity differs.`),
+);
+
+/* ---- Python: more high-frequency interview coding questions ---- */
+P.push(
+{id:'py-iv-kadane',level:'adv',title:'Max subarray (Kadane)',important:true,
+ prompt:`Top interview DP. Write <code>max_subarray(nums)</code> returning the largest sum of any non-empty contiguous subarray (Kadane's algorithm, O(n)).`,
+ starter:`def max_subarray(nums):\n    pass\n`,
+ solution:`def max_subarray(nums):\n    best = cur = nums[0]\n    for n in nums[1:]:\n        cur = max(n, cur + n)\n        best = max(best, cur)\n    return best`,
+ check:{tests:`assert max_subarray([-2,1,-3,4,-1,2,1,-5,4]) == 6\nassert max_subarray([1]) == 1\nassert max_subarray([-1,-2,-3]) == -1`}},
+{id:'py-iv-lsub',level:'adv',title:'Longest substring (no repeat)',important:true,
+ prompt:`Classic sliding-window. Write <code>length_of_longest(s)</code> returning the length of the longest substring without repeating characters.`,
+ starter:`def length_of_longest(s):\n    pass\n`,
+ solution:`def length_of_longest(s):\n    seen = {}\n    start = best = 0\n    for i, c in enumerate(s):\n        if c in seen and seen[c] >= start:\n            start = seen[c] + 1\n        seen[c] = i\n        best = max(best, i - start + 1)\n    return best`,
+ check:{tests:`assert length_of_longest("abcabcbb") == 3\nassert length_of_longest("bbbbb") == 1\nassert length_of_longest("") == 0\nassert length_of_longest("pwwkew") == 3`}},
+{id:'py-iv-missing',level:'int',title:'Missing number',important:true,
+ prompt:`Write <code>missing_number(nums)</code> — <code>nums</code> holds distinct numbers from <code>0..n</code> with exactly one missing. Return it (O(n), O(1)).`,
+ starter:`def missing_number(nums):\n    pass\n`,
+ solution:`def missing_number(nums):\n    n = len(nums)\n    return n * (n + 1) // 2 - sum(nums)`,
+ check:{tests:`assert missing_number([3,0,1]) == 2\nassert missing_number([0,1]) == 2\nassert missing_number([9,6,4,2,3,5,7,0,1]) == 8`}},
+{id:'py-iv-single',level:'int',title:'Single number (XOR)',important:true,
+ prompt:`Every element appears twice except one. Write <code>single_number(nums)</code> returning the unique one in O(n) time, O(1) space (hint: XOR).`,
+ starter:`def single_number(nums):\n    pass\n`,
+ solution:`def single_number(nums):\n    r = 0\n    for n in nums:\n        r ^= n\n    return r`,
+ check:{tests:`assert single_number([2,2,1]) == 1\nassert single_number([4,1,2,1,2]) == 4\nassert single_number([7]) == 7`}},
+{id:'py-iv-movezeros',level:'int',title:'Move zeroes',important:true,
+ prompt:`Write <code>move_zeros(nums)</code> moving all <code>0</code>s to the end while keeping the order of non-zero elements; return the list.`,
+ starter:`def move_zeros(nums):\n    pass\n`,
+ solution:`def move_zeros(nums):\n    pos = 0\n    for n in nums:\n        if n != 0:\n            nums[pos] = n\n            pos += 1\n    for i in range(pos, len(nums)):\n        nums[i] = 0\n    return nums`,
+ check:{tests:`assert move_zeros([0,1,0,3,12]) == [1,3,12,0,0]\nassert move_zeros([0,0]) == [0,0]\nassert move_zeros([1,2,3]) == [1,2,3]`}},
+{id:'py-iv-revwords',level:'int',title:'Reverse words',important:true,
+ prompt:`Write <code>reverse_words(s)</code> reversing the order of words and collapsing extra spaces (<code>"the sky is blue" -> "blue is sky the"</code>).`,
+ starter:`def reverse_words(s):\n    pass\n`,
+ solution:`def reverse_words(s):\n    return " ".join(s.split()[::-1])`,
+ check:{tests:`assert reverse_words("the sky is blue") == "blue is sky the"\nassert reverse_words("  hello   world  ") == "world hello"`}},
+{id:'py-iv-firstuniq',level:'int',title:'First unique char',important:true,
+ prompt:`Write <code>first_uniq(s)</code> returning the index of the first non-repeating character, or <code>-1</code> if none.`,
+ starter:`def first_uniq(s):\n    pass\n`,
+ solution:`def first_uniq(s):\n    from collections import Counter\n    c = Counter(s)\n    for i, ch in enumerate(s):\n        if c[ch] == 1:\n            return i\n    return -1`,
+ check:{tests:`assert first_uniq("leetcode") == 0\nassert first_uniq("loveleetcode") == 2\nassert first_uniq("aabb") == -1`}},
+cc('py-iv-argskwargs','int','*args and **kwargs',
+  `<b>What are <code>*args</code> and <code>**kwargs</code>?</b>`,
+  `<code>*args</code> collects extra positional arguments into a tuple; <code>**kwargs</code> collects extra keyword arguments into a dict. On a call, <code>*</code> and <code>**</code> <i>unpack</i> an iterable/dict into arguments. Used for flexible signatures and for forwarding arguments in decorators: <code>def wrap(*a, **k): return fn(*a, **k)</code>.`),
+cc('py-iv-closure','adv','Late-binding closures in loops',
+  `<b>Why do functions created in a loop all capture the last value?</b>`,
+  `Closures capture <b>variables, not values</b>. <code>[lambda: i for i in range(3)]</code> — all three read <code>i</code> when called, by which point <code>i==2</code>. Fix by binding per-iteration with a default arg: <code>lambda i=i: i</code>, or a factory function. Common gotcha in callbacks and decorators.`),
+cc('py-iv-exceptions','int','try / except / else / finally',
+  `<b>Explain try/except/else/finally and good practice.</b>`,
+  `<code>try</code> runs risky code; <code>except</code> handles specific exceptions (catch narrow types, not bare <code>except:</code>); <code>else</code> runs only if no exception; <code>finally</code> always runs (cleanup, releasing resources). Prefer context managers (<code>with</code>) for cleanup; never swallow exceptions silently.`),
+);
+
+/* ---- SQL: more high-frequency interview questions ---- */
+S.push(
+{id:'sql-iv-mgr',level:'int',title:'Earns more than manager',important:true,
+ prompt:`Famous self-join question. Return the <code>name</code> of every employee who earns more than their manager, ordered by name.`,
+ starter:`SELECT e.name\nFROM employees e JOIN employees m ON m.id = e.manager_id\nWHERE ...\nORDER BY e.name;`,
+ solution:`SELECT e.name FROM employees e JOIN employees m ON m.id = e.manager_id WHERE e.salary > m.salary ORDER BY e.name;`,
+ check:{sql:`SELECT e.name FROM employees e JOIN employees m ON m.id = e.manager_id WHERE e.salary > m.salary ORDER BY e.name;`, ordered:true}},
+{id:'sql-iv-median',level:'adv',title:'Median salary',important:true,
+ prompt:`No built-in MEDIAN — compute it. Return the median salary as <code>median</code> (for an even count, the average of the two middle values).`,
+ starter:`SELECT AVG(salary) AS median FROM (\n  SELECT salary FROM employees ORDER BY salary\n  LIMIT 2 - (SELECT COUNT(*) FROM employees) % 2\n  OFFSET (SELECT (COUNT(*) - 1) / 2 FROM employees)\n);`,
+ solution:`SELECT AVG(salary) AS median FROM (\n  SELECT salary FROM employees ORDER BY salary\n  LIMIT 2 - (SELECT COUNT(*) FROM employees) % 2\n  OFFSET (SELECT (COUNT(*) - 1) / 2 FROM employees)\n);`,
+ check:{sql:`SELECT AVG(salary) AS median FROM (SELECT salary FROM employees ORDER BY salary LIMIT 2 - (SELECT COUNT(*) FROM employees) % 2 OFFSET (SELECT (COUNT(*) - 1) / 2 FROM employees));`, ordered:false}},
+cc('sql-iv-joins','beg','INNER vs LEFT vs RIGHT vs FULL',
+  `<b>Explain the JOIN types.</b>`,
+  `&bull; <b>INNER</b> — only matching rows in both tables.<br>&bull; <b>LEFT</b> — all left rows + matches (NULLs where no match); the go-to for "find rows with no match" via <code>WHERE right.id IS NULL</code>.<br>&bull; <b>RIGHT</b> — mirror of LEFT.<br>&bull; <b>FULL</b> — all rows from both, matched where possible.<br>&bull; <b>CROSS</b> — Cartesian product (every combination).`),
+cc('sql-iv-acid','int','ACID & transactions',
+  `<b>What does ACID mean?</b>`,
+  `&bull; <b>Atomicity</b> — all statements in a transaction commit or none do.<br>&bull; <b>Consistency</b> — constraints hold before and after.<br>&bull; <b>Isolation</b> — concurrent transactions don't corrupt each other (isolation levels trade safety vs concurrency).<br>&bull; <b>Durability</b> — once committed, survives a crash.`),
+cc('sql-iv-normal','int','Normalization (1NF–3NF)',
+  `<b>What is normalization; 1NF/2NF/3NF?</b>`,
+  `Organising tables to reduce redundancy & anomalies. <b>1NF</b> — atomic values, no repeating groups. <b>2NF</b> — 1NF + no partial dependency on part of a composite key. <b>3NF</b> — 2NF + no transitive dependency (non-key depends only on the key). Star schemas deliberately <i>denormalize</i> for analytics read speed.`),
+cc('sql-iv-nullin','adv','NOT IN with NULLs',
+  `<b>Why can <code>NOT IN</code> return no rows unexpectedly?</b>`,
+  `If the subquery list contains a <code>NULL</code>, <code>x NOT IN (..., NULL)</code> evaluates to <code>UNKNOWN</code> for every row, so nothing matches. Prefer <code>NOT EXISTS</code> (NULL-safe) or filter NULLs out of the subquery. Same trap underlies many "my query returns nothing" bugs.`),
+);
+
+/* ---- Power BI / DAX: more high-frequency interview questions ---- */
+B.push(
+{id:'pbi-iv-sply',level:'adv',title:'Same period last year',important:true,
+ prompt:`DAX <code>SAMEPERIODLASTYEAR</code> idea. Return year <code>yr</code>, sales <code>total</code>, and the prior year's sales <code>prior_year</code> via <code>LAG</code>, ordered by year.`,
+ starter:`SELECT yr, total, LAG(total) OVER (ORDER BY yr) AS prior_year\nFROM (SELECT strftime('%Y',order_date) AS yr, SUM(amount) AS total FROM sales GROUP BY yr)\nORDER BY yr;`,
+ solution:`SELECT yr, total, LAG(total) OVER (ORDER BY yr) AS prior_year FROM (SELECT strftime('%Y',order_date) AS yr, SUM(amount) AS total FROM sales GROUP BY yr) ORDER BY yr;`,
+ check:{sql:`SELECT yr, total, LAG(total) OVER (ORDER BY yr) AS prior_year FROM (SELECT strftime('%Y',order_date) AS yr, SUM(amount) AS total FROM sales GROUP BY yr) ORDER BY yr;`, ordered:true}},
+cc('pbi-iv-star','int','Star vs snowflake schema',
+  `<b>Star vs snowflake schema — which and why?</b>`,
+  `<b>Star</b> = one fact table joined to denormalized dimension tables (one hop). <b>Snowflake</b> = dimensions further normalized into sub-dimensions (more joins). Power BI strongly prefers <b>star</b>: simpler relationships, faster queries, easier DAX, better compression. Flatten snowflakes into star dimensions where you can.`),
+cc('pbi-iv-rel','int','Cardinality & cross-filter direction',
+  `<b>Explain relationship cardinality and cross-filter direction.</b>`,
+  `Cardinality is usually <b>one-to-many</b> (dimension &rarr; fact). Cross-filter direction is normally <b>single</b> (dimension filters fact). <b>Bidirectional</b> filtering can create ambiguity and performance issues and is best replaced by <code>CROSSFILTER</code> inside a measure when truly needed. Many-to-many should be modelled via a bridge table.`),
+cc('pbi-iv-var','int','VAR / RETURN',
+  `<b>Why use variables (VAR) in DAX?</b>`,
+  `<code>VAR x = ... RETURN ...</code> computes a value once, improving <b>readability</b> and <b>performance</b> (no repeated evaluation). A VAR captures the value at its point of definition (handy across changing filter contexts) and makes debugging far easier than nested expressions.`),
+cc('pbi-iv-storage','adv','Import vs DirectQuery vs Composite',
+  `<b>Import vs DirectQuery vs Composite models?</b>`,
+  `&bull; <b>Import</b> — data loaded into VertiPaq; fastest, full DAX, needs refresh, RAM-bound.<br>&bull; <b>DirectQuery</b> — queries the source live; always current, handles huge data, but slower and limited DAX/functions.<br>&bull; <b>Composite</b> — mix per table (e.g. import dimensions, DirectQuery a giant fact), with aggregations for speed.`),
+cc('pbi-iv-related','int','RELATED vs RELATEDTABLE',
+  `<b>RELATED vs RELATEDTABLE?</b>`,
+  `<code>RELATED</code> pulls a single value from the <b>one</b> side of a relationship into row context on the <b>many</b> side (e.g. a fact row reading its product's price). <code>RELATEDTABLE</code> returns the <b>table</b> of related many-side rows from the one side (e.g. all sales for a product), typically wrapped in an aggregator like <code>COUNTROWS</code>.`),
+);
+
+/* mark the chosen exercises as important (pins them in the ★ Interview group) */
+const RHEA_IMPORTANT_IDS = new Set([
+  'py-a01','py-a03','py-i02','py-i03','py-a16','py-a26','py-a12','py-a13','py-a02',
+  'sql-a01','sql-a05','sql-i22','sql-a07','sql-a02','sql-a19','sql-i30',
+  'pbi-i05','pbi-a01','pbi-a02','pbi-a07','pbi-a05','pbi-a03','pbi-a08','pbi-a11',
+]);
+[...P, ...S, ...B].forEach(e => { if (RHEA_IMPORTANT_IDS.has(e.id)) e.important = true; });
+
 /* node export for verification scripts (ignored in browser) */
 if (typeof module !== 'undefined') module.exports = { RHEA_EXERCISES, RHEA_DB_SEED };
